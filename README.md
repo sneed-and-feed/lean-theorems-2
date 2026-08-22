@@ -6,86 +6,29 @@ This repository provides machine-checked formalizations, certified proofs, and f
 
 ## Table of Formalized Modules and Theorems
 
-| # | Theorem / Topic | Primary Declaration(s) | Mathematical Domain | Reference | Status |
-| :---: | :--- | :--- | :--- | :--- | :---: |
+| # | Theorem / Topic | Primary Declaration(s) | Mathematical Domain | Reference | Status & Missing Prerequisites |
+| :---: | :--- | :--- | :--- | :--- | :--- |
 | 1 | **Sperner's Antichain Theorem & LYM Inequality** | [`sperners_antichain_theorem`](Formalization/SpernerAntichain.lean), [`lym_inequality`](Formalization/SpernerAntichain.lean), [`sperners_antichain_equality`](Formalization/SpernerAntichain.lean) | Extremal Combinatorics & Poset Theory | Sperner (1928), Lubell (1966), Yamamoto (1954) | **100% Verified (0 axioms)** |
 | 2 | **Van der Waerden's Theorem on Arithmetic Progressions** | [`van_der_waerden_finite`](Formalization/VanDerWaerden.lean), [`van_der_waerden_infinite`](Formalization/VanDerWaerden.lean), [`multiple_van_der_waerden`](Formalization/VanDerWaerden.lean) | Ramsey Theory & Additive Combinatorics | Van der Waerden (1927), Wiedijk #85 | **100% Verified (0 axioms)** |
 | 3 | **Turán's Theorem & Mantel's Theorem** | [`turans_theorem`](Formalization/TuransTheorem.lean), [`turans_theorem_exact`](Formalization/TuransTheorem.lean), [`mantels_theorem`](Formalization/TuransTheorem.lean), [`turans_uniqueness`](Formalization/TuransTheorem.lean) | Extremal Graph Theory | Turán (1941), Mantel (1907) | **100% Verified (0 axioms)** |
-| 4 | **Brooks' Theorem on Graph Colorings** | [`brooks_theorem`](Formalization/BrooksTheorem.lean), [`greedy_coloring_bound`](Formalization/BrooksTheorem.lean) | Graph Theory & Vertex Chromatics | Brooks (1941), Lovász (1975) | Scaffolded (Lovász ordering) |
+| 4 | **Brooks' Theorem on Graph Colorings** | [`brooks_theorem`](Formalization/BrooksTheorem.lean), [`greedy_coloring_bound`](Formalization/BrooksTheorem.lean) | Graph Theory & Vertex Chromatics | Brooks (1941), Lovász (1975) | Scaffolded (lacks Lovász 2-connected vertex ordering) |
 | 5 | **Ihara Zeta Function & Hashimoto Adjacency** | [`HashimotoMatrix`](Formalization/IharaZeta.lean), [`sourceMatrix_mul_targetMatrix_transpose`](Formalization/IharaZeta.lean), [`involutionMatrix_sq`](Formalization/IharaZeta.lean), [`IharaZetaInvLHS`](Formalization/IharaZeta.lean) | Spectral Graph Theory & Zeta Functions | Ihara (1966), Serre (1977) | **100% Verified (0 axioms)** |
 | 6 | **Ihara-Bass Determinantal Formula** | [`ihara_bass_polynomial`](Formalization/IharaBass.lean), [`M_Bass_mul_N_Bass`](Formalization/IharaBass.lean), [`det_KL_Bass`](Formalization/IharaBass.lean) | Algebraic Graph Theory & Block Determinants | Bass (1992), Hashimoto (1989) | **100% Verified (0 axioms)** |
 | 7 | **Prefix-Sharing & Sparsity on Trees** | [`sparsity_bound`](Formalization/PrefixSparsity.lean), [`fraction_eq_p_inv_r`](Formalization/PrefixSparsity.lean), [`card_shared_prefix`](Formalization/PrefixSparsity.lean), [`sparsity_p2_r3`](Formalization/PrefixSparsity.lean) | Tree Combinatorics & Branching Sparsity | Prefix Sharing & Tree Metric Sparsity | **100% Verified (0 axioms)** |
 | 8 | **Characteristic Polynomial of Cyclic Matrices** | [`charpoly_cyclicWeightMatrix`](Formalization/CyclicShift.lean), [`charpoly_shiftMatrix`](Formalization/CyclicShift.lean), [`det_upperBidiagonal`](Formalization/CyclicShift.lean) | Linear Algebra & Circulant Matrices | Cyclic Shifts & Bidiagonal Expansion | **100% Verified (0 axioms)** |
 | 9 | **Ramanujan Tau Congruence $\tau(n) \equiv \sigma_{11}(n) \pmod{691}$** | [`ramanujan_tau_congruence`](Formalization/RamanujanTau.lean), [`bernoulli_12_exact`](Formalization/RamanujanTau.lean), [`ramanujan_congruence_691`](Formalization/RamanujanTau.lean) | Modular Forms & Number Theory | Ramanujan (1916), Serre (1973) | **100% Verified (0 axioms)** |
-| 10 | **Kirchhoff's Matrix-Tree Theorem** | [`matrix_tree_theorem`](Formalization/MatrixTreeTheorem.lean), [`laplacian_row_sum_zero`](Formalization/MatrixTreeTheorem.lean), [`laplacian_transpose_eq`](Formalization/MatrixTreeTheorem.lean), [`incidence_mul_transpose`](Formalization/MatrixTreeTheorem.lean) | Algebraic Graph Theory & Tree Enumeration | Kirchhoff (1847), Stanley (2012) | Scaffolded ($B B^T = L$ verified) |
-| 11 | **Vizing's Theorem on Edge Colorings** | [`vizings_theorem`](Formalization/VizingsTheorem.lean), [`chromatic_index_ge_maxDegree`](Formalization/VizingsTheorem.lean), [`vizing_classification`](Formalization/VizingsTheorem.lean), [`konig_edge_coloring`](Formalization/VizingsTheorem.lean) | Graph Theory & Edge Colorings | Vizing (1964), König (1916) | Scaffolded ($\chi' \ge \Delta$ verified) |
+| 10 | **Kirchhoff's Matrix-Tree Theorem** | [`matrix_tree_theorem`](Formalization/MatrixTreeTheorem.lean), [`laplacian_row_sum_zero`](Formalization/MatrixTreeTheorem.lean), [`laplacian_transpose_eq`](Formalization/MatrixTreeTheorem.lean), [`incidence_mul_transpose`](Formalization/MatrixTreeTheorem.lean) | Algebraic Graph Theory & Tree Enumeration | Kirchhoff (1847), Stanley (2012) | Scaffolded ($B B^T = L$ verified; lacks Binet–Cauchy determinants) |
+| 11 | **Vizing's Theorem on Edge Colorings** | [`vizings_theorem`](Formalization/VizingsTheorem.lean), [`chromatic_index_ge_maxDegree`](Formalization/VizingsTheorem.lean), [`vizing_classification`](Formalization/VizingsTheorem.lean), [`konig_edge_coloring`](Formalization/VizingsTheorem.lean) | Graph Theory & Edge Colorings | Vizing (1964), König (1916) | Scaffolded ($\chi' \ge \Delta$ verified; lacks Kempe fan recoloring) |
 | 12 | **Fisher's Inequality for Block Designs** | [`fishers_inequality`](Formalization/FishersInequality.lean), [`gramian_eq`](Formalization/FishersInequality.lean), [`det_gramian`](Formalization/FishersInequality.lean), [`incidence_mul_transpose_apply`](Formalization/FishersInequality.lean) | Combinatorial Design Theory & Matrix Gramians | Fisher (1940), Bose (1949) | **100% Verified (0 axioms)** |
 | 13 | **Lindström–Gessel–Viennot (LGV) Lemma** | [`lindstrom_gessel_viennot`](Formalization/GesselViennot.lean), [`gessel_viennot_planar_dag`](Formalization/GesselViennot.lean), [`det_pathMatrix_eq_permutation_sum`](Formalization/GesselViennot.lean), [`intersecting_path_systems_sum_zero`](Formalization/GesselViennot.lean) | Algebraic Combinatorics & Lattice Paths | Lindström (1973), Gessel & Viennot (1985) | **100% Verified (0 axioms)** |
-| 14 | **Cayley's Tree Formula & Prüfer Sequences** | [`cayleys_tree_formula`](Formalization/CayleysFormula.lean), [`prufer_sequence_card`](Formalization/CayleysFormula.lean), [`pruferEquiv`](Formalization/CayleysFormula.lean), [`rooted_trees_count`](Formalization/CayleysFormula.lean) | Enumerative Combinatorics & Graph Enumeration | Cayley (1889), Prüfer (1918) | Scaffolded (Prufer space & counts verified) |
-| 15 | **Kőnig–Egerváry Duality Theorem** | [`konig_duality`](Formalization/KonigMatching.lean), [`weak_duality`](Formalization/KonigMatching.lean), [`matching_card_le_vertexCover_card`](Formalization/KonigMatching.lean), [`gallai_independence_vertex_cover`](Formalization/KonigMatching.lean) | Combinatorial Optimization & Polyhedral Graphs | Kőnig (1931), Egerváry (1931), Gallai (1959) | Scaffolded (Weak duality & Gallai verified) |
-| 16 | **Jung's Theorem on Circumscribed Spheres** | [`jungs_theorem`](Formalization/JungsTheorem.lean), [`circumradius_le_jungs_bound`](Formalization/JungsTheorem.lean), [`jungsConstant_pos`](Formalization/JungsTheorem.lean), [`jungs_bound_dim2`](Formalization/JungsTheorem.lean) | Discrete Geometry & Convexity | Jung (1901), Danzer, Grünbaum, & Klee (1963) | Scaffolded (Exact constants verified) |
-| 17 | **Alon–Boppana Spectral Lower Bound** | [`alon_boppana_bound`](Formalization/AlonBoppana.lean), [`alon_boppana_nilli`](Formalization/AlonBoppana.lean), [`secondEigenvalue`](Formalization/AlonBoppana.lean), [`IsRamanujan`](Formalization/AlonBoppana.lean) | Spectral Graph Theory & Expanders | Alon (1986), Boppana (1986), Nilli (1991) | Scaffolded (Symmetry & gap verified) |
-| 18 | **Menger's Theorem on Disjoint Paths & Cuts** | [`mengers_theorem_vertex`](Formalization/MengersTheorem.lean), [`mengers_theorem_edge`](Formalization/MengersTheorem.lean), [`weak_duality`](Formalization/MengersTheorem.lean), [`kConnected_iff_paths`](Formalization/MengersTheorem.lean) | Graph Connectivity & Network Optimization | Menger (1927), Whitney (1932), Dirac (1966) | Scaffolded (Weak duality verified) |
-| 19 | **MacMahon's Master Theorem** | [`macmahon_master_theorem`](Formalization/MacMahonsMasterTheorem.lean), [`macmahon_dim1`](Formalization/MacMahonsMasterTheorem.lean), [`macmahonMatrix`](Formalization/MacMahonsMasterTheorem.lean), [`invDetMacMahon`](Formalization/MacMahonsMasterTheorem.lean) | Enumerative Combinatorics & Formal Series | MacMahon (1915), Cartier & Foata (1969) | Scaffolded (1D base cases verified) |
-| 20 | **Bárány's Colorful Carathéodory Theorem** | [`colorful_caratheodory_origin`](Formalization/ColorfulCaratheodory.lean), [`colorful_caratheodory_point`](Formalization/ColorfulCaratheodory.lean), [`caratheodory_classical_deduction`](Formalization/ColorfulCaratheodory.lean) | Discrete Geometry & Colorful Convexity | Bárány (1982), Carathéodory (1907) | Scaffolded (Classical deduction verified) |
-| 21 | **Blichfeldt's Theorem in Geometry of Numbers** | [`blichfeldts_theorem`](Formalization/BlichfeldtsTheorem.lean), [`minkowski_convex_body_theorem`](Formalization/BlichfeldtsTheorem.lean), [`blichfeldt_dim1`](Formalization/BlichfeldtsTheorem.lean) | Geometry of Numbers & Lattice Tiling | Blichfeldt (1914), Minkowski (1896) | Scaffolded (1D interval translation verified) |
-
----
-
-## Formalization Status: What We Have and What We Lack
-
-### 1. What We Have (Fully Machine-Checked & Verified)
-
-* **Zero `sorry` Placeholders:** Every module compiles under `lake build Formalization` with 0 missing proof obligations.
-* **10 Fully Axiom-Free Modules:**
-  1. `Formalization/SpernerAntichain.lean`: Sperner's theorem, LYM inequality, and maximum antichain size $\binom{n}{\lfloor n/2 \rfloor}$.
-  2. `Formalization/VanDerWaerden.lean`: Finite & infinite Van der Waerden AP existence and multiple progressions.
-  3. `Formalization/TuransTheorem.lean`: Turán's theorem, Turán graph edge count, Mantel's triangle-free bound, and uniqueness.
-  4. `Formalization/FishersInequality.lean`: Point-block incidence identities ($vr=bk$, $r(k-1)=\lambda(v-1)$, $r>\lambda$), exact Gramian determinant $\det(N N^T) = (r-\lambda)^{v-1}(r+(v-1)\lambda) > 0$, and matrix rank deduction $b \ge v$.
-  5. `Formalization/GesselViennot.lean`: Leibniz path matrix determinant expansion, tail-swapping sign-reversing involution $\Phi$, cancellation of intersecting path sums, and the full LGV theorem for planar grid DAGs.
-  6. `Formalization/IharaZeta.lean`: Hashimoto non-backtracking operator $T$, dart source/target incidence matrices, and dart involution identities.
-  7. `Formalization/IharaBass.lean`: Ihara-Bass block Schur complement eliminations $M N L = K L$ and the non-backtracking determinant identity.
-  8. `Formalization/PrefixSparsity.lean`: Exact prefix-sharing on $p$-ary trees and $1 - p^{-r}$ sparsity bounds.
-  9. `Formalization/CyclicShift.lean`: Closed-form charpoly $\chi(X) = X^L - \prod W_k$ for weighted circulants over general rings.
-  10. `Formalization/RamanujanTau.lean`: Ramanujan congruence $\tau(n) \equiv \sigma_{11}(n) \pmod{691}$ via Bernoulli number $B_{12} = -691/2730$ and dimension-2 cusp form structure $M_{12} = \mathbb{Q} E_{12} \oplus \mathbb{Q} \Delta$.
-* **Verified Base Infrastructure for Remaining Modules:**
-  - Vizing edge chromatic index lower bound $\chi'(G) \ge \Delta(G)$ verified via star-incidence injections.
-  - Kirchhoff's incidence matrix factorization $B B^T = L(G)$ verified entrywise for oriented graphs over arbitrary rings.
-  - Kőnig weak duality $\nu(G) \le \tau(G)$ and Gallai's identity $\alpha(G) + \tau(G) = |V|$ fully verified.
-  - Prüfer sequence cardinality $|\text{Fin}(n-2) \to \text{Fin}(n)| = n^{n-2}$, tree edge count $|E| = n-1$, and small instance evaluations ($T_2=1, T_3=3, T_4=16$).
-  - Exact Jung constants ($J_1=1/2, J_2=1/\sqrt{3}, J_3=\sqrt{3/8}$) and circumradius bounds for $d \in \{1, 2, 3\}$.
-  - Menger weak duality $|\mathcal{P}| \le |S|$ via internal path vertex intersections.
-  - MacMahon 1D geometric series expansion and zero-exponent base cases.
-  - Blichfeldt 1D interval translation and classical Carathéodory bounds.
-
----
-
-### 2. What We Lack (Foundational Prerequisites Isolated into Axioms)
-
-The remaining 11 modules isolate deeper mathematical machinery into clean, typed axioms pending future upstream expansions in Mathlib:
-
-1. **`BrooksTheorem.lean` (`exists_lovasz_ordering`)**:
-   - *Lacks:* Lovász's 1975 constructive reverse BFS tree ordering for 2-connected, non-complete, non-odd-cycle graphs.
-2. **`MatrixTreeTheorem.lean` (`matrix_tree_theorem`, `matrix_tree_theorem_eigenvalues`)**:
-   - *Lacks:* The general rectangular Binet–Cauchy determinant theorem $\det(B_{(r)} B_{(r)}^T) = \sum_{|S|=n-1} \det(B_{(r), S})^2$ and total unimodularity of graphic incidence matrices.
-3. **`VizingsTheorem.lean` (`vizings_theorem`, `konig_edge_coloring`)**:
-   - *Lacks:* Vizing's fan recoloring shift and alternating 2-color Kempe chain cycle resolution.
-4. **`KonigMatching.lean` (`konig_duality`)**:
-   - *Lacks:* Augmenting path induction (Berge's Lemma) or defect deduction from Hall's Marriage Theorem.
-5. **`CayleysFormula.lean` (`pruferEquiv`, `degree_eq_prufer_count`)**:
-   - *Lacks:* Well-founded inductive tree-leaf peeling algorithm and reconstruction proofs.
-6. **`JungsTheorem.lean` (`jungs_theorem`)**:
-   - *Lacks:* Reduction from Helly's theorem on Euclidean balls to the circumradius maximization of the regular simplex.
-7. **`AlonBoppana.lean` (`alon_boppana_bound`, `alon_boppana_nilli`)**:
-   - *Lacks:* Nilli's spherical shell test vector Rayleigh quotient bounding via Chebyshev polynomials on regular trees.
-8. **`MengersTheorem.lean` (`mengers_theorem_vertex`, `mengers_theorem_edge`, `kConnected_iff_paths`)**:
-   - *Lacks:* Dirac's edge contraction $G / e$ induction for minimal separating sets.
-9. **`MacMahonsMasterTheorem.lean` (`macmahon_master_theorem`)**:
-   - *Lacks:* Multivariable formal power series log-determinant identity $\det(I - X A)^{-1} = \exp(\operatorname{Tr}(\log(I - X A)^{-1}))$.
-10. **`ColorfulCaratheodory.lean` (`colorful_caratheodory_origin`, `colorful_caratheodory_point`)**:
-    - *Lacks:* Bárány–Onn extremal distance projection and supporting hyperplane exchange argument.
-11. **`BlichfeldtsTheorem.lean` (`blichfeldts_theorem`, `minkowski_convex_body_theorem`)**:
-    - *Lacks:* Measure-theoretic pigeonhole principle for Lebesgue integration on the torus $\mathbb{R}^d / \mathbb{Z}^d$.
+| 14 | **Cayley's Tree Formula & Prüfer Sequences** | [`cayleys_tree_formula`](Formalization/CayleysFormula.lean), [`prufer_sequence_card`](Formalization/CayleysFormula.lean), [`pruferEquiv`](Formalization/CayleysFormula.lean), [`rooted_trees_count`](Formalization/CayleysFormula.lean) | Enumerative Combinatorics & Graph Enumeration | Cayley (1889), Prüfer (1918) | Scaffolded (Prufer space & counts verified; lacks leaf-peeling decode) |
+| 15 | **Kőnig–Egerváry Duality Theorem** | [`konig_duality`](Formalization/KonigMatching.lean), [`weak_duality`](Formalization/KonigMatching.lean), [`matching_card_le_vertexCover_card`](Formalization/KonigMatching.lean), [`gallai_independence_vertex_cover`](Formalization/KonigMatching.lean) | Combinatorial Optimization & Polyhedral Graphs | Kőnig (1931), Egerváry (1931), Gallai (1959) | Scaffolded (Weak duality & Gallai verified; lacks bipartite augmenting paths) |
+| 16 | **Jung's Theorem on Circumscribed Spheres** | [`jungs_theorem`](Formalization/JungsTheorem.lean), [`circumradius_le_jungs_bound`](Formalization/JungsTheorem.lean), [`jungsConstant_pos`](Formalization/JungsTheorem.lean), [`jungs_bound_dim2`](Formalization/JungsTheorem.lean) | Discrete Geometry & Convexity | Jung (1901), Danzer, Grünbaum, & Klee (1963) | Scaffolded (Exact constants verified; lacks Helly simplex reduction) |
+| 17 | **Alon–Boppana Spectral Lower Bound** | [`alon_boppana_bound`](Formalization/AlonBoppana.lean), [`alon_boppana_nilli`](Formalization/AlonBoppana.lean), [`secondEigenvalue`](Formalization/AlonBoppana.lean), [`IsRamanujan`](Formalization/AlonBoppana.lean) | Spectral Graph Theory & Expanders | Alon (1986), Boppana (1986), Nilli (1991) | Scaffolded (Symmetry & gap verified; lacks Nilli spherical test vectors) |
+| 18 | **Menger's Theorem on Disjoint Paths & Cuts** | [`mengers_theorem_vertex`](Formalization/MengersTheorem.lean), [`mengers_theorem_edge`](Formalization/MengersTheorem.lean), [`weak_duality`](Formalization/MengersTheorem.lean), [`kConnected_iff_paths`](Formalization/MengersTheorem.lean) | Graph Connectivity & Network Optimization | Menger (1927), Whitney (1932), Dirac (1966) | Scaffolded (Weak duality verified; lacks Dirac edge contraction) |
+| 19 | **MacMahon's Master Theorem** | [`macmahon_master_theorem`](Formalization/MacMahonsMasterTheorem.lean), [`macmahon_dim1`](Formalization/MacMahonsMasterTheorem.lean), [`macmahonMatrix`](Formalization/MacMahonsMasterTheorem.lean), [`invDetMacMahon`](Formalization/MacMahonsMasterTheorem.lean) | Enumerative Combinatorics & Formal Series | MacMahon (1915), Cartier & Foata (1969) | Scaffolded (1D cases verified; lacks multivariable log-det expansion) |
+| 20 | **Bárány's Colorful Carathéodory Theorem** | [`colorful_caratheodory_origin`](Formalization/ColorfulCaratheodory.lean), [`colorful_caratheodory_point`](Formalization/ColorfulCaratheodory.lean), [`caratheodory_classical_deduction`](Formalization/ColorfulCaratheodory.lean) | Discrete Geometry & Colorful Convexity | Bárány (1982), Carathéodory (1907) | Scaffolded (Classical deduction verified; lacks Bárány–Onn projection) |
+| 21 | **Blichfeldt's Theorem in Geometry of Numbers** | [`blichfeldts_theorem`](Formalization/BlichfeldtsTheorem.lean), [`minkowski_convex_body_theorem`](Formalization/BlichfeldtsTheorem.lean), [`blichfeldt_dim1`](Formalization/BlichfeldtsTheorem.lean) | Geometry of Numbers & Lattice Tiling | Blichfeldt (1914), Minkowski (1896) | Scaffolded (1D interval verified; lacks torus pigeonhole integration) |
 
 ---
 
