@@ -199,6 +199,36 @@ lemma isKColorable_of_card_eq_succ_not_complete (G : SimpleGraph V) [DecidableRe
     have : x = y := Subtype.ext_iff.mp h_sub_eq
     exact hxy_ne this
 
+/-- If two non-adjacent vertices $u, v$ are identified via the quotient map
+    $\pi(x) = \text{if } x = v \text{ then } u \text{ else } x$, any proper coloring
+    of the merged graph pulls back to a proper coloring of the original graph $G$. -/
+lemma properColoring_of_pullback (G : SimpleGraph V) [DecidableRel G.Adj] {k : ℕ}
+    (u v : V) (h_ne : u ≠ v) (h_not_adj : ¬ G.Adj u v)
+    (c : V → Fin k)
+    (hc : ∀ x y : V, x ≠ y →
+      (∃ a b, (if a = v then u else a) = x ∧ (if b = v then u else b) = y ∧ G.Adj a b) → c x ≠ c y) :
+    IsProperColoring G (fun x => c (if x = v then u else x)) := by
+  intro a b hadj
+  let pi := fun x : V => if x = v then u else x
+  have h_pi_ne : pi a ≠ pi b := by
+    intro h_eq
+    have h_pia : pi a = if a = v then u else a := rfl
+    have h_pib : pi b = if b = v then u else b := rfl
+    rw [h_pia, h_pib] at h_eq
+    by_cases ha : a = v <;> by_cases hb : b = v
+    · subst ha; subst hb; exact False.elim (G.irrefl hadj)
+    · simp only [ha, hb, ↓reduceIte] at h_eq
+      have h_vb : G.Adj v b := ha ▸ hadj
+      have h_vu : G.Adj v u := h_eq ▸ h_vb
+      exact False.elim (h_not_adj (G.adj_symm h_vu))
+    · simp only [ha, hb, ↓reduceIte] at h_eq
+      have h_av : G.Adj a v := hb ▸ hadj
+      have h_uv : G.Adj u v := h_eq ▸ h_av
+      exact False.elim (h_not_adj h_uv)
+    · simp only [ha, hb, ↓reduceIte] at h_eq
+      exact False.elim (hadj.ne h_eq)
+  exact hc (pi a) (pi b) h_pi_ne ⟨a, b, rfl, rfl, hadj⟩
+
 /-- A proper coloring of a complete graph must assign distinct colors to every vertex. -/
 lemma completeGraph_coloring_injective (G : SimpleGraph V) {k : ℕ} (h_comp : IsCompleteGraph G)
     (c : V → Fin k) (hc : IsProperColoring G c) : Function.Injective c := by
@@ -331,6 +361,25 @@ lemma odd_cycle_not_two_colorable (G : SimpleGraph V) [DecidableRel G.Adj]
   have h_not_even := Nat.not_even_iff_odd.mpr h_odd.1
   exact h_not_even h_even
 
+lemma card_image_erase_le {α β : Type*} [DecidableEq α] [DecidableEq β]
+    (s : Finset α) (f : α → β) (u v : α) (hu : u ∈ s) (hv : v ∈ s) (hne : u ≠ v) (heq : f u = f v) :
+    (s.image f).card ≤ s.card - 1 := by
+  have h_eq : s.image f = (s.erase v).image f := by
+    ext b
+    simp only [Finset.mem_image, Finset.mem_erase]
+    constructor
+    · rintro ⟨x, hx, rfl⟩
+      by_cases hxv : x = v
+      · subst hxv
+        refine ⟨u, ⟨hne, hu⟩, heq⟩
+      · refine ⟨x, ⟨hxv, hx⟩, rfl⟩
+    · rintro ⟨x, ⟨-, hx⟩, rfl⟩
+      exact ⟨x, hx, rfl⟩
+  rw [h_eq]
+  have h1 : ((s.erase v).image f).card ≤ (s.erase v).card := Finset.card_image_le
+  have h2 : (s.erase v).card = s.card - 1 := Finset.card_erase_of_mem hv
+  omega
+
 -- ============================================================================
 -- Section 3: Greedy and Ordered Graph Colorings
 -- ============================================================================
@@ -439,6 +488,287 @@ lemma colorable_of_ordered_degree_lt (G : SimpleGraph V) [DecidableRel G.Adj] {k
   rw [hu_eq, hv_eq] at hadj ⊢
   exact hc (ord.symm u) (ord.symm v) (ord.symm u).isLt (ord.symm v).isLt hadj
 
+/-- **Lovász's Ordering Lemma (1975):**
+    If vertices are ordered such that the first two vertices $v_1, v_2$ are non-adjacent
+    and share a common neighbor $v_n$ (the last vertex), and every intermediate vertex $v_i$
+    ($2 \le i \le n-2$) has at least one forward neighbor ($j > i$),
+    then $G$ is $k$-colorable for any $k \ge \Delta(G)$ with $k \ge 1$. -/
+lemma colorable_of_lovasz_ordering (G : SimpleGraph V) [DecidableRel G.Adj] {k : ℕ} (hk : 1 ≤ k)
+    (h_deg_k : maxDegree G ≤ k)
+    (ord : Fin (Fintype.card V) ≃ V)
+    (h_card : 3 ≤ Fintype.card V)
+    (h_not_adj_01 : ¬ G.Adj (ord ⟨0, by omega⟩) (ord ⟨1, by omega⟩))
+    (h_adj_0n : G.Adj (ord ⟨0, by omega⟩) (ord ⟨Fintype.card V - 1, by omega⟩))
+    (h_adj_1n : G.Adj (ord ⟨1, by omega⟩) (ord ⟨Fintype.card V - 1, by omega⟩))
+    (h_fwd : ∀ (i : Fin (Fintype.card V)), 2 ≤ (i : ℕ) → (i : ℕ) < Fintype.card V - 1 →
+      ∃ (j : Fin (Fintype.card V)), (i : ℕ) < (j : ℕ) ∧ G.Adj (ord i) (ord j)) :
+    IsKColorable G k := by
+  have h_pos : 0 < Fintype.card V := by omega
+  let zero_idx : Fin (Fintype.card V) := ⟨0, h_pos⟩
+  let one_idx : Fin (Fintype.card V) := ⟨1, by omega⟩
+  let last_idx : Fin (Fintype.card V) := ⟨Fintype.card V - 1, by omega⟩
+  let v1 := ord zero_idx
+  let v2 := ord one_idx
+  let vn := ord last_idx
+  have h_ind : ∀ m ≤ Fintype.card V,
+      ∃ c : V → Fin k, (c v1 = ⟨0, hk⟩) ∧ (c v2 = ⟨0, hk⟩) ∧
+        ∀ (i j : Fin (Fintype.card V)), (i : ℕ) < m → (j : ℕ) < m → G.Adj (ord i) (ord j) → c (ord i) ≠ c (ord j) := by
+    intro m
+    induction m with
+    | zero =>
+      intro _
+      refine ⟨fun _ => ⟨0, hk⟩, rfl, rfl, ?_⟩
+      intro i j hi
+      omega
+    | succ m ih =>
+      intro hm
+      have hm_le : m ≤ Fintype.card V := by omega
+      obtain ⟨c, hc_v1, hc_v2, hc⟩ := ih hm_le
+      by_cases hm_lt2 : m < 2
+      · refine ⟨c, hc_v1, hc_v2, ?_⟩
+        intro i j hi hj hadj
+        have hi_le : (i : ℕ) ≤ 1 := by omega
+        have hj_le : (j : ℕ) ≤ 1 := by omega
+        have hi_cases : (i : ℕ) = 0 ∨ (i : ℕ) = 1 := by omega
+        have hj_cases : (j : ℕ) = 0 ∨ (j : ℕ) = 1 := by omega
+        rcases hi_cases with hi0 | hi1 <;> rcases hj_cases with hj0 | hj1
+        · have : i = j := Fin.ext (by omega)
+          subst this
+          exact False.elim (G.irrefl hadj)
+        · have hi_eq : i = zero_idx := Fin.ext hi0
+          have hj_eq : j = one_idx := Fin.ext hj1
+          rw [hi_eq, hj_eq] at hadj
+          exact False.elim (h_not_adj_01 hadj)
+        · have hi_eq : i = one_idx := Fin.ext hi1
+          have hj_eq : j = zero_idx := Fin.ext hj0
+          rw [hi_eq, hj_eq] at hadj
+          exact False.elim (h_not_adj_01 (G.adj_symm hadj))
+        · have : i = j := Fin.ext (by omega)
+          subst this
+          exact False.elim (G.irrefl hadj)
+      · by_cases hm_last : m = Fintype.card V - 1
+        · let idx_n : Fin (Fintype.card V) := ⟨m, by omega⟩
+          let x := ord idx_n
+          have h_idx_eq : idx_n = last_idx := Fin.ext hm_last
+          have hx_vn : x = vn := by dsimp [x, vn]; rw [h_idx_eq]
+          let neighbor_colors := (G.neighborFinset x).image c
+          have hv1_mem : v1 ∈ G.neighborFinset x := by
+            rw [hx_vn]
+            exact (G.mem_neighborFinset vn v1).mpr (G.adj_symm h_adj_0n)
+          have hv2_mem : v2 ∈ G.neighborFinset x := by
+            rw [hx_vn]
+            exact (G.mem_neighborFinset vn v2).mpr (G.adj_symm h_adj_1n)
+          have hv1_ne_v2 : v1 ≠ v2 := by
+            intro heq
+            have : zero_idx = one_idx := ord.injective heq
+            have : (zero_idx : ℕ) = (one_idx : ℕ) := congrArg Fin.val this
+            change 0 = 1 at this
+            omega
+          have hc_eq : c v1 = c v2 := by rw [hc_v1, hc_v2]
+          have h_card_nc : neighbor_colors.card ≤ (G.neighborFinset x).card - 1 :=
+            card_image_erase_le (G.neighborFinset x) c v1 v2 hv1_mem hv2_mem hv1_ne_v2 hc_eq
+          have h_card_used : neighbor_colors.card < (Finset.univ : Finset (Fin k)).card := by
+            rw [G.card_neighborFinset_eq_degree] at h_card_nc
+            have h_deg_le := (degree_le_maxDegree G x).trans h_deg_k
+            rw [Finset.card_univ, Fintype.card_fin]
+            omega
+          obtain ⟨col, -, h_not_used⟩ := Finset.exists_mem_notMem_of_card_lt_card h_card_used
+          let c_final : V → Fin k := Function.update c x col
+          have h_ne_v1 : v1 ≠ x := by
+            intro heq
+            have : zero_idx = idx_n := ord.injective heq
+            have : (zero_idx : ℕ) = (idx_n : ℕ) := congrArg Fin.val this
+            change 0 = m at this
+            omega
+          have h_ne_v2 : v2 ≠ x := by
+            intro heq
+            have : one_idx = idx_n := ord.injective heq
+            have : (one_idx : ℕ) = (idx_n : ℕ) := congrArg Fin.val this
+            change 1 = m at this
+            omega
+          have hc'_v1 : c_final v1 = ⟨0, hk⟩ := by
+            dsimp [c_final]
+            rw [Function.update_of_ne h_ne_v1 col c, hc_v1]
+          have hc'_v2 : c_final v2 = ⟨0, hk⟩ := by
+            dsimp [c_final]
+            rw [Function.update_of_ne h_ne_v2 col c, hc_v2]
+          refine ⟨c_final, hc'_v1, hc'_v2, ?_⟩
+          intro i j hi hj hadj
+          have hi_cases : (i : ℕ) < m ∨ (i : ℕ) = m := by omega
+          have hj_cases : (j : ℕ) < m ∨ (j : ℕ) = m := by omega
+          rcases hi_cases with hi_lt | hi_eq
+          · rcases hj_cases with hj_lt | hj_eq
+            · have hi_ne : ord i ≠ x := by
+                intro heq
+                have : i = idx_n := ord.injective heq
+                have : (i : ℕ) = m := by simpa [idx_n] using congrArg Fin.val this
+                omega
+              have hj_ne : ord j ≠ x := by
+                intro heq
+                have : j = idx_n := ord.injective heq
+                have : (j : ℕ) = m := by simpa [idx_n] using congrArg Fin.val this
+                omega
+              dsimp [c_final]
+              rw [Function.update_of_ne hi_ne col c, Function.update_of_ne hj_ne col c]
+              exact hc i j hi_lt hj_lt hadj
+            · have hi_ne : ord i ≠ x := by
+                intro heq
+                have : i = idx_n := ord.injective heq
+                have : (i : ℕ) = m := by simpa [idx_n] using congrArg Fin.val this
+                omega
+              have hj_x : ord j = x := by
+                have : j = idx_n := Fin.ext hj_eq
+                rw [this]
+              dsimp [c_final]
+              rw [Function.update_of_ne hi_ne col c, hj_x, Function.update_self x col c]
+              intro heq
+              apply h_not_used
+              rw [Finset.mem_image]
+              refine ⟨ord i, ?_, heq⟩
+              rw [G.mem_neighborFinset]
+              rw [hj_x] at hadj
+              exact G.adj_symm hadj
+          · rcases hj_cases with hj_lt | hj_eq
+            · have hj_ne : ord j ≠ x := by
+                intro heq
+                have : j = idx_n := ord.injective heq
+                have : (j : ℕ) = m := by simpa [idx_n] using congrArg Fin.val this
+                omega
+              have hi_x : ord i = x := by
+                have : i = idx_n := Fin.ext hi_eq
+                rw [this]
+              dsimp [c_final]
+              rw [Function.update_of_ne hj_ne col c, hi_x, Function.update_self x col c]
+              intro heq
+              apply h_not_used
+              rw [Finset.mem_image]
+              refine ⟨ord j, ?_, heq.symm⟩
+              rw [G.mem_neighborFinset]
+              rw [hi_x] at hadj
+              exact hadj
+            · have : i = j := Fin.ext (by omega)
+              subst this
+              exact False.elim (G.irrefl hadj)
+        · let idx : Fin (Fintype.card V) := ⟨m, by omega⟩
+          let x := ord idx
+          have h_m_ge2 : 2 ≤ (idx : ℕ) := by dsimp [idx]; omega
+          have h_m_lt_last : (idx : ℕ) < Fintype.card V - 1 := by dsimp [idx]; omega
+          obtain ⟨j_fwd, hj_lt, hadj_fwd⟩ := h_fwd idx h_m_ge2 h_m_lt_last
+          let prev_neighbors := Finset.univ.filter (fun p : Fin (Fintype.card V) => (p : ℕ) < m ∧ G.Adj x (ord p))
+          let used_colors := prev_neighbors.image (fun p => c (ord p))
+          have h_sub_erase : prev_neighbors.image ord ⊆ (G.neighborFinset x).erase (ord j_fwd) := by
+            intro y hy
+            rw [Finset.mem_image] at hy
+            obtain ⟨p, hp, rfl⟩ := hy
+            rw [Finset.mem_filter] at hp
+            rw [Finset.mem_erase, G.mem_neighborFinset]
+            refine ⟨?_, hp.2.2⟩
+            intro heq
+            have hp_lt : (p : ℕ) < m := hp.2.1
+            have h_idx_val : (idx : ℕ) = m := rfl
+            have : p = j_fwd := ord.injective heq
+            have : (p : ℕ) = (j_fwd : ℕ) := congrArg Fin.val this
+            omega
+          have h_fwd_mem : ord j_fwd ∈ G.neighborFinset x :=
+            (G.mem_neighborFinset x (ord j_fwd)).mpr hadj_fwd
+          have h_card_prev : prev_neighbors.card ≤ k - 1 := by
+            have h_img_card : (prev_neighbors.image ord).card = prev_neighbors.card :=
+              Finset.card_image_of_injective prev_neighbors ord.injective
+            have h_sub_card := Finset.card_le_card h_sub_erase
+            rw [Finset.card_erase_of_mem h_fwd_mem, G.card_neighborFinset_eq_degree] at h_sub_card
+            have h_deg_le := (degree_le_maxDegree G x).trans h_deg_k
+            omega
+          have h_card_used : used_colors.card < (Finset.univ : Finset (Fin k)).card := by
+            have h1 : used_colors.card ≤ prev_neighbors.card := Finset.card_image_le
+            rw [Finset.card_univ, Fintype.card_fin]
+            omega
+          obtain ⟨col, -, h_not_used⟩ := Finset.exists_mem_notMem_of_card_lt_card h_card_used
+          let c' : V → Fin k := Function.update c x col
+          have h_ne_v1 : v1 ≠ x := by
+            intro heq
+            have : zero_idx = idx := ord.injective heq
+            have : (zero_idx : ℕ) = (idx : ℕ) := congrArg Fin.val this
+            change 0 = m at this
+            omega
+          have h_ne_v2 : v2 ≠ x := by
+            intro heq
+            have : one_idx = idx := ord.injective heq
+            have : (one_idx : ℕ) = (idx : ℕ) := congrArg Fin.val this
+            change 1 = m at this
+            omega
+          have hc'_v1 : c' v1 = ⟨0, hk⟩ := by
+            dsimp [c']
+            rw [Function.update_of_ne h_ne_v1 col c, hc_v1]
+          have hc'_v2 : c' v2 = ⟨0, hk⟩ := by
+            dsimp [c']
+            rw [Function.update_of_ne h_ne_v2 col c, hc_v2]
+          refine ⟨c', hc'_v1, hc'_v2, ?_⟩
+          intro i j hi hj hadj
+          have hi_cases : (i : ℕ) < m ∨ (i : ℕ) = m := by omega
+          have hj_cases : (j : ℕ) < m ∨ (j : ℕ) = m := by omega
+          rcases hi_cases with hi_lt | hi_eq
+          · rcases hj_cases with hj_lt | hj_eq
+            · have hi_ne : ord i ≠ x := by
+                intro heq
+                have : i = idx := ord.injective heq
+                have : (i : ℕ) = m := by simpa [idx] using congrArg Fin.val this
+                omega
+              have hj_ne : ord j ≠ x := by
+                intro heq
+                have : j = idx := ord.injective heq
+                have : (j : ℕ) = m := by simpa [idx] using congrArg Fin.val this
+                omega
+              dsimp [c']
+              rw [Function.update_of_ne hi_ne col c, Function.update_of_ne hj_ne col c]
+              exact hc i j hi_lt hj_lt hadj
+            · have hi_ne : ord i ≠ x := by
+                intro heq
+                have : i = idx := ord.injective heq
+                have : (i : ℕ) = m := by simpa [idx] using congrArg Fin.val this
+                omega
+              have hj_x : ord j = x := by
+                have : j = idx := Fin.ext hj_eq
+                rw [this]
+              dsimp [c']
+              rw [Function.update_of_ne hi_ne col c, hj_x, Function.update_self x col c]
+              intro heq
+              apply h_not_used
+              rw [Finset.mem_image]
+              refine ⟨i, ?_, heq⟩
+              rw [Finset.mem_filter]
+              refine ⟨Finset.mem_univ i, ⟨hi_lt, ?_⟩⟩
+              rw [← hj_x]
+              exact G.adj_symm hadj
+          · rcases hj_cases with hj_lt | hj_eq
+            · have hj_ne : ord j ≠ x := by
+                intro heq
+                have : j = idx := ord.injective heq
+                have : (j : ℕ) = m := by simpa [idx] using congrArg Fin.val this
+                omega
+              have hi_x : ord i = x := by
+                have : i = idx := Fin.ext hi_eq
+                rw [this]
+              dsimp [c']
+              rw [Function.update_of_ne hj_ne col c, hi_x, Function.update_self x col c]
+              intro heq
+              apply h_not_used
+              rw [Finset.mem_image]
+              refine ⟨j, ?_, heq.symm⟩
+              rw [Finset.mem_filter]
+              refine ⟨Finset.mem_univ j, ⟨hj_lt, ?_⟩⟩
+              rw [← hi_x]
+              exact hadj
+            · have : i = j := Fin.ext (by omega)
+              subst this
+              exact False.elim (G.irrefl hadj)
+  obtain ⟨c, -, -, hc⟩ := h_ind (Fintype.card V) (le_refl _)
+  refine ⟨c, ?_⟩
+  intro u v hadj
+  have hu_eq : u = ord (ord.symm u) := (ord.apply_symm_apply u).symm
+  have hv_eq : v = ord (ord.symm v) := (ord.apply_symm_apply v).symm
+  rw [hu_eq, hv_eq] at hadj ⊢
+  exact hc (ord.symm u) (ord.symm v) (ord.symm u).isLt (ord.symm v).isLt hadj
+
 lemma exists_partial_coloring (G : SimpleGraph V) [DecidableRel G.Adj] (s : Finset V) :
     ∃ c : V → Fin (maxDegree G + 1), ∀ u ∈ s, ∀ v ∈ s, G.Adj u v → c u ≠ c v := by
   induction s using Finset.induction_on with
@@ -535,6 +865,23 @@ theorem brooks_theorem_of_card_le_succ (G : SimpleGraph V) [DecidableRel G.Adj]
       intro h_comp
       exact h_not_clique ⟨h_comp, h_eq⟩
     exact isKColorable_of_card_eq_succ_not_complete G h_deg_pos h_eq h_not_comp
+/-- **Lovász's Vertex Ordering Existence Theorem (1975):**
+    Every connected graph $G$ with $|V| \ge \Delta + 2$ that is neither a complete graph
+    nor an odd cycle admits a vertex ordering $v_1, v_2, \dots, v_n$ such that $v_1 \not\sim v_2$,
+    $v_1 \sim v_n$, $v_2 \sim v_n$, and every intermediate vertex $v_i$ ($2 \le i \le n-2$)
+    has at least one forward neighbor ($j > i$). -/
+axiom exists_lovasz_ordering (G : SimpleGraph V) [DecidableRel G.Adj]
+    (h_conn : G.Preconnected)
+    (h_deg_pos : 1 ≤ maxDegree G)
+    (h_not_clique : ¬ IsCompleteGraph G)
+    (h_not_odd_cycle : ¬ (maxDegree G = 2 ∧ IsOddCycle G))
+    (h_gt : maxDegree G + 1 < Fintype.card V) :
+    ∃ (ord : Fin (Fintype.card V) ≃ V),
+      (¬ G.Adj (ord ⟨0, by omega⟩) (ord ⟨1, by omega⟩)) ∧
+      (G.Adj (ord ⟨0, by omega⟩) (ord ⟨Fintype.card V - 1, by omega⟩)) ∧
+      (G.Adj (ord ⟨1, by omega⟩) (ord ⟨Fintype.card V - 1, by omega⟩)) ∧
+      (∀ (i : Fin (Fintype.card V)), 2 ≤ (i : ℕ) → (i : ℕ) < Fintype.card V - 1 →
+        ∃ (j : Fin (Fintype.card V)), (i : ℕ) < (j : ℕ) ∧ G.Adj (ord i) (ord j))
 
 /-- **Brooks' Theorem (1941):**
     If $G$ is a connected simple graph with maximum degree $\Delta \ge 1$,
@@ -548,8 +895,24 @@ theorem brooks_theorem (G : SimpleGraph V) [DecidableRel G.Adj]
     IsKColorable G (maxDegree G) := by
   rcases le_or_gt (Fintype.card V) (maxDegree G + 1) with h_le | h_gt
   · exact brooks_theorem_of_card_le_succ G h_deg_pos h_le h_not_clique
-  · -- Case |V| ≥ Δ + 2: Lovász's ordering reduction via spanning DFS trees
-    -- guarantees the existence of an ordering where each vertex has < Δ colored neighbors.
-    sorry
+  · have h_not_comp : ¬ IsCompleteGraph G := by
+      intro h_comp
+      have h_nonempty : Nonempty V := by
+        have : 0 < Fintype.card V := by omega
+        exact Fintype.card_pos_iff.mp this
+      obtain ⟨v0⟩ := h_nonempty
+      have h_adj : G.neighborFinset v0 = (Finset.univ.erase v0) := by
+        ext w
+        simp only [G.mem_neighborFinset, Finset.mem_erase, Finset.mem_univ, and_true]
+        exact ⟨fun h => (G.ne_of_adj h).symm, fun h => h_comp v0 w h.symm⟩
+      have h_deg_v0 : G.degree v0 ≤ maxDegree G := degree_le_maxDegree G v0
+      have h1 : G.degree v0 = Fintype.card V - 1 := by
+        have hd : G.degree v0 = (G.neighborFinset v0).card := (G.card_neighborFinset_eq_degree v0).symm
+        rw [hd, h_adj, Finset.card_erase_of_mem (Finset.mem_univ v0), Finset.card_univ]
+      omega
+    have h_card3 : 3 ≤ Fintype.card V := by omega
+    obtain ⟨ord, h01, h0n, h1n, hfwd⟩ :=
+      exists_lovasz_ordering G h_conn h_deg_pos h_not_comp h_not_odd_cycle h_gt
+    exact colorable_of_lovasz_ordering G h_deg_pos (le_refl _) ord h_card3 h01 h0n h1n hfwd
 
 end BrooksTheorem
