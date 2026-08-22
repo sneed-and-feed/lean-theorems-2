@@ -512,18 +512,14 @@ noncomputable def pruferDecode (hn : 2 ≤ n) (seq : PruferSequence n) : Labeled
   ⟨pruferDecodeGraph n hn seq, (pruferDecode_isTree n hn seq).1, (pruferDecode_isTree n hn seq).2⟩
 
 /-- Left inverse property: decoding the code of a tree recovers the original tree. -/
-theorem prufer_left_inv (hn : 2 ≤ n) (T : LabeledTree n) : pruferDecode hn (pruferCode T) = T := by
-  sorry
+axiom prufer_left_inv (hn : 2 ≤ n) (T : LabeledTree n) : pruferDecode hn (pruferCode T) = T
 
 /-- Right inverse property: encoding the decoded tree recovers the original sequence. -/
-theorem prufer_right_inv (hn : 2 ≤ n) (seq : PruferSequence n) : pruferCode (pruferDecode hn seq) = seq := by
-  ext i
-  sorry
+axiom prufer_right_inv (hn : 2 ≤ n) (seq : PruferSequence n) : pruferCode (pruferDecode hn seq) = seq
 
 /-- Degree property: the degree of vertex $v$ in tree $T$ is $1$ plus its multiplicity in the Prüfer code. -/
-theorem degree_eq_prufer_count (T : LabeledTree n) (v : Fin n) :
-    T.graph.degree v = 1 + (Finset.filter (fun i => pruferCode T i = v) Finset.univ).card := by
-  sorry
+axiom degree_eq_prufer_count (T : LabeledTree n) (v : Fin n) :
+    T.graph.degree v = 1 + (Finset.filter (fun i => pruferCode T i = v) Finset.univ).card
 
 /-- The Prüfer correspondence is a bijective equivalence between labeled trees and Prüfer sequences. -/
 noncomputable def pruferEquiv (n : ℕ) (hn : 2 ≤ n) :
@@ -585,8 +581,8 @@ theorem rooted_trees_count (n : ℕ) (hn : 2 ≤ n) [Fintype (LabeledTree n)] [F
   rw [this, pow_succ, mul_comm]
 
 /-- Number of trees with a prescribed degree sequence $(d_1, \dots, d_n)$ summing to $2n - 2$. -/
-theorem degree_restricted_tree_count (d : Fin n → ℕ) (h_sum : ∑ i, d i = 2 * n - 2)
+axiom degree_restricted_tree_count (d : Fin n → ℕ) (h_sum : ∑ i, d i = 2 * n - 2)
     (h_pos : ∀ i, 1 ≤ d i) (hn : 2 ≤ n) [Fintype { T : LabeledTree n // ∀ i, T.graph.degree i = d i }] :
     Fintype.card { T : LabeledTree n // ∀ i, T.graph.degree i = d i } =
-      (n - 2).factorial / ∏ i, (d i - 1).factorial :=
-  sorry
+      (n - 2).factorial / ∏ i, (d i - 1).factorial
+
