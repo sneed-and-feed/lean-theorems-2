@@ -13,6 +13,7 @@ set_option linter.unusedVariables false
 set_option linter.style.haveILetI false
 
 open Finset
+open scoped FinsetFamily
 
 /-!
 # Sperner's Theorem on Antichains and the LYM Inequality (1928, 1966)
@@ -262,6 +263,26 @@ theorem sperners_antichain_theorem {n : ℕ} (hn : Fintype.card α = n)
 -- Section 4: Equality Cases
 -- ============================================================================
 
+lemma sum_eq_of_forall_le_and_sum_eq {ι : Type*} [DecidableEq ι] (s : Finset ι) (f : ι → ℕ) (c : ℕ)
+    (hle : ∀ i ∈ s, f i ≤ c) (hsum : ∑ i ∈ s, f i = s.card * c) (i : ι) (hi : i ∈ s) :
+    f i = c := by
+  by_contra hne
+  have hlt : f i < c := lt_of_le_of_ne (hle i hi) hne
+  have h_sum_lt : ∑ j ∈ s, f j < s.card * c := by
+    rw [← Finset.add_sum_erase s f hi]
+    have h_rest_le : ∑ j ∈ s.erase i, f j ≤ (s.card - 1) * c := by
+      have : ∑ j ∈ s.erase i, f j ≤ ∑ j ∈ s.erase i, c :=
+        sum_le_sum (fun j hj => hle j (mem_of_mem_erase hj))
+      rw [sum_const, card_erase_of_mem hi, nsmul_eq_mul] at this
+      exact this
+    have h_pos : 0 < s.card := card_pos.mpr ⟨i, hi⟩
+    obtain ⟨k, hk⟩ := Nat.exists_eq_succ_of_ne_zero h_pos.ne'
+    have h_split : s.card * c = (s.card - 1) * c + c := by
+      rw [hk, Nat.succ_sub_one, Nat.succ_mul, add_comm]
+    rw [h_split]
+    omega
+  omega
+
 lemma sperners_antichain_equality_even {n : ℕ} (hn : Fintype.card α = n)
     (A : Finset (Finset α)) (h_anti : IsAntichain A)
     (h_eq : A.card = middleChoose n) (heven : Even n) :
@@ -303,7 +324,190 @@ theorem sperners_antichain_equality {n : ℕ} (hn : Fintype.card α = n)
           have : t.card = t0.card := by rw [h_eq_tt0]
           omega
         · -- Case m ≥ 1: an extremal antichain cannot have elements in both middle layers
-          sorry
+          let B : Finset (Finset α) := A.filter (fun s => s.card = m + 1)
+          let Am : Finset (Finset α) := A.filter (fun s => s.card = m)
+          have ht0_B : t0 ∈ B := mem_filter.mpr ⟨ht0_in, ht0_card⟩
+          have hB_nonempty : B.Nonempty := ⟨t0, ht0_B⟩
+          have ht_Am : t ∈ Am := mem_filter.mpr ⟨ht, by omega⟩
+          have hAm_nonempty : Am.Nonempty := ⟨t, ht_Am⟩
+          have hB_sized : (B : Set (Finset α)).Sized (m + 1) := fun s hs => (mem_filter.mp hs).2
+          have hAm_sized : (Am : Set (Finset α)).Sized m := fun s hs => (mem_filter.mp hs).2
+          have h_mem_or : ∀ s ∈ A, s ∈ Am ∨ s ∈ B := by
+            intro s hs
+            have h_or := card_eq_or_eq_of_card_eq_middleChoose hn A h_anti h_eq s hs
+            rcases h_or with h1 | h2
+            · left; exact mem_filter.mpr ⟨hs, by omega⟩
+            · right; exact mem_filter.mpr ⟨hs, by omega⟩
+          have h_disj_Am_B : Disjoint Am B := by
+            rw [disjoint_filter]
+            intro s _ h1 h2
+            omega
+          have h_card_A : A.card = Am.card + B.card := by
+            have h_eq_union : A = Am ∪ B := by
+              ext s
+              simp only [mem_union]
+              constructor
+              · intro hs
+                exact h_mem_or s hs
+              · rintro (hs | hs)
+                · exact (mem_filter.mp hs).1
+                · exact (mem_filter.mp hs).1
+            rw [h_eq_union, card_union_of_disjoint h_disj_Am_B]
+          have h_sum_cards : Am.card + B.card = middleChoose (2 * m + 1) := by
+            rw [← h_card_A, h_eq]
+          have h_shB_sized : (∂ B : Set (Finset α)).Sized m := by
+            have := Set.Sized.shadow hB_sized
+            rwa [add_tsub_cancel_right] at this
+          have h_disj_Am_shB : Disjoint Am (∂ B) := by
+            rw [disjoint_iff_ne]
+            intro u hu v hv heq
+            subst heq
+            rw [mem_filter] at hu
+            rw [mem_shadow_iff] at hv
+            obtain ⟨s, hs_B, a, ha_s, rfl⟩ := hv
+            have hs_A : s ∈ A := (mem_filter.mp hs_B).1
+            have hu_sub_s : erase s a ⊆ s := erase_subset a s
+            have hu_eq_s : erase s a = s := h_anti (erase s a) hu.1 s hs_A hu_sub_s
+            have h_card_eq : (erase s a).card = s.card := by rw [hu_eq_s]
+            rw [hu.2, (mem_filter.mp hs_B).2] at h_card_eq
+            omega
+          have h_sub_pow : Am ∪ (∂ B) ⊆ (Finset.univ : Finset α).powersetCard m := by
+            intro u hu
+            rw [mem_union] at hu
+            simp only [mem_powersetCard, subset_univ, true_and]
+            rcases hu with hu | hu
+            · exact hAm_sized hu
+            · exact h_shB_sized hu
+          have h_card_union_le : (Am ∪ (∂ B)).card ≤ middleChoose (2 * m + 1) := by
+            have h1 := card_le_card h_sub_pow
+            rw [card_powersetCard, card_univ, hn] at h1
+            unfold middleChoose
+            have : (2 * m + 1) / 2 = m := by omega
+            rwa [this]
+          have h_card_union_eq : (Am ∪ (∂ B)).card = Am.card + (∂ B).card :=
+            card_union_of_disjoint h_disj_Am_shB
+          have h_Am_shB_le : Am.card + (∂ B).card ≤ middleChoose (2 * m + 1) := by
+            linarith
+          have h_lym_B := local_lubell_yamamoto_meshalkin_inequality_mul hB_sized
+          have h_B_le_shB : B.card ≤ (∂ B).card := by
+            rw [hn] at h_lym_B
+            have : 2 * m + 1 - (m + 1) + 1 = m + 1 := by omega
+            rw [this] at h_lym_B
+            exact Nat.le_of_mul_le_mul_right h_lym_B (by omega)
+          have h_B_eq_shB : B.card = (∂ B).card := by omega
+          have hb_below : ∀ b ∈ B, m + 1 ≤ #((∂ B).bipartiteBelow (· ⊆ ·) b) := by
+            intro b hb
+            have hb_card : b.card = m + 1 := (mem_filter.mp hb).2
+            have h_sub : b.image (fun a => b.erase a) ⊆ (∂ B).bipartiteBelow (· ⊆ ·) b := by
+              intro u hu
+              simp only [mem_image] at hu
+              obtain ⟨a, ha_b, rfl⟩ := hu
+              simp only [mem_bipartiteBelow]
+              refine ⟨?_, erase_subset a b⟩
+              rw [mem_shadow_iff]
+              exact ⟨b, hb, a, ha_b, rfl⟩
+            have h_inj : (b : Set α).InjOn (fun a => b.erase a) := by
+              intro a1 ha1 a2 ha2 heq
+              dsimp at heq
+              by_contra hne
+              have : a2 ∈ b.erase a1 := mem_erase.mpr ⟨Ne.symm hne, ha2⟩
+              rw [heq, mem_erase] at this
+              exact this.1 rfl
+            have h_card_im : (b.image (fun a => b.erase a)).card = m + 1 := by
+              rw [card_image_of_injOn h_inj, hb_card]
+            rw [← h_card_im]
+            exact card_le_card h_sub
+          have hu_above : ∀ u ∈ ∂ B, #(B.bipartiteAbove (· ⊆ ·) u) ≤ m + 1 := by
+            intro u hu
+            have hu_card : u.card = m := h_shB_sized hu
+            have h_sub : B.bipartiteAbove (· ⊆ ·) u ⊆ (Finset.univ \ u).image (fun a => insert a u) := by
+              intro s hs
+              simp only [mem_bipartiteAbove] at hs
+              obtain ⟨hs_B, hu_sub_s⟩ := hs
+              have hs_card : s.card = m + 1 := (mem_filter.mp hs_B).2
+              have h_ins : ∃ a ∉ u, insert a u = s := by
+                apply exists_eq_insert_iff.mpr
+                exact ⟨hu_sub_s, by omega⟩
+              obtain ⟨a, ha_not, rfl⟩ := h_ins
+              simp only [mem_image, mem_sdiff, mem_univ, true_and]
+              exact ⟨a, ha_not, rfl⟩
+            have h_card_im : ((Finset.univ \ u).image (fun a => insert a u)).card ≤ m + 1 := by
+              refine le_trans card_image_le ?_
+              rw [card_sdiff_of_subset (subset_univ u), card_univ, hn, hu_card]
+              omega
+            exact le_trans (card_le_card h_sub) h_card_im
+          have h_sum_eq : (∑ u ∈ ∂ B, #(B.bipartiteAbove (· ⊆ ·) u)) = ∑ b ∈ B, #((∂ B).bipartiteBelow (· ⊆ ·) b) :=
+            sum_card_bipartiteAbove_eq_sum_card_bipartiteBelow (r := ((· ⊆ ·) : Finset α → Finset α → Prop))
+          have h_sum_below : B.card * (m + 1) ≤ ∑ b ∈ B, #((∂ B).bipartiteBelow (· ⊆ ·) b) := by
+            have := sum_le_sum (fun b (hb : b ∈ B) => hb_below b hb)
+            rw [sum_const, nsmul_eq_mul] at this
+            exact this
+          have h_sum_above : ∑ u ∈ ∂ B, #(B.bipartiteAbove (· ⊆ ·) u) ≤ (∂ B).card * (m + 1) := by
+            have := sum_le_sum (fun u (hu : u ∈ ∂ B) => hu_above u hu)
+            rw [sum_const, nsmul_eq_mul] at this
+            exact this
+          have h_all_sum_eq : ∑ u ∈ ∂ B, #(B.bipartiteAbove (· ⊆ ·) u) = (∂ B).card * (m + 1) := by
+            have h1 : ∑ u ∈ ∂ B, #(B.bipartiteAbove (· ⊆ ·) u) = ∑ b ∈ B, #((∂ B).bipartiteBelow (· ⊆ ·) b) := h_sum_eq
+            have h2 : (∂ B).card * (m + 1) ≤ ∑ b ∈ B, #((∂ B).bipartiteBelow (· ⊆ ·) b) := by
+              rwa [← h_B_eq_shB]
+            omega
+          have hu_above_eq : ∀ u ∈ ∂ B, #(B.bipartiteAbove (· ⊆ ·) u) = m + 1 :=
+            fun u hu => sum_eq_of_forall_le_and_sum_eq (∂ B) (fun v => #(B.bipartiteAbove (· ⊆ ·) v)) (m + 1)
+              hu_above h_all_sum_eq u hu
+          have h_ins_in_B : ∀ u ∈ ∂ B, ∀ x ∉ u, insert x u ∈ B := by
+            intro u hu x hx
+            have hu_card : u.card = m := h_shB_sized hu
+            have h_sub : B.bipartiteAbove (· ⊆ ·) u ⊆ (Finset.univ \ u).image (fun a => insert a u) := by
+              intro s hs
+              simp only [mem_bipartiteAbove] at hs
+              obtain ⟨hs_B, hu_sub_s⟩ := hs
+              have hs_card : s.card = m + 1 := (mem_filter.mp hs_B).2
+              have h_ins : ∃ a ∉ u, insert a u = s := by
+                apply exists_eq_insert_iff.mpr
+                exact ⟨hu_sub_s, by omega⟩
+              obtain ⟨a, ha_not, rfl⟩ := h_ins
+              simp only [mem_image, mem_sdiff, mem_univ, true_and]
+              exact ⟨a, ha_not, rfl⟩
+            have h_inj : ((Finset.univ \ u : Finset α) : Set α).InjOn (fun a => insert a u) := by
+              intro a1 ha1 a2 ha2 heq
+              dsimp at heq
+              rw [coe_sdiff, coe_univ, Set.mem_sdiff] at ha1 ha2
+              have ha1_not : a1 ∉ u := ha1.2
+              have : a1 ∈ insert a2 u := by rw [← heq]; exact mem_insert_self a1 u
+              simp only [mem_insert] at this
+              cases this with
+              | inl h => exact h
+              | inr h => exact (ha1_not h).elim
+            have h_card_im : ((Finset.univ \ u).image (fun a => insert a u)).card = m + 1 := by
+              rw [card_image_of_injOn h_inj]
+              rw [card_sdiff_of_subset (subset_univ u), card_univ, hn, hu_card]
+              omega
+            have h_above_eq_im : B.bipartiteAbove (· ⊆ ·) u = (Finset.univ \ u).image (fun a => insert a u) :=
+              eq_of_subset_of_card_le h_sub (by rw [hu_above_eq u hu, h_card_im])
+            have hx_im : insert x u ∈ (Finset.univ \ u).image (fun a => insert a u) := by
+              simp only [mem_image, mem_sdiff, mem_univ, true_and]
+              exact ⟨x, hx, rfl⟩
+            rw [← h_above_eq_im] at hx_im
+            simp only [mem_bipartiteAbove] at hx_im
+            exact hx_im.1
+          have h_swap : ∀ s ∈ B, ∀ y ∈ s, ∀ x ∉ s, insert x (s.erase y) ∈ B := by
+            intro s hs y hy x hx
+            have hu : s.erase y ∈ ∂ B := erase_mem_shadow hs hy
+            have hx_not : x ∉ s.erase y := fun h => hx (mem_of_mem_erase h)
+            exact h_ins_in_B (s.erase y) hu x hx_not
+          have h_B_all := all_powersetCard_of_swap_closed (m + 1) B hB_nonempty hB_sized h_swap
+          have h_B_card_all : B.card = middleChoose (2 * m + 1) := by
+            rw [h_B_all, card_powersetCard, card_univ, hn]
+            unfold middleChoose
+            have : (2 * m + 1) / 2 = m := by omega
+            rw [this]
+            have h_symm : (2 * m + 1).choose (m + 1) = (2 * m + 1).choose (2 * m + 1 - (m + 1)) :=
+              (Nat.choose_symm (show m + 1 ≤ 2 * m + 1 by omega)).symm
+            have h_sub_eq : 2 * m + 1 - (m + 1) = m := by omega
+            rwa [h_sub_eq] at h_symm
+          have h_Am_zero : Am.card = 0 := by omega
+          have h_Am_pos : 0 < Am.card := card_pos.mpr hAm_nonempty
+          omega
       · omega
 
 end SpernerAntichain
