@@ -4,7 +4,9 @@ import Mathlib.Data.Finset.Powerset
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Nat.Choose.Basic
 import Mathlib.Data.Rat.Defs
-import Mathlib.Tactic
+import Mathlib.Combinatorics.SetFamily.LYM
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Ring
 
 set_option linter.unusedSectionVars false
 set_option linter.unusedVariables false
@@ -82,7 +84,14 @@ noncomputable def lymSum (n : ℕ) (A : Finset (Finset α)) : ℚ :=
 theorem lym_inequality {n : ℕ} (hn : Fintype.card α = n)
     (A : Finset (Finset α)) (h_anti : IsAntichain A) :
     lymSum n A ≤ 1 := by
-  sorry
+  have h_anti' : _root_.IsAntichain (· ⊆ ·) (A : Set (Finset α)) := by
+    intro a ha b hb hab hsub
+    exact hab (h_anti a ha b hb hsub)
+  have h_lym := Finset.lubell_yamamoto_meshalkin_inequality_sum_inv_choose (𝕜 := ℚ) h_anti'
+  rw [hn] at h_lym
+  unfold lymSum lymWeight
+  simp_rw [one_div]
+  exact h_lym
 
 -- ============================================================================
 -- Section 3: Middle Binomial Coefficient & Sperner's Theorem
@@ -95,14 +104,52 @@ def middleChoose (n : ℕ) : ℕ :=
 /-- The middle binomial coefficient is maximal among all binomial coefficients `Nat.choose n k`. -/
 lemma choose_le_middleChoose (n k : ℕ) (hk : k ≤ n) :
     Nat.choose n k ≤ middleChoose n := by
-  sorry
+  exact Nat.choose_le_middle k n
+
+lemma choose_lt_succ_of_lt_half_left {n k : ℕ} (hk : k < n / 2) :
+    Nat.choose n k < Nat.choose n (k + 1) := by
+  have h_sub : k + 1 < n - k := by omega
+  have h_choose_pos : 0 < Nat.choose n k := Nat.choose_pos (by omega)
+  have h_mul : Nat.choose n k * (k + 1) < Nat.choose n k * (n - k) :=
+    Nat.mul_lt_mul_of_pos_left h_sub h_choose_pos
+  rw [← Nat.choose_succ_right_eq] at h_mul
+  exact Nat.lt_of_mul_lt_mul_right h_mul
+
+lemma choose_lt_middle_of_lt_half_left {n k : ℕ} (hk : k < n / 2) :
+    Nat.choose n k < Nat.choose n (n / 2) := by
+  obtain ⟨d, hd⟩ : ∃ d, n / 2 = k + d + 1 := Nat.exists_eq_add_of_lt hk
+  induction d generalizing k with
+  | zero =>
+    have : k + 1 = n / 2 := by omega
+    rw [← this]
+    exact choose_lt_succ_of_lt_half_left hk
+  | succ d ih =>
+    have hk1 : k + 1 < n / 2 := by omega
+    have hstep := choose_lt_succ_of_lt_half_left hk
+    have hrec := ih (k := k + 1) (by omega) (by omega)
+    exact lt_trans hstep hrec
+
+lemma choose_lt_middleChoose_of_ne {n k : ℕ} (hk : k ≤ n)
+    (h1 : k ≠ n / 2) (h2 : k ≠ n - n / 2) :
+    Nat.choose n k < middleChoose n := by
+  unfold middleChoose
+  rcases lt_or_gt_of_ne h1 with hlt | hgt
+  · exact choose_lt_middle_of_lt_half_left hlt
+  · have hsymm : Nat.choose n k = Nat.choose n (n - k) := (Nat.choose_symm hk).symm
+    rw [hsymm]
+    apply choose_lt_middle_of_lt_half_left
+    omega
 
 /-- **Sperner's Theorem on Antichains (Sperner, 1928):**
     The maximum cardinality of an antichain of subsets of an `n`-element set is `Nat.choose n (n / 2)`. -/
 theorem sperners_antichain_theorem {n : ℕ} (hn : Fintype.card α = n)
     (A : Finset (Finset α)) (h_anti : IsAntichain A) :
     A.card ≤ middleChoose n := by
-  sorry
+  have h_anti' : _root_.IsAntichain (· ⊆ ·) (A : Set (Finset α)) := by
+    intro a ha b hb hab hsub
+    exact hab (h_anti a ha b hb hsub)
+  have h_sp := _root_.IsAntichain.sperner h_anti'
+  rwa [hn] at h_sp
 
 -- ============================================================================
 -- Section 4: Equality Cases

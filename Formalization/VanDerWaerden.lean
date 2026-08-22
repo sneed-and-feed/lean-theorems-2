@@ -2,7 +2,8 @@ import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Finset.Card
 import Mathlib.Data.Finset.Image
 import Mathlib.Data.Fin.Basic
-import Mathlib.Tactic
+import Mathlib.Data.Fintype.Pigeonhole
+import Mathlib.Tactic.IntervalCases
 
 set_option linter.unusedSectionVars false
 set_option linter.unusedVariables false
@@ -87,7 +88,29 @@ theorem vdw_one (r : ℕ) (hr : 1 ≤ r) :
 /-- Two-point base case (Pigeonhole Principle): W(r, 2) = r + 1. -/
 theorem vdw_two (r : ℕ) (hr : 1 ≤ r) :
     HasVDWProperty (r + 1) r 2 := by
-  sorry
+  intro c
+  have h_card : Fintype.card (Fin r) < Fintype.card (Fin (r + 1)) := by
+    simp only [Fintype.card_fin]
+    omega
+  obtain ⟨x, y, hne, heq⟩ := Fintype.exists_ne_map_eq_of_card_lt c h_card
+  have h_val_ne : (x : ℕ) ≠ (y : ℕ) := fun h => hne (Fin.ext h)
+  rcases lt_or_gt_of_ne h_val_ne with hlt | hgt
+  · refine ⟨(x : ℕ), (y : ℕ) - (x : ℕ), by omega, ⟨by omega, ?_⟩⟩
+    intro ⟨i, hi⟩
+    interval_cases i
+    · simp
+    · have h1 : (x : ℕ) + 1 * ((y : ℕ) - (x : ℕ)) = (y : ℕ) := by omega
+      have hx : (⟨(x : ℕ), by omega⟩ : Fin (r + 1)) = x := Fin.ext rfl
+      have hy : (⟨(x : ℕ) + 1 * ((y : ℕ) - (x : ℕ)), by omega⟩ : Fin (r + 1)) = y := Fin.ext h1
+      simp only [hy, hx, heq]
+  · refine ⟨(y : ℕ), (x : ℕ) - (y : ℕ), by omega, ⟨by omega, ?_⟩⟩
+    intro ⟨i, hi⟩
+    interval_cases i
+    · simp
+    · have h1 : (y : ℕ) + 1 * ((x : ℕ) - (y : ℕ)) = (x : ℕ) := by omega
+      have hy : (⟨(y : ℕ), by omega⟩ : Fin (r + 1)) = y := Fin.ext rfl
+      have hx : (⟨(y : ℕ) + 1 * ((x : ℕ) - (y : ℕ)), by omega⟩ : Fin (r + 1)) = x := Fin.ext h1
+      simp only [hx, hy, heq.symm]
 
 -- ============================================================================
 -- Section 3: Van der Waerden Numbers & Main Theorems
