@@ -1,6 +1,4 @@
-import Formalization.DesarguesProjectivePlane
 import Formalization.SpernerAntichain
 import Formalization.VanDerWaerden
 import Formalization.TuransTheorem
 import Formalization.BrooksTheorem
-import Formalization.ErdosKoRadoStability
