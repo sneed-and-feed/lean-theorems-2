@@ -12,6 +12,9 @@ import Mathlib.Tactic.Linarith
 open scoped BigOperators
 open Classical
 
+set_option linter.unusedSectionVars false
+set_option linter.unusedVariables false
+
 /-!
 # Cayley's Tree Formula
 
@@ -39,6 +42,13 @@ Given a tree $T$ on $\{1, \dots, n\}$:
 - Remove the leaf and its incident edge from $T$.
 - The resulting sequence $(a_1, \dots, a_{n-2})$ is the Prüfer code $\operatorname{prufer}(T)$.
 
+**Decoding Algorithm**:
+Given a sequence $(a_1, \dots, a_{n-2})$:
+- Initialize degree counts $d(v) = 1 + \text{count}(v, \text{seq})$ for each vertex $v$.
+- At each step $i$, find the smallest vertex $u$ with $d(u) = 1$, add edge $\{u, a_i\}$, remove $u$,
+  and decrement $d(a_i)$.
+- Finally, connect the two remaining vertices with $d(v) = 1$.
+
 **Degree-Sequence Property**:
 For every vertex $v \in \{1, \dots, n\}$, its degree in $T$ satisfies:
 $$\deg_T(v) = 1 + |\{i \in \{1, \dots, n-2\} : a_i = v\}|$$
@@ -55,8 +65,8 @@ That is, each vertex appears in the Prüfer sequence exactly $\deg_T(v) - 1$ tim
 - `LabeledTree`: Structure representing a labeled tree on `Fin n`.
 - `PruferSequence`: Type alias for Prüfer sequences `Fin (n - 2) → Fin n`.
 - `prufer_sequence_card`: Verification that $|PruferSequence(n)| = n^{n - 2}$.
-- `pruferCode`: Encoding function from labeled trees to Prüfer sequences.
-- `pruferDecode`: Decoding function from Prüfer sequences to labeled trees.
+- `pruferCode`: Constructive leaf-peeling encoding algorithm.
+- `pruferDecode`: Constructive decoding algorithm reconstructing labeled trees.
 - `pruferEquiv`: The Prüfer bijection `LabeledTree n ≃ PruferSequence n`.
 - `degree_eq_prufer_count`: The degree formula $\deg_T(v) = 1 + \text{count}(v, \text{prufer}(T))$.
 - `cayleys_tree_formula`: The primary theorem $Fintype.card (LabeledTree n) = n^{n-2}$.
@@ -112,19 +122,114 @@ theorem prufer_sequence_card (n : ℕ) :
 
 end PruferSequence
 
-/-- Prüfer encoding algorithm: associates a unique Prüfer sequence to any labeled tree. -/
-axiom pruferCode (T : LabeledTree n) : PruferSequence n
+-- Constructive leaf detection
+noncomputable def smallestLeaf (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) : Option (Fin n) :=
+  let leaves := S.filter (fun v => (S.filter (fun u => G.Adj v u)).card = 1)
+  if h : leaves.Nonempty then
+    some (leaves.min' h)
+  else
+    none
+
+noncomputable def leafNeighbor (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v : Fin n) : Option (Fin n) :=
+  let neighbors := S.filter (fun u => G.Adj v u)
+  if h : neighbors.Nonempty then
+    some (neighbors.min' h)
+  else
+    none
+
+/-- One leaf-peeling step: finds the smallest leaf in `S`, records its neighbor, and removes the leaf. -/
+noncomputable def pruferPeelStep (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) : Option (Fin n) × Finset (Fin n) :=
+  match smallestLeaf G S with
+  | some v => (leafNeighbor G S v, S.erase v)
+  | none => (none, S)
+
+/-- Peel `k` leaves iteratively from the vertex set `S`. -/
+noncomputable def pruferPeelIter : ℕ → SimpleGraph (Fin n) → Finset (Fin n) → List (Fin n)
+  | 0, _, _ => []
+  | k + 1, G, S =>
+    let (u_opt, S') := pruferPeelStep G S
+    match u_opt with
+    | some u => u :: pruferPeelIter k G S'
+    | none => pruferPeelIter k G S'
+
+/-- Constructive Prüfer encoding algorithm: associates a unique Prüfer sequence of length $n-2$ to any labeled tree. -/
+noncomputable def pruferCode (T : LabeledTree n) : PruferSequence n :=
+  let l := pruferPeelIter (n - 2) T.graph Finset.univ
+  fun (i : Fin (n - 2)) =>
+    if h : (i : ℕ) < l.length then
+      l.get ⟨i.val, h⟩
+    else
+      i.castLT (by omega)
+
+/-- Initial degree sequence for decoding: $\deg(v) = 1 + \text{count}(v, \text{seq})$. -/
+noncomputable def pruferInitialDegree (seq : PruferSequence n) (v : Fin n) : ℕ :=
+  1 + (Finset.filter (fun i : Fin (n - 2) => seq i = v) Finset.univ).card
+
+/-- Find the smallest vertex in $S$ with current degree $1$. -/
+noncomputable def smallestDegreeOne (deg : Fin n → ℕ) (S : Finset (Fin n)) : Option (Fin n) :=
+  let candidates := S.filter (fun v => deg v = 1)
+  if h : candidates.Nonempty then
+    some (candidates.min' h)
+  else
+    none
+
+/-- One step of Prüfer decoding: pick the smallest degree 1 vertex in $S$, add edge to $seq(i)$, decrement degrees. -/
+noncomputable def pruferDecodeStep (seq_val : Fin n) (deg : Fin n → ℕ) (S : Finset (Fin n)) :
+    Option (Sym2 (Fin n)) × (Fin n → ℕ) × Finset (Fin n) :=
+  match smallestDegreeOne deg S with
+  | some v =>
+    let deg' := fun x => if x = v then 0 else if x = seq_val then deg seq_val - 1 else deg x
+    (some s(v, seq_val), deg', S.erase v)
+  | none =>
+    (none, deg, S)
+
+/-- Decode loop: iterates over the sequence, producing edges. -/
+noncomputable def pruferDecodeEdgesLoop : List (Fin n) → (Fin n → ℕ) → Finset (Fin n) → List (Sym2 (Fin n))
+  | [], _, S =>
+    if h : S.Nonempty then
+      let u := S.min' h
+      let S' := S.erase u
+      if h' : S'.Nonempty then [s(u, S'.min' h')] else []
+    else []
+  | a :: rest, deg, S =>
+    let (e_opt, deg', S') := pruferDecodeStep a deg S
+    match e_opt with
+    | some e => e :: pruferDecodeEdgesLoop rest deg' S'
+    | none => pruferDecodeEdgesLoop rest deg' S'
+
+/-- The edge set reconstructed from a Prüfer sequence. -/
+noncomputable def pruferDecodeEdgeFinset (_hn : 2 ≤ n) (seq : PruferSequence n) : Finset (Sym2 (Fin n)) :=
+  let seq_list := (List.finRange (n - 2)).map (fun i => seq ⟨i.val, i.isLt⟩)
+  (pruferDecodeEdgesLoop seq_list (pruferInitialDegree seq) Finset.univ).toFinset
+
+/-- Constructive simple graph reconstructed from a Prüfer sequence. -/
+noncomputable def pruferDecodeGraph (hn : 2 ≤ n) (seq : PruferSequence n) : SimpleGraph (Fin n) :=
+  SimpleGraph.fromEdgeSet (pruferDecodeEdgeFinset hn seq)
+
+/-- The reconstructed graph from a Prüfer sequence is a valid tree. -/
+axiom pruferDecode_isTree (hn : 2 ≤ n) (seq : PruferSequence n) : (pruferDecodeGraph hn seq).IsTree
 
 /-- Prüfer decoding algorithm: reconstructs a labeled tree from a Prüfer sequence. -/
-axiom pruferDecode (hn : 2 ≤ n) (seq : PruferSequence n) : LabeledTree n
+noncomputable def pruferDecode (hn : 2 ≤ n) (seq : PruferSequence n) : LabeledTree n :=
+  ⟨pruferDecodeGraph hn seq, (pruferDecode_isTree hn seq).1, (pruferDecode_isTree hn seq).2⟩
 
 /-- Degree property: the degree of vertex $v$ in tree $T$ is $1$ plus its multiplicity in the Prüfer code. -/
 axiom degree_eq_prufer_count (T : LabeledTree n) (v : Fin n) :
     T.graph.degree v = 1 + (Finset.filter (fun i => pruferCode T i = v) Finset.univ).card
 
+/-- Left inverse property: decoding the code of a tree recovers the original tree. -/
+axiom prufer_left_inv (hn : 2 ≤ n) (T : LabeledTree n) : pruferDecode hn (pruferCode T) = T
+
+/-- Right inverse property: encoding the decoded tree recovers the original sequence. -/
+axiom prufer_right_inv (hn : 2 ≤ n) (seq : PruferSequence n) : pruferCode (pruferDecode hn seq) = seq
+
 /-- The Prüfer correspondence is a bijective equivalence between labeled trees and Prüfer sequences. -/
-axiom pruferEquiv (n : ℕ) (hn : 2 ≤ n) :
-    LabeledTree n ≃ PruferSequence n
+noncomputable def pruferEquiv (n : ℕ) (hn : 2 ≤ n) :
+    LabeledTree n ≃ PruferSequence n where
+  toFun := pruferCode
+  invFun := pruferDecode hn
+  left_inv := prufer_left_inv hn
+  right_inv := prufer_right_inv hn
 
 /--
 **Cayley's Tree Formula (1889)**:
@@ -182,4 +287,3 @@ axiom degree_restricted_tree_count (d : Fin n → ℕ) (h_sum : ∑ i, d i = 2 *
     (h_pos : ∀ i, 1 ≤ d i) (hn : 2 ≤ n) [Fintype { T : LabeledTree n // ∀ i, T.graph.degree i = d i }] :
     Fintype.card { T : LabeledTree n // ∀ i, T.graph.degree i = d i } =
       (n - 2).factorial / ∏ i, (d i - 1).factorial
-

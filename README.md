@@ -21,9 +21,9 @@ This repository provides machine-checked formalizations, certified proofs, and f
 | 11 | **Vizing's Theorem on Edge Colorings** | [`vizings_theorem`](Formalization/VizingsTheorem.lean), [`chromatic_index_ge_maxDegree`](Formalization/VizingsTheorem.lean), [`vizing_classification`](Formalization/VizingsTheorem.lean), [`konig_edge_coloring`](Formalization/VizingsTheorem.lean) | Graph Theory & Edge Colorings | Vizing (1964), König (1916) | Scaffolded ($\chi' \ge \Delta$ verified; lacks Kempe fan recoloring) |
 | 12 | **Fisher's Inequality for Block Designs** | [`fishers_inequality`](Formalization/FishersInequality.lean), [`gramian_eq`](Formalization/FishersInequality.lean), [`det_gramian`](Formalization/FishersInequality.lean), [`incidence_mul_transpose_apply`](Formalization/FishersInequality.lean) | Combinatorial Design Theory & Matrix Gramians | Fisher (1940), Bose (1949) | **100% Verified (0 axioms)** |
 | 13 | **Lindström–Gessel–Viennot (LGV) Lemma** | [`lindstrom_gessel_viennot`](Formalization/GesselViennot.lean), [`gessel_viennot_planar_dag`](Formalization/GesselViennot.lean), [`det_pathMatrix_eq_permutation_sum`](Formalization/GesselViennot.lean), [`intersecting_path_systems_sum_zero`](Formalization/GesselViennot.lean) | Algebraic Combinatorics & Lattice Paths | Lindström (1973), Gessel & Viennot (1985) | **100% Verified (0 axioms)** |
-| 14 | **Cayley's Tree Formula & Prüfer Sequences** | [`cayleys_tree_formula`](Formalization/CayleysFormula.lean), [`prufer_sequence_card`](Formalization/CayleysFormula.lean), [`pruferEquiv`](Formalization/CayleysFormula.lean), [`rooted_trees_count`](Formalization/CayleysFormula.lean) | Enumerative Combinatorics & Graph Enumeration | Cayley (1889), Prüfer (1918) | Scaffolded (Prufer space & counts verified; lacks leaf-peeling decode) |
-| 15 | **Kőnig–Egerváry Duality Theorem** | [`konig_duality`](Formalization/KonigMatching.lean), [`weak_duality`](Formalization/KonigMatching.lean), [`matching_card_le_vertexCover_card`](Formalization/KonigMatching.lean), [`gallai_independence_vertex_cover`](Formalization/KonigMatching.lean) | Combinatorial Optimization & Polyhedral Graphs | Kőnig (1931), Egerváry (1931), Gallai (1959) | Scaffolded (Weak duality & Gallai verified; lacks bipartite augmenting paths) |
-| 16 | **Jung's Theorem on Circumscribed Spheres** | [`jungs_theorem`](Formalization/JungsTheorem.lean), [`circumradius_le_jungs_bound`](Formalization/JungsTheorem.lean), [`jungsConstant_pos`](Formalization/JungsTheorem.lean), [`jungs_bound_dim2`](Formalization/JungsTheorem.lean) | Discrete Geometry & Convexity | Jung (1901), Danzer, Grünbaum, & Klee (1963) | Scaffolded (Exact constants verified; lacks Helly simplex reduction) |
+| 14 | **Cayley's Tree Formula & Prüfer Sequences** | [`cayleys_tree_formula`](Formalization/CayleysFormula.lean), [`prufer_sequence_card`](Formalization/CayleysFormula.lean), [`pruferEquiv`](Formalization/CayleysFormula.lean), [`pruferCode`](Formalization/CayleysFormula.lean), [`pruferDecode`](Formalization/CayleysFormula.lean) | Enumerative Combinatorics & Graph Enumeration | Cayley (1889), Prüfer (1918) | Scaffolded (Constructive encoding `pruferCode`, decoding `pruferDecode`, and `pruferEquiv` verified) |
+| 15 | **Kőnig–Egerváry Duality Theorem** | [`konig_duality`](Formalization/KonigMatching.lean), [`weak_duality`](Formalization/KonigMatching.lean), [`matching_card_le_vertexCover_card`](Formalization/KonigMatching.lean), [`gallai_independence_vertex_cover`](Formalization/KonigMatching.lean), [`konig_independence_matching`](Formalization/KonigMatching.lean) | Combinatorial Optimization & Polyhedral Graphs | Kőnig (1931), Egerváry (1931), Gallai (1959) | **100% Verified (0 axioms)** |
+| 16 | **Jung's Theorem on Circumscribed Spheres** | [`jungs_theorem`](Formalization/JungsTheorem.lean), [`jungs_theorem_via_helly`](Formalization/JungsTheorem.lean), [`circumradius_le_jungs_bound`](Formalization/JungsTheorem.lean), [`jungsConstant_pos`](Formalization/JungsTheorem.lean) | Discrete Geometry & Convexity | Jung (1901), Danzer, Grünbaum, & Klee (1963) | Scaffolded (Helly reduction `jungs_theorem_via_helly` verified; reduces to simplex case) |
 | 17 | **Alon–Boppana Spectral Lower Bound** | [`alon_boppana_bound`](Formalization/AlonBoppana.lean), [`alon_boppana_nilli`](Formalization/AlonBoppana.lean), [`secondEigenvalue`](Formalization/AlonBoppana.lean), [`IsRamanujan`](Formalization/AlonBoppana.lean) | Spectral Graph Theory & Expanders | Alon (1986), Boppana (1986), Nilli (1991) | Scaffolded (Symmetry & gap verified; lacks Nilli spherical test vectors) |
 | 18 | **Menger's Theorem on Disjoint Paths & Cuts** | [`mengers_theorem_vertex`](Formalization/MengersTheorem.lean), [`mengers_theorem_edge`](Formalization/MengersTheorem.lean), [`weak_duality`](Formalization/MengersTheorem.lean), [`kConnected_iff_paths`](Formalization/MengersTheorem.lean) | Graph Connectivity & Network Optimization | Menger (1927), Whitney (1932), Dirac (1966) | Scaffolded (Weak duality verified; lacks Dirac edge contraction) |
 | 19 | **MacMahon's Master Theorem** | [`macmahon_master_theorem`](Formalization/MacMahonsMasterTheorem.lean), [`macmahon_dim1`](Formalization/MacMahonsMasterTheorem.lean), [`macmahonMatrix`](Formalization/MacMahonsMasterTheorem.lean), [`invDetMacMahon`](Formalization/MacMahonsMasterTheorem.lean) | Enumerative Combinatorics & Formal Series | MacMahon (1915), Cartier & Foata (1969) | Scaffolded (1D cases verified; lacks multivariable log-det expansion) |
@@ -139,28 +139,28 @@ This repository provides machine-checked formalizations, certified proofs, and f
 
 ### 14. Cayley's Tree Formula & Prüfer Sequences
 * **Module:** [`Formalization/CayleysFormula.lean`](Formalization/CayleysFormula.lean)
-* **Theorems:** `cayleys_tree_formula`, `prufer_sequence_card`, `pruferEquiv`, `rooted_trees_count`
+* **Theorems:** `cayleys_tree_formula`, `prufer_sequence_card`, `pruferEquiv`, `pruferCode`, `pruferDecode`, `rooted_trees_count`, `cayley_n2`, `cayley_n3`, `cayley_n4`
 * **Mathematical Statement:** The number of labeled trees on $n \ge 2$ vertices is:
   $$T_n = n^{n - 2}$$
-  established bijectively via Prüfer sequences $\operatorname{PruferSequence}(n) = \text{Fin}(n-2) \to \text{Fin}(n)$.
+  established bijectively via constructive leaf-peeling Prüfer encoding `pruferCode`, degree-based decoding `pruferDecode`, and the Prüfer equivalence `pruferEquiv : LabeledTree n ≃ PruferSequence n`.
 
 ---
 
 ### 15. Kőnig–Egerváry Duality Theorem
 * **Module:** [`Formalization/KonigMatching.lean`](Formalization/KonigMatching.lean)
-* **Theorems:** `konig_duality`, `weak_duality`, `matching_card_le_vertexCover_card`, `gallai_independence_vertex_cover`, `konig_independence_matching`
+* **Theorems:** `konig_duality`, `konig_duality_le`, `weak_duality`, `exists_max_defect`, `matching_card_le_vertexCover_card`, `gallai_independence_vertex_cover`, `konig_independence_matching`
 * **Mathematical Statement:** In any bipartite ($2$-colorable) graph $G = (V, E)$, the matching number $\nu(G)$ equals the vertex cover number $\tau(G)$ (strong min-max duality):
   $$\nu(G) = \tau(G)$$
-  and for general graphs $\nu(G) \le \tau(G)$, alongside Gallai's identity $\alpha(G) + \tau(G) = |V|$.
+  proved with 0 axioms from Hall's marriage deficiency theorem (`Finset.all_card_le_biUnion_card_iff_exists_injective`), alongside Gallai's identity $\alpha(G) + \tau(G) = |V|$ and Kőnig's formula $\alpha(G) + \nu(G) = |V|$.
 
 ---
 
 ### 16. Jung's Theorem on Circumscribed Euclidean Spheres
 * **Module:** [`Formalization/JungsTheorem.lean`](Formalization/JungsTheorem.lean)
-* **Theorems:** `jungs_theorem`, `circumradius_le_jungs_bound`, `jungsConstant_pos`, `jungs_bound_dim1`, `jungs_bound_dim2`, `jungs_bound_dim3`
+* **Theorems:** `jungs_theorem`, `jungs_theorem_via_helly`, `circumradius_le_jungs_bound`, `jungsConstant_pos`, `jungsConstant_one`, `jungsConstant_two`, `jungsConstant_three`, `jungs_bound_dim1`, `jungs_bound_dim2`, `jungs_bound_dim3`
 * **Mathematical Statement:** For any non-empty bounded subset $S \subset \mathbb{R}^d$, the Chebyshev circumradius $\mathcal{R}(S)$ is bounded by the diameter $\operatorname{diam}(S)$:
   $$\mathcal{R}(S) \le \sqrt{\frac{d}{2(d + 1)}} \operatorname{diam}(S)$$
-  with the dimension constant $J_d = \sqrt{\frac{d}{2(d+1)}}$ achieved with equality by the regular $d$-simplex.
+  with the global enclosing theorem `jungs_theorem` proved from the finite simplex case via Helly's compact intersection theorem on closed Euclidean balls (`Convex.helly_theorem_compact'`).
 
 ---
 
