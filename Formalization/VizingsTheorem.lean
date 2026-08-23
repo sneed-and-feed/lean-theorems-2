@@ -282,6 +282,15 @@ theorem swapColor_involutive (α β : Fin k) (c_opt : Option (Fin k)) :
     dsimp
     split_ifs <;> aesop
 
+lemma swapColor_some_left (α β : Fin k) : swapColor α β (some α) = some β := by
+  simp [swapColor]
+
+lemma swapColor_some_right (α β : Fin k) (hne : α ≠ β) : swapColor α β (some β) = some α := by
+  simp [swapColor, hne.symm]
+
+lemma swapColor_some_other (α β γ : Fin k) (h1 : γ ≠ α) (h2 : γ ≠ β) : swapColor α β (some γ) = some γ := by
+  simp [swapColor, h1, h2]
+
 lemma swapColor_eq_none_iff (α β : Fin k) (c_opt : Option (Fin k)) :
     swapColor α β c_opt = none ↔ c_opt = none := by
   cases c_opt with
@@ -435,6 +444,53 @@ lemma kempeSwap_colorOf_none (α β : Fin k) (u v : V) (hadj : G.Adj u v)
   dsimp [colorOf, kempeSwap]
   rw [kempe_color_eq_of_not_reachable c α β u ⟨s(u, v), hadj⟩ v (Sym2.mem_mk_right u v) hnreach]
   exact h_none
+
+lemma kempeSwap_missing_of_reachable (α β : Fin k) (u v : V) (hreach : (c.kempeGraph α β).Reachable u v)
+    (hβ : β ∈ c.missingColors v) :
+    α ∈ (c.kempeSwap α β u).missingColors v := by
+  rw [mem_missingColors_iff]
+  intro w hw
+  dsimp [colorOf, kempeSwap]
+  rw [kempe_color_eq_of_reachable c α β u ⟨s(v, w), hw⟩ v (Sym2.mem_mk_left v w) hreach]
+  intro heq
+  have h_inv : swapColor α β (swapColor α β (c.color ⟨s(v, w), hw⟩)) = swapColor α β (some α) :=
+    congr_arg (swapColor α β) heq
+  rw [swapColor_involutive, swapColor_some_left] at h_inv
+  rw [mem_missingColors_iff] at hβ
+  exact hβ w hw h_inv
+
+lemma kempeSwap_missing_of_ne (α β γ : Fin k) (u v : V) (h1 : γ ≠ α) (h2 : γ ≠ β)
+    (hγ : γ ∈ c.missingColors v) :
+    γ ∈ (c.kempeSwap α β u).missingColors v := by
+  rw [mem_missingColors_iff] at hγ ⊢
+  intro w hw
+  dsimp [colorOf, kempeSwap]
+  split_ifs with h_in
+  · intro heq
+    have h_inv : swapColor α β (swapColor α β (c.color ⟨s(v, w), hw⟩)) = swapColor α β (some γ) :=
+      congr_arg (swapColor α β) heq
+    rw [swapColor_involutive, swapColor_some_other α β γ h1 h2] at h_inv
+    exact hγ w hw h_inv
+  · exact hγ w hw
+
+lemma kempeSwap_colorOf_of_ne (α β γ : Fin k) (u v w : V) (hadj : G.Adj v w)
+    (h1 : γ ≠ α) (h2 : γ ≠ β) (hc : c.colorOf v w hadj = some γ) :
+    (c.kempeSwap α β u).colorOf v w hadj = some γ := by
+  dsimp [colorOf, kempeSwap]
+  split_ifs with h_in
+  · dsimp [colorOf] at hc
+    rw [hc, swapColor_some_other α β γ h1 h2]
+  · exact hc
+
+lemma kempeSwap_colorOf_alpha (α β : Fin k) (u w : V) (hadj : G.Adj u w) (hne : α ≠ β)
+    (hc : c.colorOf u w hadj = some β) :
+    (c.kempeSwap α β u).colorOf u w hadj = some α := by
+  dsimp [colorOf, kempeSwap]
+  have hreach_u : (c.kempeGraph α β).Reachable u u := SimpleGraph.Reachable.refl u
+  rw [kempe_color_eq_of_reachable c α β u ⟨s(u, w), hadj⟩ u (Sym2.mem_mk_left u w) hreach_u]
+  dsimp [colorOf] at hc
+  rw [hc, swapColor_some_right α β hne]
+
 
 /-- Helper returning the complementary color in $\{\alpha, \beta\}$. -/
 def otherColor (α β col : Fin k) : Fin k :=
@@ -915,8 +971,7 @@ def shiftStep (u v w : V) (huv : G.Adj u v) (huw : G.Adj u w)
       have he2_v : e₂ ≠ ⟨s(u, v), huv⟩ := hne.symm
       have he2_w : e₂ ≠ ⟨s(u, w), huw⟩ := by
         intro heq; subst heq
-        have : (none : Option (Fin k)) = some c' := by simpa [he_vw.symm] using h2
-        cases this
+        simp [he_vw.symm] at h2
       have h2_orig : c.color e₂ = some col := by
         have : c.color e₂ = some c' := by simpa [he2_v, he2_w] using h2
         rwa [heq_c'] at this
@@ -936,8 +991,7 @@ def shiftStep (u v w : V) (huv : G.Adj u v) (huw : G.Adj u w)
         have heq_c' : c' = col := (Option.some.inj hc').symm
         have he1_w : e₁ ≠ ⟨s(u, w), huw⟩ := by
           intro heq; subst heq
-          have : (none : Option (Fin k)) = some c' := by simpa [he_vw.symm] using h1
-          cases this
+          simp [he_vw.symm] at h1
         have h1_orig : c.color e₁ = some col := by
           have : c.color e₁ = some c' := by simpa [he1_v, he1_w] using h1
           rwa [heq_c'] at this
@@ -953,12 +1007,10 @@ def shiftStep (u v w : V) (huv : G.Adj u v) (huw : G.Adj u w)
           exact h_miss z hz_adj h1_orig
       · by_cases he1_w : e₁ = ⟨s(u, w), huw⟩
         · subst he1_w
-          have : (none : Option (Fin k)) = some c' := by simpa [he1_v] using h1
-          cases this
+          simp [he1_v] at h1
         · by_cases he2_w : e₂ = ⟨s(u, w), huw⟩
           · subst he2_w
-            have : (none : Option (Fin k)) = some c' := by simpa [he2_v] using h2
-            cases this
+            simp [he2_v] at h2
           · have h1_orig : c.color e₁ = some c' := by simpa [he1_v, he1_w] using h1
             have h2_orig : c.color e₂ = some c' := by simpa [he2_v, he2_w] using h2
             exact c.proper hne ⟨v₀, hv1, hv2⟩ h1_orig h2_orig
@@ -1033,6 +1085,37 @@ lemma shiftStep_missing_u (u v w : V) (huv : G.Adj u v) (huw : G.Adj u w)
     exact hα w huw h_col
   · intro heq; cases heq
   · exact hα z hz
+
+lemma shiftStep_missing_of_ne_v (u v w x : V) (huv : G.Adj u v) (huw : G.Adj u w)
+    (col : Fin k) (h_col : c.colorOf u w huw = some col)
+    (h_miss : col ∈ c.missingColors v) (hxv : x ≠ v) (γ : Fin k) (hγ : γ ∈ c.missingColors x) :
+    γ ∈ (c.shiftStep u v w huv huw col h_col h_miss).missingColors x := by
+  rcases eq_or_ne x u with rfl | hxu
+  · exact c.shiftStep_missing_u x v w huv huw col h_col h_miss γ hγ
+  · rw [mem_missingColors_iff] at hγ ⊢
+    intro z hz
+    dsimp [colorOf, shiftStep]
+    have he1 : (⟨s(x, z), hz⟩ : G.edgeSet) ≠ ⟨s(u, v), huv⟩ := by
+      intro heq
+      have : s(x, z) = s(u, v) := Subtype.ext_iff.mp heq
+      rw [Sym2.eq_iff] at this
+      rcases this with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+      · exact hxu rfl
+      · exact hxv rfl
+    split_ifs with he_v he_w
+    · exfalso; exact he1 he_v
+    · intro heq; cases heq
+    · exact hγ z hz
+
+lemma shiftStep_colorOf_of_ne (u v w y z : V) (huv : G.Adj u v) (huw : G.Adj u w)
+    (col : Fin k) (h_col : c.colorOf u w huw = some col)
+    (h_miss : col ∈ c.missingColors v) (hyz : G.Adj y z)
+    (h_ne1 : (⟨s(y, z), hyz⟩ : G.edgeSet) ≠ ⟨s(u, v), huv⟩)
+    (h_ne2 : (⟨s(y, z), hyz⟩ : G.edgeSet) ≠ ⟨s(u, w), huw⟩) :
+    (c.shiftStep u v w huv huw col h_col h_miss).colorOf y z hyz = c.colorOf y z hyz := by
+  dsimp [colorOf, shiftStep]
+  simp [h_ne1, h_ne2]
+
 
 lemma kempeSwap_color_none (α β : Fin k) (u : V) (e : G.edgeSet) (h : c.color e = none) :
     (c.kempeSwap α β u).color e = none := by
@@ -1256,6 +1339,626 @@ theorem exists_full_coloring (h_max : G.maxDegree ≤ k) (h_bip : G.Colorable 2)
         exact ⟨c_full, hc_full⟩
   exact h_wf c.uncoloredEdges.card c rfl
 
+lemma exists_extended_of_fan (u : V) :
+    ∀ (n : ℕ) (vs : List V) (cols : List (Fin k)) (c : PartialEdgeColoring G k)
+      (hlen_vs : vs.length = n + 1)
+      (hlen : cols.length = vs.length)
+      (_hnodup : vs.Nodup)
+      (hadj : ∀ v ∈ vs, G.Adj u v)
+      (_hnone : ∀ (hne : vs ≠ []), c.colorOf u (vs.head hne) (hadj _ (List.head_mem hne)) = none)
+      (_hstep : ∀ (i : ℕ) (hi : i + 1 < vs.length),
+        c.colorOf u vs[i + 1] (hadj _ (List.getElem_mem _)) = some cols[i])
+      (_hmiss : ∀ (i : ℕ) (hi : i < vs.length),
+        cols[i] ∈ c.missingColors vs[i])
+      (_hend : ∀ (hne : cols ≠ []), cols.getLast hne ∈ c.missingColors u),
+      ∃ c' : PartialEdgeColoring G k, c'.uncoloredEdges.card < c.uncoloredEdges.card := by
+  intro n
+  induction n with
+  | zero =>
+    intro vs cols c hlen_vs hlen hnodup hadj hnone hstep hmiss hend
+    rcases vs with _ | ⟨v₀, _ | ⟨v₁, vs'⟩⟩
+    · cases hlen_vs
+    · rcases cols with _ | ⟨β₀, _ | ⟨β₁, cols'⟩⟩
+      · cases hlen
+      · have hadj0 : G.Adj u v₀ := hadj v₀ (by simp)
+        have hnone0 : c.colorOf u v₀ hadj0 = none := hnone (by simp)
+        have hmiss0 : β₀ ∈ c.missingColors v₀ := by
+          have := hmiss 0 (by simp)
+          exact this
+        have hend0 : β₀ ∈ c.missingColors u := by
+          have := hend (by simp)
+          exact this
+        have he_mem : (⟨s(u, v₀), hadj0⟩ : G.edgeSet) ∈ c.uncoloredEdges := by
+          simp only [uncoloredEdges, Finset.mem_filter, Finset.mem_univ, true_and]
+          exact hnone0
+        let c' := c.extendColor u v₀ hadj0 β₀ hend0 hmiss0
+        refine ⟨c', ?_⟩
+        have heq := uncoloredEdges_extendColor c u v₀ hadj0 β₀ hend0 hmiss0
+        rw [heq, Finset.card_erase_of_mem he_mem]
+        exact Nat.pred_lt (Finset.card_pos.mpr ⟨⟨s(u, v₀), hadj0⟩, he_mem⟩).ne'
+      · cases hlen
+    · cases hlen_vs
+  | succ m ih =>
+    intro vs cols c hlen_vs hlen hnodup hadj hnone hstep hmiss hend
+    rcases vs with _ | ⟨v₀, _ | ⟨v₁, vs'⟩⟩
+    · cases hlen_vs
+    · cases hlen_vs
+    · rcases cols with _ | ⟨β₀, _ | ⟨β₁, cols'⟩⟩
+      · cases hlen
+      · cases hlen
+      · have hlen_tail : (β₁ :: cols').length = (v₁ :: vs').length := by
+          simp only [List.length_cons] at hlen ⊢; omega
+        have hlen_vs_tail : (v₁ :: vs').length = m + 1 := by
+          simp only [List.length_cons] at hlen_vs ⊢; omega
+        have hadj0 : G.Adj u v₀ := hadj v₀ (by simp)
+        have hadj1 : G.Adj u v₁ := hadj v₁ (by simp)
+        have hnone0 : c.colorOf u v₀ hadj0 = none := hnone (by simp)
+        have hcol0 : c.colorOf u v₁ hadj1 = some β₀ := by
+          have := hstep 0 (by simp [hlen_vs])
+          exact this
+        have hmiss0 : β₀ ∈ c.missingColors v₀ := by
+          have := hmiss 0 (by simp [hlen_vs])
+          exact this
+        let c₁ := c.shiftStep u v₀ v₁ hadj0 hadj1 β₀ hcol0 hmiss0
+        have hcard_c1 : c₁.uncoloredEdges.card = c.uncoloredEdges.card :=
+          card_uncoloredEdges_shiftStep c u v₀ v₁ hadj0 hadj1 β₀ hcol0 hmiss0 hnone0
+        have hnodup_cons := (List.nodup_cons.mp hnodup).2
+        have h_v0_not_in : v₀ ∉ v₁ :: vs' := (List.nodup_cons.mp hnodup).1
+        have hadj_tail : ∀ v ∈ v₁ :: vs', G.Adj u v := fun v hv => hadj v (List.mem_cons_of_mem _ hv)
+        have hnone_tail : ∀ (hne : v₁ :: vs' ≠ []), c₁.colorOf u ((v₁ :: vs').head hne) (hadj_tail _ (List.head_mem hne)) = none := by
+          intro _
+          exact shiftStep_colorOf_none c u v₀ v₁ hadj0 hadj1 β₀ hcol0 hmiss0
+        have hstep_tail : ∀ (i : ℕ) (hi : i + 1 < (v₁ :: vs').length),
+            have : i < (β₁ :: cols').length := by omega
+            c₁.colorOf u (v₁ :: vs')[i + 1] (hadj_tail _ (List.getElem_mem _)) = some (β₁ :: cols')[i] := by
+          intro i hi
+          have h_ne1 : (⟨s(u, (v₁ :: vs')[i + 1]), hadj_tail _ (List.getElem_mem _)⟩ : G.edgeSet) ≠ ⟨s(u, v₀), hadj0⟩ := by
+            intro heq
+            have : s(u, (v₁ :: vs')[i + 1]) = s(u, v₀) := Subtype.ext_iff.mp heq
+            rw [Sym2.eq_iff] at this
+            rcases this with ⟨-, heq_v⟩ | ⟨heq_u, heq_v⟩
+            · have : (v₁ :: vs')[i + 1] ∈ v₁ :: vs' := List.getElem_mem (by omega)
+              rw [heq_v] at this
+              exact h_v0_not_in this
+            · exact hadj0.ne heq_u
+          have h_ne2 : (⟨s(u, (v₁ :: vs')[i + 1]), hadj_tail _ (List.getElem_mem _)⟩ : G.edgeSet) ≠ ⟨s(u, v₁), hadj1⟩ := by
+            intro heq
+            have : s(u, (v₁ :: vs')[i + 1]) = s(u, v₁) := Subtype.ext_iff.mp heq
+            rw [Sym2.eq_iff] at this
+            rcases this with ⟨-, heq_v⟩ | ⟨heq_u, heq_v⟩
+            · have h_nodup_tail' := (List.nodup_cons.mp hnodup_cons).1
+              have h_i_lt : i < vs'.length := by
+                simp only [List.length_cons] at hi
+                omega
+              have : (v₁ :: vs')[i + 1] = vs'[i] := rfl
+              rw [this] at heq_v
+              have : vs'[i] ∈ vs' := List.getElem_mem h_i_lt
+              rw [heq_v] at this
+              exact h_nodup_tail' this
+            · exact hadj1.ne heq_u
+          rw [shiftStep_colorOf_of_ne c u v₀ v₁ _ _ hadj0 hadj1 β₀ hcol0 hmiss0 _ h_ne1 h_ne2]
+          have := hstep (i + 1) (by simp only [List.length_cons] at hi ⊢; omega)
+          exact this
+        have hmiss_tail : ∀ (i : ℕ) (hi : i < (v₁ :: vs').length),
+            have : i < (β₁ :: cols').length := by omega
+            (β₁ :: cols')[i] ∈ c₁.missingColors (v₁ :: vs')[i] := by
+          intro i hi
+          have h_ne_v0 : (v₁ :: vs')[i] ≠ v₀ := by
+            intro heq
+            have : (v₁ :: vs')[i] ∈ v₁ :: vs' := List.getElem_mem (by omega)
+            rw [heq] at this
+            exact h_v0_not_in this
+          apply shiftStep_missing_of_ne_v c u v₀ v₁ _ hadj0 hadj1 β₀ hcol0 hmiss0 h_ne_v0
+          have := hmiss (i + 1) (by simp only [List.length_cons] at hi ⊢; omega)
+          exact this
+        have hend_tail : ∀ (hne : β₁ :: cols' ≠ []), (β₁ :: cols').getLast hne ∈ c₁.missingColors u := by
+          intro hne'
+          have h_last_eq : (β₁ :: cols').getLast hne' = (β₀ :: β₁ :: cols').getLast (by simp) := by
+            rfl
+          rw [h_last_eq]
+          apply shiftStep_missing_u c u v₀ v₁ hadj0 hadj1 β₀ hcol0 hmiss0
+          exact hend (by simp)
+        obtain ⟨c', hlt⟩ := ih (v₁ :: vs') (β₁ :: cols') c₁ hlen_vs_tail hlen_tail hnodup_cons hadj_tail hnone_tail hstep_tail hmiss_tail hend_tail
+        refine ⟨c', ?_⟩
+        rwa [hcard_c1] at hlt
+
+lemma list_take_head {α : Type*} (l : List α) (n : ℕ) (hne : l ≠ []) (hne' : l.take (n + 1) ≠ []) :
+    (l.take (n + 1)).head hne' = l.head hne := by
+  cases l with
+  | nil => contradiction
+  | cons x xs => rfl
+
+lemma list_getElem_take {α : Type*} (l : List α) (n : ℕ) (i : ℕ) (hi : i < n + 1) (hi' : i < l.length) :
+    (l.take (n + 1))[i]'(by simp [List.length_take]; omega) = l[i] := by
+  simp [List.getElem_take]
+
+lemma list_getLast_take {α : Type*} (l : List α) (j : ℕ) (hj : j < l.length) (hne : l.take (j + 1) ≠ []) :
+    (l.take (j + 1)).getLast hne = l[j] := by
+  have hlen : (l.take (j + 1)).length = j + 1 := by simp [hj]
+  rw [List.getLast_eq_getElem]
+  simp [hlen, List.getElem_take]
+
+lemma list_getElem_set {α : Type*} (l : List α) (j : ℕ) (x : α) (i : ℕ) (hi : i < (l.set j x).length) :
+    (l.set j x)[i] = if i = j then x else l[i]'(by simpa [List.length_set] using hi) := by
+  simp [List.getElem_set]
+  by_cases h : j = i <;> simp [h, eq_comm]
+
+lemma list_getLast_set {α : Type*} (l : List α) (j : ℕ) (hj : j + 1 < l.length) (x : α) (hne1 : l.set j x ≠ []) (hne2 : l ≠ []) :
+    (l.set j x).getLast hne1 = l.getLast hne2 := by
+  rw [List.getLast_eq_getElem, List.getLast_eq_getElem]
+  have hne_idx : j ≠ l.length - 1 := by omega
+  simp [List.getElem_set, hne_idx]
+
+lemma list_nodup_concat {α : Type*} (l : List α) (x : α) (hnodup : l.Nodup) (hx : x ∉ l) :
+    (l ++ [x]).Nodup := by
+  rw [List.nodup_append]
+  refine ⟨hnodup, List.nodup_singleton x, ?_⟩
+  intro a ha b hb
+  have : b = x := List.mem_singleton.mp hb
+  subst this
+  rintro rfl
+  exact hx ha
+
+lemma list_getElem_concat_last {α : Type*} (l : List α) (x : α) :
+    (l ++ [x])[l.length]'(by simp) = x := by
+  simp
+
+lemma list_getElem_concat_left {α : Type*} (l : List α) (x : α) (i : ℕ) (hi : i < l.length) :
+    (l ++ [x])[i]'(by simp; omega) = l[i] := by
+  simp [List.getElem_append_left hi]
+
+lemma list_concat_head {α : Type*} (l : List α) (x : α) (hne : l ≠ []) (hne' : l ++ [x] ≠ []) :
+    (l ++ [x]).head hne' = l.head hne := by
+  cases l with
+  | nil => contradiction
+  | cons y ys => rfl
+
+lemma colorOf_inj_neighbor (u v w : V) (hv : G.Adj u v) (hw : G.Adj u w) (col : Fin k)
+    (h1 : c.colorOf u v hv = some col) (h2 : c.colorOf u w hw = some col) : v = w := by
+  by_contra hne
+  have he_ne : (⟨s(u, v), hv⟩ : G.edgeSet) ≠ ⟨s(u, w), hw⟩ := by
+    intro heq
+    have : s(u, v) = s(u, w) := Subtype.ext_iff.mp heq
+    rw [Sym2.eq_iff] at this
+    rcases this with ⟨-, rfl⟩ | ⟨rfl, rfl⟩
+    · exact hne rfl
+    · exact hv.ne rfl
+  have h_share : ShareVertex G ⟨s(u, v), hv⟩ ⟨s(u, w), hw⟩ := ⟨u, Sym2.mem_mk_left u v, Sym2.mem_mk_left u w⟩
+  dsimp [colorOf] at h1 h2
+  exact c.proper he_ne h_share h1 h2
+
+lemma exists_extended_of_fan_cycle (u : V) (n : ℕ) (vs : List V) (cols : List (Fin k))
+    (c : PartialEdgeColoring G k) (α : Fin k) (j : ℕ)
+    (hlen_vs : vs.length = n + 1)
+    (hlen : cols.length = vs.length)
+    (hnodup : vs.Nodup)
+    (hadj : ∀ v ∈ vs, G.Adj u v)
+    (hnone : ∀ (hne : vs ≠ []), c.colorOf u (vs.head hne) (hadj _ (List.head_mem hne)) = none)
+    (hstep : ∀ (i : ℕ) (hi : i + 1 < vs.length),
+      c.colorOf u vs[i + 1] (hadj _ (List.getElem_mem _)) = some cols[i])
+    (hmiss : ∀ (i : ℕ) (hi : i < vs.length),
+      cols[i] ∈ c.missingColors vs[i])
+    (hα : α ∈ c.missingColors u)
+    (hj : j < n)
+    (h_cycle : cols[n]'(by rw [hlen, hlen_vs]; omega) = cols[j]'(by rw [hlen, hlen_vs]; omega))
+    (h_diff : ∀ (i : ℕ) (hi : i < n), i ≠ j → cols[i]'(by rw [hlen, hlen_vs]; omega) ≠ cols[j]'(by rw [hlen, hlen_vs]; omega)) :
+    ∃ c' : PartialEdgeColoring G k, c'.uncoloredEdges.card < c.uncoloredEdges.card := by
+  have hj_lt_cols : j < cols.length := by rw [hlen, hlen_vs]; omega
+  have hn_lt_cols : n < cols.length := by rw [hlen, hlen_vs]; omega
+  have hj_lt_vs : j < vs.length := by rw [hlen_vs]; omega
+  have hn_lt_vs : n < vs.length := by rw [hlen_vs]; omega
+  let β : Fin k := cols[j]
+  have hβ_eq : cols[n] = β := h_cycle
+  have h_col_ne_α : ∀ (i : ℕ) (hi : i < n), cols[i]'(by rw [hlen, hlen_vs]; omega) ≠ α := by
+    intro i hi heq
+    have h_edge := hstep i (by rw [hlen_vs]; omega)
+    rw [mem_missingColors_iff] at hα
+    have h_ne := hα vs[i + 1] (hadj _ (List.getElem_mem (by rw [hlen_vs]; omega)))
+    rw [heq] at h_edge
+    exact h_ne h_edge
+  have h_ne_α_β : α ≠ β := by
+    have := h_col_ne_α j hj
+    intro heq
+    exact this heq.symm
+  have hmiss_j : β ∈ c.missingColors vs[j] := by
+    have := hmiss j hj_lt_vs
+    exact this
+  have hmiss_n : β ∈ c.missingColors vs[n] := by
+    have := hmiss n hn_lt_vs
+    rw [hβ_eq] at this
+    exact this
+  have h_vs_ne : vs[j] ≠ vs[n] := by
+    intro heq
+    have h_inj := (List.nodup_iff_injective_getElem.mp hnodup)
+    have heq_idx : (⟨j, hj_lt_vs⟩ : Fin vs.length) = ⟨n, hn_lt_vs⟩ := h_inj heq
+    have : j = n := Fin.ext_iff.mp heq_idx
+    omega
+  have h_not_reach_both := kempe_not_reachable_both c h_ne_α_β hα hmiss_j hmiss_n h_vs_ne
+  let c_swap := c.kempeSwap α β u
+  have h_card_swap : c_swap.uncoloredEdges.card = c.uncoloredEdges.card := by
+    rw [uncoloredEdges_kempeSwap]
+  have h_miss_u_swap : β ∈ c_swap.missingColors u := kempeSwap_missing_u c α β u hα
+  have hnone_swap : ∀ (hne : vs ≠ []), c_swap.colorOf u (vs.head hne) (hadj _ (List.head_mem hne)) = none := by
+    intro hne
+    have h0 := hnone hne
+    dsimp [colorOf] at h0 ⊢
+    exact kempeSwap_color_none c α β u _ h0
+  by_cases h_reach_j : (c.kempeGraph α β).Reachable u vs[j]
+  · have hnreach_n : ¬ (c.kempeGraph α β).Reachable u vs[n] := fun h => h_not_reach_both ⟨h_reach_j, h⟩
+    have hmiss_n_swap : β ∈ c_swap.missingColors vs[n] := kempeSwap_missing_v c α β u vs[n] hnreach_n hmiss_n
+    have hmiss_j_swap : α ∈ c_swap.missingColors vs[j] := kempeSwap_missing_of_reachable c α β u vs[j] h_reach_j hmiss_j
+    let cols' := cols.set j α
+    have hlen_cols' : cols'.length = vs.length := by rw [List.length_set, hlen]
+    have hj_lt_cols' : j < cols'.length := by rw [hlen_cols', hlen_vs]; omega
+    have hn_lt_cols' : n < cols'.length := by rw [hlen_cols', hlen_vs]; omega
+    have hnone_swap' : ∀ (hne : vs ≠ []), c_swap.colorOf u (vs.head hne) (hadj _ (List.head_mem hne)) = none := hnone_swap
+    have hstep_swap : ∀ (i : ℕ) (hi : i + 1 < vs.length),
+        c_swap.colorOf u vs[i + 1] (hadj _ (List.getElem_mem _)) = some cols'[i] := by
+      intro i hi
+      have hi_lt_n : i < n := by rw [hlen_vs] at hi; omega
+      have hi_lt_cols' : i < cols'.length := by rw [hlen_cols', hlen_vs]; omega
+      have h_col_orig := hstep i hi
+      by_cases heq_ij : i = j
+      · subst heq_ij
+        have h_get_cols' : cols'[i] = α := by
+          rw [list_getElem_set cols i α i hi_lt_cols']
+          simp
+        rw [h_get_cols']
+        apply kempeSwap_colorOf_alpha c α β u vs[i + 1] (hadj _ (List.getElem_mem _)) h_ne_α_β
+        exact h_col_orig
+      · have h_get_cols' : cols'[i] = cols[i] := by
+          rw [list_getElem_set cols j α i hi_lt_cols']
+          simp [heq_ij]
+        rw [h_get_cols']
+        have h1 : cols[i] ≠ α := h_col_ne_α i hi_lt_n
+        have h2 : cols[i] ≠ β := h_diff i hi_lt_n heq_ij
+        apply kempeSwap_colorOf_of_ne c α β (cols[i]) u u vs[i + 1] (hadj _ (List.getElem_mem _)) h1 h2
+        exact h_col_orig
+    have hmiss_swap : ∀ (i : ℕ) (hi : i < vs.length), cols'[i] ∈ c_swap.missingColors vs[i] := by
+      intro i hi
+      by_cases heq_ij : i = j
+      · subst heq_ij
+        have : i < cols'.length := by rw [hlen_cols']; exact hi
+        have h_get_cols' : cols'[i] = α := by
+          rw [list_getElem_set cols i α i this]
+          simp
+        rw [h_get_cols']
+        exact hmiss_j_swap
+      · by_cases heq_in : i = n
+        · have h_get_cols' : cols'[i] = β := by
+            have h_idx_eq : cols'[i] = cols'[n] := by congr 1
+            rw [h_idx_eq]
+            rw [list_getElem_set cols j α n hn_lt_cols']
+            have : n ≠ j := ne_of_gt hj
+            simp [this, hβ_eq]
+          rw [h_get_cols']
+          have : vs[i] = vs[n] := by congr 1
+          rw [this]
+          exact hmiss_n_swap
+        · have hi_lt_n : i < n := by rw [hlen_vs] at hi; omega
+          have : i < cols'.length := by rw [hlen_cols']; exact hi
+          have h_get_cols' : cols'[i] = cols[i] := by
+            rw [list_getElem_set cols j α i this]
+            simp [heq_ij]
+          rw [h_get_cols']
+          have h1 : cols[i] ≠ α := h_col_ne_α i hi_lt_n
+          have h2 : cols[i] ≠ β := h_diff i hi_lt_n heq_ij
+          apply kempeSwap_missing_of_ne c α β (cols[i]) u vs[i] h1 h2
+          exact hmiss i hi
+    have hend_swap : ∀ (hne : cols' ≠ []), cols'.getLast hne ∈ c_swap.missingColors u := by
+      intro hne
+      have h_last : cols'.getLast hne = β := by
+        have hne_cols : cols ≠ [] := List.ne_nil_of_length_pos (by rw [hlen, hlen_vs]; omega)
+        have hj_lt_len : j + 1 < cols.length := by rw [hlen, hlen_vs]; omega
+        rw [list_getLast_set cols j hj_lt_len α hne hne_cols]
+        rw [List.getLast_eq_getElem]
+        have : cols.length - 1 = n := by rw [hlen, hlen_vs]; omega
+        have h_get : cols[cols.length - 1] = cols[n] := by congr 1
+        rw [h_get, hβ_eq]
+      rw [h_last]
+      exact h_miss_u_swap
+    obtain ⟨c', hlt⟩ := exists_extended_of_fan u n vs cols' c_swap hlen_vs hlen_cols' hnodup hadj hnone_swap' hstep_swap hmiss_swap hend_swap
+    refine ⟨c', ?_⟩
+    rwa [h_card_swap] at hlt
+  · have hnreach_j : ¬ (c.kempeGraph α β).Reachable u vs[j] := h_reach_j
+    have hmiss_j_swap : β ∈ c_swap.missingColors vs[j] := kempeSwap_missing_v c α β u vs[j] hnreach_j hmiss_j
+    let vs_sub := vs.take (j + 1)
+    let cols_sub := cols.take (j + 1)
+    have hlen_vs_sub : vs_sub.length = j + 1 := by
+      dsimp [vs_sub]; rw [List.length_take]; omega
+    have hlen_cols_sub : cols_sub.length = vs_sub.length := by
+      dsimp [cols_sub, vs_sub]; rw [List.length_take, List.length_take, hlen]
+    have hnodup_sub : vs_sub.Nodup := List.Nodup.sublist (List.take_sublist (j + 1) vs) hnodup
+    have hadj_sub : ∀ v ∈ vs_sub, G.Adj u v := fun v hv => hadj v (List.mem_of_mem_take hv)
+    have hnone_swap_sub : ∀ (hne : vs_sub ≠ []), c_swap.colorOf u (vs_sub.head hne) (hadj_sub _ (List.head_mem hne)) = none := by
+      intro hne
+      have hne_vs : vs ≠ [] := List.ne_nil_of_length_pos (by rw [hlen_vs]; omega)
+      have hhead : vs_sub.head hne = vs.head hne_vs := list_take_head vs j hne_vs hne
+      have h0 := hnone hne_vs
+      dsimp [colorOf] at h0 ⊢
+      have heq_edge : (⟨s(u, vs_sub.head hne), hadj_sub _ (List.head_mem hne)⟩ : G.edgeSet) = ⟨s(u, vs.head hne_vs), hadj _ (List.head_mem hne_vs)⟩ := by
+        ext; simp [hhead]
+      rw [heq_edge]
+      exact kempeSwap_color_none c α β u _ h0
+    have hstep_swap_sub : ∀ (i : ℕ) (hi : i + 1 < vs_sub.length),
+        c_swap.colorOf u vs_sub[i + 1] (hadj_sub _ (List.getElem_mem _)) = some cols_sub[i] := by
+      intro i hi
+      have hi_lt_j : i < j := by rw [hlen_vs_sub] at hi; omega
+      have hi_lt_n : i < n := by omega
+      have h_col_orig := hstep i (by rw [hlen_vs]; omega)
+      have h_get_vs : vs_sub[i + 1] = vs[i + 1] := by
+        rw [list_getElem_take vs j (i + 1) (by omega) (by rw [hlen_vs]; omega)]
+      have h_get_cols : cols_sub[i] = cols[i] := by
+        rw [list_getElem_take cols j i (by omega) (by rw [hlen, hlen_vs]; omega)]
+      have heq_edge : (⟨s(u, vs_sub[i + 1]), hadj_sub _ (List.getElem_mem _)⟩ : G.edgeSet) = ⟨s(u, vs[i + 1]), hadj _ (List.getElem_mem (by rw [hlen_vs]; omega))⟩ := by
+        ext; simp [h_get_vs]
+      dsimp [colorOf] at h_col_orig ⊢
+      rw [heq_edge, h_get_cols]
+      have h1 : cols[i] ≠ α := h_col_ne_α i hi_lt_n
+      have h2 : cols[i] ≠ β := h_diff i hi_lt_n (ne_of_lt hi_lt_j)
+      apply kempeSwap_colorOf_of_ne c α β (cols[i]) u u vs[i + 1] (hadj _ (List.getElem_mem _)) h1 h2
+      exact h_col_orig
+    have hmiss_swap_sub : ∀ (i : ℕ) (hi : i < vs_sub.length), cols_sub[i] ∈ c_swap.missingColors vs_sub[i] := by
+      intro i hi
+      have hi_le_j : i ≤ j := by rw [hlen_vs_sub] at hi; omega
+      have h_get_vs : vs_sub[i] = vs[i] := by
+        rw [list_getElem_take vs j i (by omega) (by rw [hlen_vs]; omega)]
+      have h_get_cols : cols_sub[i] = cols[i] := by
+        rw [list_getElem_take cols j i (by omega) (by rw [hlen, hlen_vs]; omega)]
+      rw [h_get_vs, h_get_cols]
+      by_cases heq_ij : i = j
+      · subst heq_ij
+        exact hmiss_j_swap
+      · have hi_lt_j : i < j := Nat.lt_of_le_of_ne hi_le_j heq_ij
+        have hi_lt_n : i < n := by omega
+        have h1 : cols[i] ≠ α := h_col_ne_α i hi_lt_n
+        have h2 : cols[i] ≠ β := h_diff i hi_lt_n heq_ij
+        apply kempeSwap_missing_of_ne c α β (cols[i]) u vs[i] h1 h2
+        exact hmiss i (by rw [hlen_vs]; omega)
+    have hend_swap_sub : ∀ (hne : cols_sub ≠ []), cols_sub.getLast hne ∈ c_swap.missingColors u := by
+      intro hne
+      have h_last : cols_sub.getLast hne = β := by
+        rw [list_getLast_take cols j hj_lt_cols hne]
+      rw [h_last]
+      exact h_miss_u_swap
+    obtain ⟨c', hlt⟩ := exists_extended_of_fan u j vs_sub cols_sub c_swap hlen_vs_sub hlen_cols_sub hnodup_sub hadj_sub hnone_swap_sub hstep_swap_sub hmiss_swap_sub hend_swap_sub
+    refine ⟨c', ?_⟩
+    rwa [h_card_swap] at hlt
+
+lemma exists_extended_coloring_of_fan (u : V) (α : Fin k) (hα : α ∈ c.missingColors u) (h_max : G.maxDegree < k) :
+    ∀ (N : ℕ) (n : ℕ) (vs : List V) (cols : List (Fin k))
+      (_hN : Fintype.card V - vs.length = N)
+      (hlen_vs : vs.length = n + 1)
+      (hlen : cols.length = vs.length)
+      (_hnodup : vs.Nodup)
+      (hadj : ∀ v ∈ vs, G.Adj u v)
+      (_hnone : ∀ (hne : vs ≠ []), c.colorOf u (vs.head hne) (hadj _ (List.head_mem hne)) = none)
+      (_hstep : ∀ (i : ℕ) (hi : i + 1 < vs.length),
+        c.colorOf u vs[i + 1] (hadj _ (List.getElem_mem _)) = some cols[i])
+      (_hmiss : ∀ (i : ℕ) (hi : i < vs.length),
+        cols[i] ∈ c.missingColors vs[i])
+      (_h_diff : ∀ (i : ℕ) (hi : i < n) (j : ℕ) (hj : j < i),
+        cols[i]'(by rw [hlen, hlen_vs]; omega) ≠ cols[j]'(by rw [hlen, hlen_vs]; omega)),
+      ∃ c' : PartialEdgeColoring G k, c'.uncoloredEdges.card < c.uncoloredEdges.card := by
+  intro N
+  induction N using Nat.strong_induction_on with
+  | h N ih =>
+    intro n vs cols hN hlen_vs hlen hnodup hadj hnone hstep hmiss h_diff
+    have hn_lt_cols : n < cols.length := by rw [hlen, hlen_vs]; omega
+    have hn_lt_vs : n < vs.length := by rw [hlen_vs]; omega
+    by_cases h_miss_u : cols[n] ∈ c.missingColors u
+    · have hend : ∀ (hne : cols ≠ []), cols.getLast hne ∈ c.missingColors u := by
+        intro hne
+        rw [List.getLast_eq_getElem]
+        have : cols.length - 1 = n := by rw [hlen, hlen_vs]; omega
+        have h_get : cols[cols.length - 1] = cols[n] := by congr 1
+        rw [h_get]
+        exact h_miss_u
+      exact exists_extended_of_fan u n vs cols c hlen_vs hlen hnodup hadj hnone hstep hmiss hend
+    · have hw_used : cols[n] ∈ c.usedColors u := by
+        have : cols[n] ∈ (Finset.univ : Finset (Fin k)) := Finset.mem_univ _
+        simpa [missingColors, Finset.mem_sdiff, this] using h_miss_u
+      rw [mem_usedColors_iff] at hw_used
+      obtain ⟨w, hw_adj, hw_col⟩ := hw_used
+      by_cases hw_in : w ∈ vs
+      · obtain ⟨m, hm_lt, hm_eq⟩ := List.getElem_of_mem hw_in
+        have hm_pos : 0 < m := by
+          by_contra hm0
+          have hm_zero : m = 0 := by omega
+          have h_m0 : vs[m] = vs[0] := by congr 1
+          have hne_vs : vs ≠ [] := List.ne_nil_of_length_pos (by rw [hlen_vs]; omega)
+          have h_head_eq : vs.head hne_vs = vs[0] := List.head_eq_getElem hne_vs
+          have h0 := hnone hne_vs
+          dsimp [colorOf] at h0 hw_col
+          have heq_edge : (⟨s(u, vs.head hne_vs), hadj _ (List.head_mem hne_vs)⟩ : G.edgeSet) = ⟨s(u, w), hw_adj⟩ := by
+            ext; simp [h_head_eq, ← h_m0, hm_eq]
+          rw [heq_edge] at h0
+          rw [h0] at hw_col
+          cases hw_col
+        let j := m - 1
+        have hj : j < n := by rw [hlen_vs] at hm_lt; omega
+        have hm_j1 : m = j + 1 := by omega
+        have h_cycle : cols[n]'(by rw [hlen, hlen_vs]; omega) = cols[j]'(by rw [hlen, hlen_vs]; omega) := by
+          have h_step_j := hstep j (by rw [hlen_vs]; omega)
+          have h_vs_j1 : vs[j + 1] = w := by
+            have : vs[j + 1] = vs[m] := by congr 1; omega
+            rw [this, hm_eq]
+          dsimp [colorOf] at h_step_j hw_col
+          have heq_edge : (⟨s(u, vs[j + 1]), hadj _ (List.getElem_mem (by rw [hlen_vs]; omega))⟩ : G.edgeSet) = ⟨s(u, w), hw_adj⟩ := by
+            ext; simp [h_vs_j1]
+          rw [heq_edge] at h_step_j
+          rw [hw_col] at h_step_j
+          exact Option.some.inj h_step_j
+        have h_diff_cycle : ∀ (i : ℕ) (hi : i < n), i ≠ j → cols[i]'(by rw [hlen, hlen_vs]; omega) ≠ cols[j]'(by rw [hlen, hlen_vs]; omega) := by
+          intro i hi hne_ij
+          rcases lt_or_gt_of_ne hne_ij with hlt | hgt
+          · exact (h_diff j hj i hlt).symm
+          · exact h_diff i hi j hgt
+        exact exists_extended_of_fan_cycle u n vs cols c α j hlen_vs hlen hnodup hadj hnone hstep hmiss hα hj h_cycle h_diff_cycle
+      · obtain ⟨β_next, hβ_next⟩ := exists_missingColor_of_maxDegree_lt c h_max (u := w)
+        let vs' := vs ++ [w]
+        let cols' := cols ++ [β_next]
+        let n' := n + 1
+        have hlen_vs' : vs'.length = n' + 1 := by
+          dsimp [vs', n']; rw [List.length_append, List.length_singleton, hlen_vs]
+        have hlen_cols' : cols'.length = vs'.length := by
+          dsimp [cols', vs']; rw [List.length_append, List.length_append, List.length_singleton, List.length_singleton, hlen]
+        have hnodup' : vs'.Nodup := list_nodup_concat vs w hnodup hw_in
+        have hadj' : ∀ v ∈ vs', G.Adj u v := by
+          intro v hv
+          rcases List.mem_append.mp hv with hv | hv
+          · exact hadj v hv
+          · have : v = w := List.mem_singleton.mp hv
+            subst this
+            exact hw_adj
+        have hnone' : ∀ (hne : vs' ≠ []), c.colorOf u (vs'.head hne) (hadj' _ (List.head_mem hne)) = none := by
+          intro hne
+          have hne_vs : vs ≠ [] := List.ne_nil_of_length_pos (by rw [hlen_vs]; omega)
+          have hhead : vs'.head hne = vs.head hne_vs := list_concat_head vs w hne_vs hne
+          have h0 := hnone hne_vs
+          dsimp [colorOf] at h0 ⊢
+          have heq_edge : (⟨s(u, vs'.head hne), hadj' _ (List.head_mem hne)⟩ : G.edgeSet) = ⟨s(u, vs.head hne_vs), hadj _ (List.head_mem hne_vs)⟩ := by
+            ext; simp [hhead]
+          rw [heq_edge]
+          exact h0
+        have hstep' : ∀ (i : ℕ) (hi : i + 1 < vs'.length),
+            c.colorOf u vs'[i + 1] (hadj' _ (List.getElem_mem _)) = some cols'[i] := by
+          intro i hi
+          have hi_lt_n' : i < n' := by rw [hlen_vs'] at hi; omega
+          by_cases heq_in : i = n
+          · have h_len_eq : i + 1 = vs.length := by rw [heq_in, hlen_vs]
+            have h_get_vs : vs'[i + 1] = w := by
+              have h_eq : vs'[i + 1] = vs'[vs.length] := by congr 1
+              rw [h_eq, list_getElem_concat_last vs w]
+            have h_get_cols : cols'[i] = cols[n] := by
+              have h_eq : cols'[i] = cols'[n] := by congr 1
+              rw [h_eq, list_getElem_concat_left cols β_next n hn_lt_cols]
+            dsimp [colorOf] at hw_col ⊢
+            have heq_edge : (⟨s(u, vs'[i + 1]), hadj' _ (List.getElem_mem _)⟩ : G.edgeSet) = ⟨s(u, w), hw_adj⟩ := by
+              ext; simp [h_get_vs]
+            rw [heq_edge, h_get_cols]
+            exact hw_col
+          · have hi_lt_n : i < n := by dsimp [n'] at hi_lt_n'; omega
+            have h_get_vs : vs'[i + 1] = vs[i + 1] := by
+              rw [list_getElem_concat_left vs w (i + 1) (by rw [hlen_vs]; omega)]
+            have h_get_cols : cols'[i] = cols[i] := by
+              rw [list_getElem_concat_left cols β_next i (by rw [hlen, hlen_vs]; omega)]
+            have h_step_orig := hstep i (by rw [hlen_vs]; omega)
+            dsimp [colorOf] at h_step_orig ⊢
+            have heq_edge : (⟨s(u, vs'[i + 1]), hadj' _ (List.getElem_mem _)⟩ : G.edgeSet) = ⟨s(u, vs[i + 1]), hadj _ (List.getElem_mem (by rw [hlen_vs]; omega))⟩ := by
+              ext; simp [h_get_vs]
+            rw [heq_edge, h_get_cols]
+            exact h_step_orig
+        have hmiss' : ∀ (i : ℕ) (hi : i < vs'.length), cols'[i] ∈ c.missingColors vs'[i] := by
+          intro i hi
+          by_cases heq_in : i = vs.length
+          · have h_get_vs : vs'[i] = w := by
+              have h_eq : vs'[i] = vs'[vs.length] := by congr 1
+              rw [h_eq, list_getElem_concat_last vs w]
+            have h_get_cols : cols'[i] = β_next := by
+              have h_eq : cols'[i] = cols'[cols.length] := by
+                have : i = cols.length := by rw [heq_in, hlen]
+                congr 1
+              rw [h_eq, list_getElem_concat_last cols β_next]
+            rw [h_get_vs, h_get_cols]
+            exact hβ_next
+          · have hi_lt_vs : i < vs.length := by
+              dsimp [vs'] at hi; rw [List.length_append, List.length_singleton] at hi; omega
+            have h_get_vs : vs'[i] = vs[i] := list_getElem_concat_left vs w i hi_lt_vs
+            have h_get_cols : cols'[i] = cols[i] := list_getElem_concat_left cols β_next i (by rw [hlen]; exact hi_lt_vs)
+            rw [h_get_vs, h_get_cols]
+            exact hmiss i hi_lt_vs
+        have h_diff' : ∀ (i : ℕ) (hi : i < n') (j : ℕ) (hj : j < i),
+            cols'[i]'(by rw [hlen_cols', hlen_vs']; omega) ≠ cols'[j]'(by rw [hlen_cols', hlen_vs']; omega) := by
+          intro i hi j hj
+          by_cases heq_in : i = n
+          · have hj_lt_n : j < n := by omega
+            have h_get_i : cols'[i] = cols[n] := by
+              have h_eq : cols'[i] = cols'[n] := by congr 1
+              rw [h_eq, list_getElem_concat_left cols β_next n hn_lt_cols]
+            have h_get_j : cols'[j] = cols[j] := list_getElem_concat_left cols β_next j (by rw [hlen, hlen_vs]; omega)
+            rw [h_get_i, h_get_j]
+            intro heq_cols
+            have h_step_j := hstep j (by rw [hlen_vs]; omega)
+            have h_step_j' : c.colorOf u vs[j + 1] (hadj _ (List.getElem_mem (by rw [hlen_vs]; omega))) = some (cols[n]) := by
+              rw [h_step_j, heq_cols]
+            have heq_w := colorOf_inj_neighbor c u vs[j + 1] w (hadj _ (List.getElem_mem (by rw [hlen_vs]; omega))) hw_adj (cols[n]) h_step_j' hw_col
+            have : w ∈ vs := by
+              have : vs[j + 1] ∈ vs := List.getElem_mem (by rw [hlen_vs]; omega)
+              rwa [heq_w] at this
+            exact hw_in this
+          · have hi_lt_n : i < n := by dsimp [n'] at hi; omega
+            have h_get_i : cols'[i] = cols[i] := list_getElem_concat_left cols β_next i (by rw [hlen, hlen_vs]; omega)
+            have h_get_j : cols'[j] = cols[j] := list_getElem_concat_left cols β_next j (by rw [hlen, hlen_vs]; omega)
+            rw [h_get_i, h_get_j]
+            exact h_diff i hi_lt_n j hj
+        have h_card_le : vs'.length ≤ Fintype.card V := by
+          rw [← List.toFinset_card_of_nodup hnodup']
+          exact Finset.card_le_univ _
+        have h_len_vs' : vs'.length = vs.length + 1 := by
+          dsimp [vs']; rw [List.length_append, List.length_singleton]
+        have hN' : Fintype.card V - vs'.length < N := by
+          rw [← hN, h_len_vs']
+          omega
+        exact ih (Fintype.card V - vs'.length) hN' n' vs' cols' rfl hlen_vs' hlen_cols' hnodup' hadj' hnone' hstep' hmiss' h_diff'
+
+/-- Any non-empty partial edge coloring with $k > \Delta(G)$ can be extended to strictly fewer uncolored edges. -/
+theorem exists_extended_coloring_vizing (h_max : G.maxDegree < k)
+    (hne : c.uncoloredEdges.Nonempty) :
+    ∃ c' : PartialEdgeColoring G k, c'.uncoloredEdges.card < c.uncoloredEdges.card := by
+  obtain ⟨e, he⟩ := hne
+  rcases e with ⟨e_val, he_prop⟩
+  induction e_val using Sym2.inductionOn with
+  | hf u v =>
+    have hadj : G.Adj u v := he_prop
+    have he_none : c.colorOf u v hadj = none := by
+      simp only [uncoloredEdges, Finset.mem_filter, Finset.mem_univ, true_and] at he
+      exact he
+    obtain ⟨α, hα⟩ := exists_missingColor_of_maxDegree_lt c h_max (u := u)
+    obtain ⟨β₀, hβ₀⟩ := exists_missingColor_of_maxDegree_lt c h_max (u := v)
+    have hadj_single : ∀ w ∈ [v], G.Adj u w := by
+      intro w hw
+      simp only [List.mem_singleton] at hw
+      subst hw
+      exact hadj
+    have hnone_single : ∀ (hne' : [v] ≠ []), c.colorOf u ([v].head hne') (hadj_single _ (List.head_mem hne')) = none := by
+      intro _
+      exact he_none
+    have hstep_single : ∀ (i : ℕ) (hi : i + 1 < [v].length),
+        c.colorOf u [v][i + 1] (hadj_single _ (List.getElem_mem _)) = some [β₀][i] := by
+      intro i hi
+      simp only [List.length_singleton] at hi
+      omega
+    have hmiss_single : ∀ (i : ℕ) (hi : i < [v].length),
+        [β₀][i] ∈ c.missingColors [v][i] := by
+      intro i hi
+      have : i = 0 := by simp only [List.length_singleton] at hi; omega
+      subst this
+      exact hβ₀
+    have h_diff_single : ∀ (i : ℕ) (hi : i < 0) (j : ℕ) (hj : j < i),
+        [β₀][i]'(by omega) ≠ [β₀][j]'(by omega) := by
+      intro i hi
+      omega
+    exact c.exists_extended_coloring_of_fan u α hα h_max (Fintype.card V - 1) 0 [v] [β₀] rfl rfl rfl (List.nodup_singleton v) hadj_single hnone_single hstep_single hmiss_single h_diff_single
+
+/-- By well-founded induction on uncolored edges, any graph admits a complete proper edge coloring with $k > \Delta(G)$ colors. -/
+theorem exists_full_coloring_vizing (h_max : G.maxDegree < k)
+    (c : PartialEdgeColoring G k) :
+    ∃ c' : PartialEdgeColoring G k, c'.uncoloredEdges = ∅ := by
+  have h_wf : ∀ n, ∀ c : PartialEdgeColoring G k, c.uncoloredEdges.card = n → ∃ c' : PartialEdgeColoring G k, c'.uncoloredEdges = ∅ := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+      intro c hc
+      by_cases hemp : c.uncoloredEdges = ∅
+      · exact ⟨c, hemp⟩
+      · have hne : c.uncoloredEdges.Nonempty := Finset.nonempty_iff_ne_empty.mpr hemp
+        obtain ⟨c', h_lt⟩ := c.exists_extended_coloring_vizing h_max hne
+        rw [hc] at h_lt
+        obtain ⟨c_full, hc_full⟩ := ih c'.uncoloredEdges.card h_lt c' rfl
+        exact ⟨c_full, hc_full⟩
+  exact h_wf c.uncoloredEdges.card c rfl
+
 end PartialEdgeColoring
 
 /-- Every bipartite graph $G$ admits a proper edge coloring with $\Delta(G)$ colors. -/
@@ -1282,14 +1985,45 @@ theorem edgeColorable_of_bipartite (h_bip : G.Colorable 2) :
     exact c_full.proper hne hshare h1 h2
   exact ⟨⟨col, h_proper⟩⟩
 
+/-- Every graph $G$ admits a proper edge coloring with $\Delta(G) + 1$ colors. -/
+theorem edgeColorable_of_maxDegree_succ :
+    IsEdgeColorable G (G.maxDegree + 1) := by
+  have h_max : G.maxDegree < G.maxDegree + 1 := Nat.lt_succ_self G.maxDegree
+  obtain ⟨c_full, hc_empty⟩ := PartialEdgeColoring.exists_full_coloring_vizing h_max (PartialEdgeColoring.empty (G := G) (k := G.maxDegree + 1))
+  have h_all : ∀ e : G.edgeSet, ∃ col : Fin (G.maxDegree + 1), c_full.color e = some col := by
+    intro e
+    cases h : c_full.color e with
+    | none =>
+      have he_mem : e ∈ c_full.uncoloredEdges := by
+        simp only [PartialEdgeColoring.uncoloredEdges, Finset.mem_filter, Finset.mem_univ, true_and]
+        exact h
+      rw [hc_empty] at he_mem
+      exact False.elim (Finset.notMem_empty e he_mem)
+    | some col =>
+      exact ⟨col, rfl⟩
+  choose col hcol using h_all
+  have h_proper : ∀ ⦃e₁ e₂ : G.edgeSet⦄, e₁ ≠ e₂ → ShareVertex G e₁ e₂ → col e₁ ≠ col e₂ := by
+    intro e₁ e₂ hne hshare heq
+    have h1 := hcol e₁
+    have h2 := hcol e₂
+    rw [heq] at h1
+    exact c_full.proper hne hshare h1 h2
+  exact ⟨⟨col, h_proper⟩⟩
+
 /--
 Vizing's Theorem (1964):
 For any finite simple graph $G$ with maximum degree $\Delta(G)$, the edge chromatic number
 (chromatic index) $\chi'(G)$ satisfies:
 $$\Delta(G) \le \chi'(G) \le \Delta(G) + 1$$
 -/
-axiom vizings_theorem [Fintype G.edgeSet] :
-    G.maxDegree ≤ chromaticIndex G ∧ chromaticIndex G ≤ G.maxDegree + 1
+theorem vizings_theorem [Fintype G.edgeSet] :
+    G.maxDegree ≤ chromaticIndex G ∧ chromaticIndex G ≤ G.maxDegree + 1 := by
+  constructor
+  · exact chromatic_index_ge_maxDegree G
+  · dsimp [chromaticIndex]
+    have h_colorable := edgeColorable_of_maxDegree_succ G
+    have h_mem : G.maxDegree + 1 ∈ {k | IsEdgeColorable G k} := h_colorable
+    exact csInf_le ⟨0, fun _ _ => Nat.zero_le _⟩ h_mem
 
 /-- A graph is Class 1 if its edge chromatic number achieves the maximum degree $\Delta(G)$. -/
 def IsClassOne [Fintype G.edgeSet] : Prop :=
