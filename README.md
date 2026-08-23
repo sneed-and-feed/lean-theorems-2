@@ -132,7 +132,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 * **Module:** [`Formalization/GesselViennot.lean`](Formalization/GesselViennot.lean)
 * **Theorems:** `lindstrom_gessel_viennot`, `gessel_viennot_planar_dag`, `det_pathMatrix_eq_permutation_sum`, `intersecting_path_systems_sum_zero`
 * **Mathematical Statement:** For an edge-weighted directed acyclic graph (DAG), the path matrix $M_{i, j} = \sum_{P: a_i \to b_j} w(P)$ satisfies:
-  $$\det(M) = \sum_{\sigma \in S_n} \operatorname{sgn}(\sigma) \sum_{\mathcal{P} : A \to B_\sigma \text{ non-intersecting}} w(\mathcal{P})$$
+  $$\det(M) = \sum_{\sigma \in S_n} \mathrm{sgn}(\sigma) \sum_{\mathcal{P} : A \to B_\sigma \text{ non-intersecting}} w(\mathcal{P})$$
   via a canonical tail-swapping, sign-reversing involution on intersecting path systems. For planar grid graphs with boundary-ordered endpoints, $\det(M)$ counts non-intersecting path systems.
 
 ---
@@ -158,8 +158,8 @@ This repository provides machine-checked formalizations, certified proofs, and f
 ### 16. Jung's Theorem on Circumscribed Euclidean Spheres
 * **Module:** [`Formalization/JungsTheorem.lean`](Formalization/JungsTheorem.lean)
 * **Theorems:** `jungs_theorem`, `jungs_theorem_via_helly`, `circumradius_le_jungs_bound`, `jungsConstant_pos`, `jungsConstant_one`, `jungsConstant_two`, `jungsConstant_three`, `jungs_bound_dim1`, `jungs_bound_dim2`, `jungs_bound_dim3`
-* **Mathematical Statement:** For any non-empty bounded subset $S \subset \mathbb{R}^d$, the Chebyshev circumradius $\mathcal{R}(S)$ is bounded by the diameter $\operatorname{diam}(S)$:
-  $$\mathcal{R}(S) \le \sqrt{\frac{d}{2(d + 1)}} \operatorname{diam}(S)$$
+* **Mathematical Statement:** For any non-empty bounded subset $S \subset \mathbb{R}^d$, the Chebyshev circumradius $\mathcal{R}(S)$ is bounded by the diameter $\mathrm{diam}(S)$:
+  $$\mathcal{R}(S) \le \sqrt{\frac{d}{2(d + 1)}} \mathrm{diam}(S)$$
   with the global enclosing theorem `jungs_theorem` proved from the finite simplex case via Helly's compact intersection theorem on closed Euclidean balls (`Convex.helly_theorem_compact'`).
 
 ---
@@ -194,8 +194,8 @@ This repository provides machine-checked formalizations, certified proofs, and f
 ### 20. Bárány's Colorful Carathéodory Theorem
 * **Module:** [`Formalization/ColorfulCaratheodory.lean`](Formalization/ColorfulCaratheodory.lean)
 * **Theorems:** `colorful_caratheodory_origin`, `colorful_caratheodory_point`, `caratheodory_classical_deduction`, `colorful_caratheodory_dim1`, `colorful_caratheodory_dim2`
-* **Mathematical Statement:** For any $d+1$ subsets of points $S_0, S_1, \dots, S_d \subset \mathbb{R}^d$ such that $0 \in \operatorname{conv}(S_i)$ for each color $i \in \{0, 1, \dots, d\}$, there exists a colorful transversal $(x_0, x_1, \dots, x_d)$ with $x_i \in S_i$ such that:
-  $$0 \in \operatorname{conv}(\{x_0, x_1, \dots, x_d\})$$
+* **Mathematical Statement:** For any $d+1$ subsets of points $S_0, S_1, \dots, S_d \subset \mathbb{R}^d$ such that $0 \in \mathrm{conv}(S_i)$ for each color $i \in \{0, 1, \dots, d\}$, there exists a colorful transversal $(x_0, x_1, \dots, x_d)$ with $x_i \in S_i$ such that:
+  $$0 \in \mathrm{conv}(\{x_0, x_1, \dots, x_d\})$$
   with classical Carathéodory as the monochromatic corollary $S_0 = \dots = S_d = S$.
 
 ---
@@ -203,7 +203,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 ### 21. Blichfeldt's Theorem in Geometry of Numbers
 * **Module:** [`Formalization/BlichfeldtsTheorem.lean`](Formalization/BlichfeldtsTheorem.lean)
 * **Theorems:** `blichfeldts_theorem`, `minkowski_convex_body_theorem`, `blichfeldt_dim1`
-* **Mathematical Statement:** For any Lebesgue measurable set $S \subset \mathbb{R}^d$ with volume $\operatorname{vol}(S) > k$ (for integer $k \ge 1$), there exist $k+1$ distinct points $x_0, x_1, \dots, x_k \in S$ such that all pairwise differences belong to the integer lattice $\mathbb{Z}^d$:
+* **Mathematical Statement:** For any Lebesgue measurable set $S \subset \mathbb{R}^d$ with volume $\mathrm{vol}(S) > k$ (for integer $k \ge 1$), there exist $k+1$ distinct points $x_0, x_1, \dots, x_k \in S$ such that all pairwise differences belong to the integer lattice $\mathbb{Z}^d$:
   $$x_i - x_j \in \mathbb{Z}^d \quad \text{for all } 0 \le i, j \le k$$
   proved via torus translation decomposition $\mathbb{R}^d = \bigcup_{z \in \mathbb{Z}^d} (z + [0, 1)^d)$ and yielding Minkowski's First Convex Body Theorem as a direct corollary.
 
