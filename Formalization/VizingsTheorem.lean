@@ -182,24 +182,23 @@ theorem card_usedColors_lt_of_uncolored {u v : V} (h : G.Adj u v) (h_none : c.co
   have h3 := G.degree_le_maxDegree u
   omega
 
-theorem exists_missingColor_of_uncolored {u v : V} (h : G.Adj u v) (h_none : c.colorOf u v h = none)
-    (h_max : G.maxDegree ≤ k) : (c.missingColors u).Nonempty := by
-  have hlt := c.card_usedColors_lt_of_uncolored h h_none h_max
+lemma missingColors_nonempty_of_card_lt {u : V} (hlt : (c.usedColors u).card < k) :
+    (c.missingColors u).Nonempty := by
   rw [missingColors, Finset.nonempty_iff_ne_empty, ne_eq, Finset.sdiff_eq_empty_iff_subset]
   intro hsub
   have := Finset.card_le_card hsub
   rw [Finset.card_fin] at this
   omega
 
+theorem exists_missingColor_of_uncolored {u v : V} (h : G.Adj u v) (h_none : c.colorOf u v h = none)
+    (h_max : G.maxDegree ≤ k) : (c.missingColors u).Nonempty :=
+  c.missingColors_nonempty_of_card_lt (c.card_usedColors_lt_of_uncolored h h_none h_max)
+
 theorem exists_missingColor_of_maxDegree_lt {u : V} (h_max : G.maxDegree < k) :
     (c.missingColors u).Nonempty := by
   have hdeg := c.card_usedColors_le_degree u
   have hmax := G.degree_le_maxDegree u
-  rw [missingColors, Finset.nonempty_iff_ne_empty, ne_eq, Finset.sdiff_eq_empty_iff_subset]
-  intro hsub
-  have := Finset.card_le_card hsub
-  rw [Finset.card_fin] at this
-  omega
+  exact c.missingColors_nonempty_of_card_lt (by omega)
 
 /-- Swaps colors $\alpha$ and $\beta$ on an optional color value. -/
 def swapColor (α β : Fin k) (c_opt : Option (Fin k)) : Option (Fin k) :=
@@ -405,37 +404,27 @@ lemma isAlternating_of_isPath {α β : Fin k} (hne : α ≠ β) :
     | nil => dsimp [FirstColor]
     | @cons _ z _ h2 p' =>
       dsimp [FirstColor]
+      have h_col_ne : c.colorOf v₀ z h2.1 ≠ some col := by
+        intro h_same
+        have h_u0_ne_z : u₀ ≠ z := by
+          intro heq; subst heq
+          exact (List.nodup_cons.mp hp.support_nodup).1 (List.mem_cons_of_mem _ p'.start_mem_support)
+        have hne_edge : (⟨s(u₀, v₀), h.1⟩ : G.edgeSet) ≠ ⟨s(v₀, z), h2.1⟩ := by
+          intro heq
+          have heq_val : s(u₀, v₀) = s(v₀, z) := by injection heq
+          rcases Sym2.eq_iff.mp heq_val with ⟨h1_eq, _⟩ | ⟨h1_eq, _⟩
+          · exact h.1.ne h1_eq
+          · exact h_u0_ne_z h1_eq
+        have hshare : ShareVertex G ⟨s(u₀, v₀), h.1⟩ ⟨s(v₀, z), h2.1⟩ :=
+          ⟨v₀, Sym2.mem_mk_right u₀ v₀, Sym2.mem_mk_left v₀ z⟩
+        exact c.proper hne_edge hshare h_first h_same
       rcases h2.2 with hcolα | hcolβ
       · rcases hcol_mem with rfl | rfl
-        · exfalso
-          have h_u0_ne_z : u₀ ≠ z := by
-            intro heq; subst heq
-            exact (List.nodup_cons.mp hp.support_nodup).1 (List.mem_cons_of_mem _ p'.start_mem_support)
-          have hne_edge : (⟨s(u₀, v₀), h.1⟩ : G.edgeSet) ≠ ⟨s(v₀, z), h2.1⟩ := by
-            intro heq
-            have heq_val : s(u₀, v₀) = s(v₀, z) := by injection heq
-            rcases Sym2.eq_iff.mp heq_val with ⟨h1_eq, _⟩ | ⟨h1_eq, _⟩
-            · exact h.1.ne h1_eq
-            · exact h_u0_ne_z h1_eq
-          have hshare : ShareVertex G ⟨s(u₀, v₀), h.1⟩ ⟨s(v₀, z), h2.1⟩ :=
-            ⟨v₀, Sym2.mem_mk_right u₀ v₀, Sym2.mem_mk_left v₀ z⟩
-          exact c.proper hne_edge hshare h_first hcolα
+        · exact (h_col_ne hcolα).elim
         · simpa [otherColor, hne.symm] using hcolα
       · rcases hcol_mem with rfl | rfl
         · simpa [otherColor, hne] using hcolβ
-        · exfalso
-          have h_u0_ne_z : u₀ ≠ z := by
-            intro heq; subst heq
-            exact (List.nodup_cons.mp hp.support_nodup).1 (List.mem_cons_of_mem _ p'.start_mem_support)
-          have hne_edge : (⟨s(u₀, v₀), h.1⟩ : G.edgeSet) ≠ ⟨s(v₀, z), h2.1⟩ := by
-            intro heq
-            have heq_val : s(u₀, v₀) = s(v₀, z) := by injection heq
-            rcases Sym2.eq_iff.mp heq_val with ⟨h1_eq, _⟩ | ⟨h1_eq, _⟩
-            · exact h.1.ne h1_eq
-            · exact h_u0_ne_z h1_eq
-          have hshare : ShareVertex G ⟨s(u₀, v₀), h.1⟩ ⟨s(v₀, z), h2.1⟩ :=
-            ⟨v₀, Sym2.mem_mk_right u₀ v₀, Sym2.mem_mk_left v₀ z⟩
-          exact c.proper hne_edge hshare h_first hcolβ
+        · exact (h_col_ne hcolβ).elim
 
 lemma last_edge_alternating {α β : Fin k} :
     ∀ {x y : V} (p : (c.kempeGraph α β).Walk x y) (col : Fin k),
