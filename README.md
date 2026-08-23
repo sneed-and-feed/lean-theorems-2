@@ -21,7 +21,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 | 11 | **Vizing's Theorem & König's Line Coloring Theorem** | [`vizings_theorem`](Formalization/VizingsTheorem.lean), [`vizing_classification`](Formalization/VizingsTheorem.lean), [`konig_edge_coloring`](Formalization/VizingsTheorem.lean), [`edgeColorable_of_bipartite`](Formalization/VizingsTheorem.lean), [`edgeColorable_of_maxDegree_succ`](Formalization/VizingsTheorem.lean) | Graph Theory & Edge Colorings | Vizing (1964), König (1916) | **100% Verified (0 axioms) — Modular Package (`Formalization/VizingsTheorem/`)** |
 | 12 | **Fisher's Inequality for Block Designs** | [`fishers_inequality`](Formalization/FishersInequality.lean), [`gramian_eq`](Formalization/FishersInequality.lean), [`det_gramian`](Formalization/FishersInequality.lean), [`incidence_mul_transpose_apply`](Formalization/FishersInequality.lean) | Combinatorial Design Theory & Matrix Gramians | Fisher (1940), Bose (1949) | **100% Verified (0 axioms)** |
 | 13 | **Lindström–Gessel–Viennot (LGV) Lemma** | [`lindstrom_gessel_viennot`](Formalization/GesselViennot.lean), [`gessel_viennot_planar_dag`](Formalization/GesselViennot.lean), [`det_pathMatrix_eq_permutation_sum`](Formalization/GesselViennot.lean), [`intersecting_path_systems_sum_zero`](Formalization/GesselViennot.lean) | Algebraic Combinatorics & Lattice Paths | Lindström (1973), Gessel & Viennot (1985) | **100% Verified (0 axioms)** |
-| 14 | **Cayley's Tree Formula & Prüfer Sequences** | [`cayleys_tree_formula`](Formalization/CayleysFormula.lean), [`prufer_sequence_card`](Formalization/CayleysFormula.lean), [`pruferEquiv`](Formalization/CayleysFormula.lean), [`pruferCode`](Formalization/CayleysFormula.lean), [`pruferDecode`](Formalization/CayleysFormula.lean) | Enumerative Combinatorics & Graph Enumeration | Cayley (1889), Prüfer (1918) | **100% Verified (0 axioms)** |
+| 14 | **Cayley's Tree Formula & Prüfer Sequences** | [`cayleys_tree_formula`](Formalization/CayleysFormula.lean), [`prufer_sequence_card`](Formalization/CayleysFormula.lean), [`pruferEquiv`](Formalization/CayleysFormula.lean), [`pruferCode`](Formalization/CayleysFormula.lean), [`pruferDecode`](Formalization/CayleysFormula.lean) | Enumerative Combinatorics & Graph Enumeration | Cayley (1889), Prüfer (1918) | **100% Verified (0 axioms) — Modular Package (`Formalization/CayleysFormula/`)** |
 | 15 | **Kőnig–Egerváry Duality Theorem** | [`konig_duality`](Formalization/KonigMatching.lean), [`weak_duality`](Formalization/KonigMatching.lean), [`matching_card_le_vertexCover_card`](Formalization/KonigMatching.lean), [`gallai_independence_vertex_cover`](Formalization/KonigMatching.lean), [`konig_independence_matching`](Formalization/KonigMatching.lean) | Combinatorial Optimization & Polyhedral Graphs | Kőnig (1931), Egerváry (1931), Gallai (1959) | **100% Verified (0 axioms)** |
 | 16 | **Jung's Theorem on Circumscribed Spheres** | [`jungs_theorem`](Formalization/JungsTheorem.lean), [`jungs_theorem_via_helly`](Formalization/JungsTheorem.lean), [`circumradius_le_jungs_bound`](Formalization/JungsTheorem.lean), [`jungsConstant_pos`](Formalization/JungsTheorem.lean) | Discrete Geometry & Convexity | Jung (1901), Danzer, Grünbaum, & Klee (1963) | Scaffolded (Helly reduction `jungs_theorem_via_helly` verified; reduces to simplex case) |
 | 17 | **Alon–Boppana Spectral Lower Bound** | [`alon_boppana_bound`](Formalization/AlonBoppana.lean), [`alon_boppana_nilli`](Formalization/AlonBoppana.lean), [`secondEigenvalue`](Formalization/AlonBoppana.lean), [`IsRamanujan`](Formalization/AlonBoppana.lean) | Spectral Graph Theory & Expanders | Alon (1986), Boppana (1986), Nilli (1991) | Scaffolded (Symmetry & gap verified; lacks Nilli spherical test vectors) |
@@ -149,6 +149,9 @@ This repository provides machine-checked formalizations, certified proofs, and f
 
 ### 14. Cayley's Tree Formula & Prüfer Sequences
 * **Module:** [`Formalization/CayleysFormula.lean`](Formalization/CayleysFormula.lean)
+* **Modular Package:** [`Formalization/CayleysFormula/`](Formalization/CayleysFormula)
+  - `PruferEncode.lean`: `LabeledTree` structure and lemmas, `PruferSequence`, leaf filtering, and leaf-peeling encoding algorithm (`pruferCode`).
+  - `PruferDecode.lean`: Inductive edge decoding algorithm (`decodeEdges`), connectivity, and tree reconstruction (`pruferDecode`, `pruferDecode_isTree`).
 * **Theorems:** `cayleys_tree_formula`, `prufer_sequence_card`, `pruferEquiv`, `pruferCode`, `pruferDecode`, `rooted_trees_count`, `cayley_n2`, `cayley_n3`, `cayley_n4`
 * **Mathematical Statement:** The number of labeled trees on $n \ge 2$ vertices is:
   $$T_n = n^{n - 2}$$
@@ -253,7 +256,10 @@ This repository provides machine-checked formalizations, certified proofs, and f
 │   │   └── Fan.lean                      #     - Vizing fan extensions
 │   ├── FishersInequality.lean            # 12. Fisher's Inequality for Block Designs (1940)
 │   ├── GesselViennot.lean                # 13. Lindström–Gessel–Viennot Lemma (1973, 1985)
-│   ├── CayleysFormula.lean               # 14. Cayley's Tree Formula & Prüfer Sequences (1889, 1918)
+│   ├── CayleysFormula.lean               # 14. Cayley's Tree Formula & Prüfer Sequences (Master Interface)
+│   ├── CayleysFormula/                   # 14. Modular Cayley Package
+│   │   ├── PruferEncode.lean             #     - Labeled trees, Prüfer sequences, & encoding
+│   │   └── PruferDecode.lean             #     - Edge decoder & tree reconstruction
 │   ├── KonigMatching.lean                # 15. Kőnig–Egerváry Duality Theorem (1931)
 │   ├── JungsTheorem.lean                 # 16. Jung's Theorem on Circumscribed Spheres (1901)
 │   ├── AlonBoppana.lean                  # 17. Alon–Boppana Spectral Lower Bound (1986)
