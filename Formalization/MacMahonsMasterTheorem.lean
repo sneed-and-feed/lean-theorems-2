@@ -57,9 +57,8 @@ noncomputable def invDetMacMahon (A : Matrix (Fin n) (Fin n) R) : MvPowerSeries 
 
 theorem macmahon_zero_exponent (A : Matrix (Fin n) (Fin n) R) :
     MvPolynomial.coeff (toFinsupp (fun _ => 0)) (prodLinearForms A (fun _ => 0)) = 1 := by
-  have h_prod : prodLinearForms A (fun _ => 0) = 1 := by dsimp [prodLinearForms]; simp
-  have h_finsupp : toFinsupp (fun _ : Fin n => 0) = 0 := by ext i; simp [toFinsupp]
-  rw [h_prod, h_finsupp, ← MvPolynomial.C_1, MvPolynomial.coeff_zero_C]
+  have : toFinsupp (fun _ : Fin n => 0) = 0 := by ext i; simp [toFinsupp]
+  rw [show prodLinearForms A (fun _ => 0) = 1 by simp [prodLinearForms], this, ← MvPolynomial.C_1, MvPolynomial.coeff_zero_C]
 
 theorem coeff_zero_detMacMahon (A : Matrix (Fin n) (Fin n) R) :
     MvPolynomial.coeff 0 (detMacMahon A) = 1 := by
@@ -99,25 +98,21 @@ theorem invOfUnit_one_eq_of_antidiagonal_eq_zero {σ : Type*} [DecidableEq σ]
             have hi : i = 0 := by
               have : i + j = 0 + j := by rw [hij_in, zero_add]
               exact add_right_cancel this
-            rw [hi]
+            exact Prod.ext hi rfl
         simp only [hjlt, ite_true]
       have hrec_m := hrec m hm
       rw [h_sum] at hrec_m
       have hgm : g m = - ∑ x ∈ Finset.antidiagonal m, if x.2 < m then MvPowerSeries.coeff x.1 φ * g x.2 else 0 :=
         eq_neg_of_add_eq_zero_left hrec_m
       rw [hgm, neg_inj]
-      refine Finset.sum_congr rfl (fun ⟨i, j⟩ _ => ?_)
-      split_ifs with hj
-      · rw [ih j hj]
-      · rfl
+      refine Finset.sum_congr rfl (fun ⟨i, j⟩ _ => by split_ifs with hj <;> [rw [ih j hj]; rfl])
 
 noncomputable def G (A : Matrix (Fin n) (Fin n) R) (m : Fin n →₀ ℕ) : R :=
   MvPolynomial.coeff m (prodLinearForms A (Finsupp.equivFunOnFinite m))
 
 theorem G_zero (A : Matrix (Fin n) (Fin n) R) : G A 0 = 1 := by
-  dsimp [G]
   have : Finsupp.equivFunOnFinite (0 : Fin n →₀ ℕ) = (fun _ => 0) := by ext; rfl
-  rw [this]
+  dsimp [G]; rw [this]
   have := macmahon_zero_exponent A
   have h_finsupp : toFinsupp (fun _ : Fin n => 0) = 0 := by ext; simp [toFinsupp]
   rwa [h_finsupp] at this
@@ -135,17 +130,14 @@ noncomputable def subdetCoeffScalar (A : Matrix (Fin n) (Fin n) R) (K : Finset (
 
 theorem subdetCoeff_eq_C (A : Matrix (Fin n) (Fin n) R) (K : Finset (Fin n)) :
     subdetCoeff A K = MvPolynomial.C (subdetCoeffScalar A K) := by
-  dsimp [subdetCoeff, subdetCoeffScalar]
-  simp only [map_sum, map_mul, Units.smul_def]
+  dsimp [subdetCoeff, subdetCoeffScalar]; simp only [map_sum, map_mul, Units.smul_def]
   refine Finset.sum_congr rfl (fun σ _ => by split_ifs <;> simp)
 
-noncomputable def indicatorFinsupp (K : Finset (Fin n)) : Fin n →₀ ℕ :=
-  ∑ i ∈ K, Finsupp.single i 1
+noncomputable def indicatorFinsupp (K : Finset (Fin n)) : Fin n →₀ ℕ := ∑ i ∈ K, Finsupp.single i 1
 
 theorem indicatorFinsupp_apply (K : Finset (Fin n)) (i : Fin n) :
     indicatorFinsupp K i = if i ∈ K then 1 else 0 := by
-  dsimp [indicatorFinsupp]
-  rw [Finsupp.finsetSum_apply]
+  dsimp [indicatorFinsupp]; rw [Finsupp.finsetSum_apply]
   split_ifs with h
   · rw [Finset.sum_eq_single i (fun j _ hj => by simp [hj]) (fun h' => (h' h).elim)]; simp
   · exact Finset.sum_eq_zero (fun j hj => by simp [show j ≠ i by rintro rfl; exact h hj])
@@ -166,7 +158,7 @@ theorem subdetCoeff_mul_prod_X (A : Matrix (Fin n) (Fin n) R) (K : Finset (Fin n
 theorem prod_ite_eq_self (t : Finset (Fin n)) (σ : Equiv.Perm (Fin n)) (f : Fin n → MvPolynomial (Fin n) R) :
     (∏ i ∈ t, (if i = σ i then f i else 0)) = if ∀ i ∈ t, σ i = i then ∏ i ∈ t, f i else 0 := by
   split_ifs with h
-  · refine Finset.prod_congr rfl (fun i hi => by simp [h i hi])
+  · exact Finset.prod_congr rfl (fun i hi => by simp [h i hi])
   · push Not at h
     obtain ⟨i, hi, hne⟩ := h
     exact Finset.prod_eq_zero hi (by split_ifs with h' <;> [exact (hne h'.symm).elim; rfl])
@@ -229,8 +221,7 @@ theorem det_genMatrix (D : Fin n → MvPolynomial (Fin n) R) (S : Finset (Fin n)
   refine Finset.sum_congr rfl (fun K _ => ?_)
   split_ifs with hKS
   · rw [← subdetCoeff_mul_prod_X, ← mul_assoc, mul_comm (∏ i ∈ Finset.univ \ K, D i), mul_assoc]
-    dsimp [subdetCoeff]
-    simp only [Finset.sum_mul, Units.smul_def]
+    dsimp [subdetCoeff]; simp only [Finset.sum_mul, Units.smul_def]
     exact Finset.sum_congr rfl (fun σ _ => by split_ifs <;> ring)
   · simp
 
@@ -244,28 +235,18 @@ theorem sum_antidiagonal_ite_eq_indicator (m : Fin n →₀ ℕ) (K : Finset (Fi
     (∑ x ∈ Finset.antidiagonal m, (if x.1 = indicatorFinsupp K then c * g x.2 else 0)) =
     if indicatorFinsupp K ≤ m then c * g (m - indicatorFinsupp K) else 0 := by
   split_ifs with hle
-  · have h_mem : (indicatorFinsupp K, m - indicatorFinsupp K) ∈ Finset.antidiagonal m := by
-      rw [Finset.mem_antidiagonal, add_tsub_cancel_of_le hle]
-    rw [Finset.sum_eq_single (indicatorFinsupp K, m - indicatorFinsupp K)]
+  · rw [Finset.sum_eq_single_of_mem (a := (indicatorFinsupp K, m - indicatorFinsupp K))]
     · simp
+    · simp [Finset.mem_antidiagonal, add_tsub_cancel_of_le hle]
     · rintro ⟨x1, x2⟩ hx hne
       rw [Finset.mem_antidiagonal] at hx
       split_ifs with hx1
-      · subst hx1
-        have : x2 = m - indicatorFinsupp K := by
-          have : indicatorFinsupp K + x2 = indicatorFinsupp K + (m - indicatorFinsupp K) := by
-            rw [hx, add_tsub_cancel_of_le hle]
-          exact add_left_cancel this
-        subst this; contradiction
+      · subst hx1; exact (hne (Prod.ext rfl (add_left_cancel (hx.trans (add_tsub_cancel_of_le hle).symm)))).elim
       · rfl
-    · intro hnot; exact False.elim (hnot h_mem)
-  · apply Finset.sum_eq_zero
-    rintro ⟨x1, x2⟩ hx
+  · refine Finset.sum_eq_zero (fun ⟨x1, x2⟩ hx => ?_)
     rw [Finset.mem_antidiagonal] at hx
     split_ifs with hx1
-    · subst hx1
-      have : indicatorFinsupp K ≤ m := fun i => by rw [← hx, Finsupp.add_apply]; exact Nat.le_add_right _ _
-      exact False.elim (hle this)
+    · subst hx1; exact (hle (fun i => by rw [← hx, Finsupp.add_apply]; exact Nat.le_add_right _ _)).elim
     · rfl
 
 theorem sum_antidiagonal_detMacMahon_mul_G (A : Matrix (Fin n) (Fin n) R) (m : Fin n →₀ ℕ) :
@@ -284,32 +265,18 @@ noncomputable def macmahonRelMatrix' (A : Matrix (Fin n) (Fin n) R) (S : Finset 
 
 theorem macmahonRelMatrix'_mulVec_X (A : Matrix (Fin n) (Fin n) R) (S : Finset (Fin n)) :
     macmahonRelMatrix' A S *ᵥ (fun j => MvPolynomial.X j) = fun i => if i ∈ S then 0 else MvPolynomial.X i := by
-  apply funext
-  intro i
-  simp only [Matrix.mulVec_apply_eq_sum, macmahonRelMatrix', Matrix.of_apply, sub_mul]
+  ext i; simp only [Matrix.mulVec_apply_eq_sum, macmahonRelMatrix', Matrix.of_apply, sub_mul]
   rw [Finset.sum_sub_distrib]
   by_cases hi : i ∈ S
   · simp only [hi, ite_true]
     have h1 : (∑ j : Fin n, (if i = j then linearForm A i else 0) * MvPolynomial.X j) = linearForm A i * MvPolynomial.X i := by
-      rw [Finset.sum_eq_single i]
-      · simp
-      · intro j _ hj
-        split_ifs with hij
-        · subst hij; contradiction
-        · simp
-      · intro hnot; exact (hnot (Finset.mem_univ i)).elim
+      rw [Finset.sum_eq_single i (fun j _ hj => by simp [hj.symm]) (fun h => (h (Finset.mem_univ i)).elim)]; simp
     have h2 : (∑ j : Fin n, MvPolynomial.X i * MvPolynomial.C (A i j) * MvPolynomial.X j) = linearForm A i * MvPolynomial.X i := by
       dsimp [linearForm]; rw [Finset.sum_mul]; exact Finset.sum_congr rfl (fun j _ => by ring)
     rw [h1, h2, sub_self]
   · simp only [hi, ite_false]
     have h1 : (∑ j : Fin n, (if i = j then (1 : MvPolynomial (Fin n) R) else 0) * MvPolynomial.X j) = MvPolynomial.X i := by
-      rw [Finset.sum_eq_single i]
-      · simp
-      · intro j _ hj
-        split_ifs with hij
-        · subst hij; contradiction
-        · simp
-      · intro hnot; exact (hnot (Finset.mem_univ i)).elim
+      rw [Finset.sum_eq_single i (fun j _ hj => by simp [hj.symm]) (fun h => (h (Finset.mem_univ i)).elim)]; simp
     have h2 : (∑ j : Fin n, (0 : MvPolynomial (Fin n) R) * MvPolynomial.X j) = 0 := by simp
     rw [h1, h2, sub_zero]
 
@@ -340,9 +307,8 @@ theorem coeff_det_macmahonRelMatrix'_mul_eq_zero (A : Matrix (Fin n) (Fin n) R)
       ∑ i ∈ Finset.univ \ m.support, (Matrix.adjugate (macmahonRelMatrix' A m.support)) k i * P * MvPolynomial.X i := by
     calc Matrix.det (macmahonRelMatrix' A m.support) * P * MvPolynomial.X k
       _ = (Matrix.det (macmahonRelMatrix' A m.support) * MvPolynomial.X k) * P := by ring
-      _ = (∑ i ∈ Finset.univ \ m.support, (Matrix.adjugate (macmahonRelMatrix' A m.support)) k i * MvPolynomial.X i) * P := by rw [h_adj]
       _ = ∑ i ∈ Finset.univ \ m.support, (Matrix.adjugate (macmahonRelMatrix' A m.support)) k i * P * MvPolynomial.X i := by
-        rw [Finset.sum_mul]; exact Finset.sum_congr rfl (fun i _ => by ring)
+        rw [h_adj, Finset.sum_mul]; exact Finset.sum_congr rfl (fun i _ => by ring)
   have h_coeff := congr_arg (MvPolynomial.coeff (m + Finsupp.single k 1)) h_mul
   rw [MvPolynomial.coeff_mul_X, MvPolynomial.coeff_sum] at h_coeff
   have h_zero : (∑ i ∈ Finset.univ \ m.support,
@@ -356,16 +322,14 @@ theorem coeff_det_macmahonRelMatrix'_mul_eq_zero (A : Matrix (Fin n) (Fin n) R)
       simp [hi.2, hne.symm]
     rw [MvPolynomial.coeff_mul_X']
     simp only [h_not_supp, ite_false]
-  rw [h_zero] at h_coeff
-  exact h_coeff
+  rwa [h_zero] at h_coeff
 
 theorem prod_ite_linearForm_or_one (t : Finset (Fin n)) (S : Finset (Fin n)) (K : Finset (Fin n))
     (ht : t = Finset.univ \ K) (_hKS : K ⊆ S) :
     (∏ i ∈ t, (if i ∈ S then linearForm A i else (1 : MvPolynomial (Fin n) R))) =
     ∏ i ∈ S \ K, linearForm A i := by
   subst ht
-  have h_sub : S \ K ⊆ Finset.univ \ K := fun x hx => by
-    rw [Finset.mem_sdiff] at hx ⊢; simp [hx.2]
+  have h_sub : S \ K ⊆ Finset.univ \ K := fun x hx => by rw [Finset.mem_sdiff] at hx ⊢; simp [hx.2]
   rw [← Finset.prod_sdiff h_sub]
   have h1 : (∏ i ∈ (Finset.univ \ K) \ (S \ K), (if i ∈ S then linearForm A i else (1 : MvPolynomial (Fin n) R))) = 1 := by
     refine Finset.prod_eq_one (fun i hi => ?_)
@@ -391,9 +355,8 @@ theorem prod_linearForms_eq_of_le' (A : Matrix (Fin n) (Fin n) R) (m : Fin n →
   dsimp [prodLinearForms]
   have h_prod1 : (∏ i ∈ m.support \ K, linearForm A i) =
       ∏ i : Fin n, (linearForm A i) ^ (if i ∈ m.support \ K then 1 else 0) := by
-    rw [← Finset.prod_subset (Finset.subset_univ (m.support \ K))]
-    · refine Finset.prod_congr rfl (fun i hi => by simp [hi])
-    · intro i _ hi; simp [hi]
+    rw [← Finset.prod_subset (Finset.subset_univ (m.support \ K)) (by intro i _ hi; simp [hi])]
+    exact Finset.prod_congr rfl (fun i hi => by simp [hi])
   rw [h_prod1, ← Finset.prod_mul_distrib]
   refine Finset.prod_congr rfl (fun i _ => ?_)
   rw [← pow_add]
@@ -401,8 +364,7 @@ theorem prod_linearForms_eq_of_le' (A : Matrix (Fin n) (Fin n) R) (m : Fin n →
   dsimp [Finsupp.equivFunOnFinite]
   rw [indicatorFinsupp_apply]
   by_cases hiK : i ∈ K
-  · have hiS := hKS hiK
-    rw [Finsupp.mem_support_iff] at hiS
+  · have hiS := Finsupp.mem_support_iff.mp (hKS hiK)
     have : i ∉ m.support \ K := fun h => (Finset.mem_sdiff.mp h).2 hiK
     simp [this, hiK]
   · by_cases hiS : i ∈ m.support
@@ -419,9 +381,8 @@ theorem subset_support_of_indicator_le {K : Finset (Fin n)} {m : Fin n →₀ �
   rw [Finsupp.mem_support_iff]
   intro h0
   have h_le := hle i
-  rw [indicatorFinsupp_apply] at h_le
-  simp only [hi, ite_true, h0] at h_le
-  cases h_le
+  rw [indicatorFinsupp_apply, if_pos hi, h0] at h_le
+  exact Nat.not_succ_le_zero 0 h_le
 
 /--
 **MacMahon's Master Theorem (1915)**:
