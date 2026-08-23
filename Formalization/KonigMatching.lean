@@ -64,6 +64,11 @@ $$\nu(G) = \tau(G)$$
 - `matching_card_le_vertexCover_card`: Elementary bound $|M| \le |C|$ for any matching $M$ and cover $C$.
 - `weak_duality`: The general inequality $\nu(G) \le \tau(G)$.
 - `exists_max_defect`: Existence of a maximum deficiency subset for Hall's defect theorem.
+- `isVertexCover_bipartite_defect`: Vertex cover construction from maximal defect set.
+- `bipartite_defect_cover_card`: Cardinality $|C| = |A| - d$ for defect cover.
+- `augmentedNeighbors`: Augmented neighborhood family $t(a) = N(a) \oplus \text{Fin } d$.
+- `hall_condition_augmented`: Hall condition satisfaction for augmented neighborhoods.
+- `exists_matching_from_hall_inj`: Extraction and validity of matching from Hall injection.
 - `konig_duality_le`: Reverse inequality $\tau(G) \le \nu(G)$ in bipartite graphs.
 - `konig_duality`: The Kőnig–Egerváry theorem $\nu(G) = \tau(G)$ for $2$-colorable graphs.
 - `gallai_independence_vertex_cover`: Gallai's identity $\alpha(G) + \tau(G) = |V|$.
@@ -99,14 +104,12 @@ def IsVertexCover (G : SimpleGraph V) (C : Finset V) : Prop :=
   ∀ u v : V, G.Adj u v → u ∈ C ∨ v ∈ C
 
 /-- The empty edge set is always a valid matching. -/
-theorem isMatching_empty (G : SimpleGraph V) : IsMatching G ∅ := by
-  constructor
-  · intro e he; simp at he
-  · intro e₁ he₁; simp at he₁
+theorem isMatching_empty (G : SimpleGraph V) : IsMatching G ∅ :=
+  ⟨by simp, by simp⟩
 
 /-- The full vertex set is always a valid vertex cover. -/
-theorem isVertexCover_univ (G : SimpleGraph V) : IsVertexCover G Finset.univ := by
-  intro u v _; left; exact Finset.mem_univ u
+theorem isVertexCover_univ (G : SimpleGraph V) : IsVertexCover G Finset.univ :=
+  fun _ _ _ => Or.inl (Finset.mem_univ _)
 
 /-- The matching number $\nu(G)$: maximum size of a matching in $G$. -/
 noncomputable def matchingNumber (G : SimpleGraph V) : ℕ :=
@@ -122,7 +125,7 @@ def IsIndependentSet (G : SimpleGraph V) (S : Finset V) : Prop :=
 
 /-- The empty vertex set is always an independent set. -/
 theorem isIndependentSet_empty (G : SimpleGraph V) : IsIndependentSet G ∅ := by
-  intro u hu; simp at hu
+  simp [IsIndependentSet]
 
 /-- The independence number $\alpha(G)$: maximum size of an independent set in $G$. -/
 noncomputable def independenceNumber (G : SimpleGraph V) : ℕ :=
@@ -131,25 +134,13 @@ noncomputable def independenceNumber (G : SimpleGraph V) : ℕ :=
 /-- An independent set corresponds bijectively to the complement of a vertex cover. -/
 theorem isIndependentSet_iff_isVertexCover_compl (G : SimpleGraph V) (S : Finset V) :
     IsIndependentSet G S ↔ IsVertexCover G (Finset.univ \ S) := by
+  simp only [IsIndependentSet, IsVertexCover, Finset.mem_sdiff, Finset.mem_univ, true_and]
   constructor
-  · intro hS u v hadj
-    by_contra h
-    have h1 : ¬ (u ∈ Finset.univ \ S) := fun hu => h (Or.inl hu)
-    have h2 : ¬ (v ∈ Finset.univ \ S) := fun hv => h (Or.inr hv)
-    have hu : u ∈ S := by
-      by_contra hu'
-      have : u ∈ Finset.univ \ S := by simp [hu']
-      exact h1 this
-    have hv : v ∈ S := by
-      by_contra hv'
-      have : v ∈ Finset.univ \ S := by simp [hv']
-      exact h2 this
-    exact hS u hu v hv hadj
-  · intro hC u hu v hv hadj
-    have h := hC u v hadj
-    cases h with
-    | inl hu_cov => simp [hu] at hu_cov
-    | inr hv_cov => simp [hv] at hv_cov
+  · intro h u v hadj
+    by_contra! h'
+    exact h u h'.1 v h'.2 hadj
+  · intro h u hu v hv hadj
+    rcases h u v hadj with hu' | hv' <;> contradiction
 
 /--
 **Weak Duality for Matchings and Vertex Covers**:
@@ -159,32 +150,27 @@ can cover at most one edge of the vertex-disjoint family $M$.
 theorem matching_card_le_vertexCover_card (G : SimpleGraph V) {M : Finset (Sym2 V)} {C : Finset V}
     (hM : IsMatching G M) (hC : IsVertexCover G C) :
     M.card ≤ C.card := by
-  have h_choice : ∀ e ∈ M, ∃ v ∈ C, v ∈ e := by
+  have : ∀ e ∈ M, ∃ v ∈ C, v ∈ e := by
     intro e he
-    have he_edge := hM.1 e he
     induction e using Sym2.inductionOn with
     | hf u v =>
-      have hadj : G.Adj u v := he_edge
-      cases hC u v hadj with
-      | inl hu => exact ⟨u, hu, Sym2.mem_mk_left u v⟩
-      | inr hv => exact ⟨v, hv, Sym2.mem_mk_right u v⟩
-  choose f hfC hfe using h_choice
+      rcases hC u v (hM.1 _ he) with hu | hv
+      · exact ⟨u, hu, Sym2.mem_mk_left u v⟩
+      · exact ⟨v, hv, Sym2.mem_mk_right u v⟩
+  choose f hfC hfe using this
   have h_inj : ∀ (e₁ : Sym2 V) (he₁ : e₁ ∈ M) (e₂ : Sym2 V) (he₂ : e₂ ∈ M), f e₁ he₁ = f e₂ he₂ → e₁ = e₂ := by
     intro e₁ he₁ e₂ he₂ heq
     by_contra hne
-    have hshare : EdgesShareEndpoint e₁ e₂ := ⟨f e₁ he₁, hfe e₁ he₁, heq ▸ hfe e₂ he₂⟩
-    exact hM.2 e₁ he₁ e₂ he₂ hne hshare
-  have h_sub : (M.attach.image (fun ⟨e, he⟩ => f e he)) ⊆ C := by
-    intro v hv
-    simp only [Finset.mem_image, Finset.mem_attach, true_and, Subtype.exists] at hv
-    obtain ⟨e, he, rfl⟩ := hv
+    exact hM.2 e₁ he₁ e₂ he₂ hne ⟨f e₁ he₁, hfe e₁ he₁, heq ▸ hfe e₂ he₂⟩
+  have h_sub : M.attach.image (fun ⟨e, he⟩ => f e he) ⊆ C := by
+    rintro v hv
+    obtain ⟨⟨e, he⟩, -, rfl⟩ := Finset.mem_image.mp hv
     exact hfC e he
   have h_card_eq : (M.attach.image (fun ⟨e, he⟩ => f e he)).card = M.card := by
     rw [Finset.card_image_of_injective]
-    · simp
+    · exact Finset.card_attach
     · intro ⟨e₁, he₁⟩ ⟨e₂, he₂⟩ heq
-      simp only [Subtype.mk.injEq]
-      exact h_inj e₁ he₁ e₂ he₂ heq
+      exact Subtype.ext (h_inj e₁ he₁ e₂ he₂ heq)
   rw [← h_card_eq]
   exact Finset.card_le_card h_sub
 
@@ -195,17 +181,11 @@ $$\nu(G) \le \tau(G)$$
 -/
 theorem weak_duality (G : SimpleGraph V) :
     matchingNumber G ≤ vertexCoverNumber G := by
-  let SM := { k : ℕ | ∃ M : Finset (Sym2 V), IsMatching G M ∧ M.card = k }
-  let SC := { k : ℕ | ∃ C : Finset V, IsVertexCover G C ∧ C.card = k }
-  have hSM_nonempty : SM.Nonempty := ⟨0, ∅, isMatching_empty G, rfl⟩
-  have hSC_nonempty : SC.Nonempty := ⟨Fintype.card V, Finset.univ, isVertexCover_univ G, Finset.card_univ⟩
-  have h_le : ∀ k ∈ SM, ∀ l ∈ SC, k ≤ l := by
-    rintro k ⟨M, hM, rfl⟩ l ⟨C, hC, rfl⟩
-    exact matching_card_le_vertexCover_card G hM hC
-  have h_sup_le : ∀ l ∈ SC, sSup SM ≤ l := by
-    intro l hl
-    exact csSup_le hSM_nonempty (fun k hk => h_le k hk l hl)
-  exact le_csInf hSC_nonempty h_sup_le
+  refine le_csInf ⟨Fintype.card V, Finset.univ, isVertexCover_univ G, Finset.card_univ⟩ ?_
+  rintro l ⟨C, hC, rfl⟩
+  refine csSup_le ⟨0, ∅, isMatching_empty G, rfl⟩ ?_
+  rintro k ⟨M, hM, rfl⟩
+  exact matching_card_le_vertexCover_card G hM hC
 
 /--
 Existence of a maximal deficiency subset $S_0 \subseteq A$ for the defect form of Hall's condition.
@@ -216,28 +196,194 @@ theorem exists_max_defect (G : SimpleGraph V) (A : Finset V) :
       d = S₀.card - (S₀.biUnion (fun a => G.neighborFinset a)).card ∧
       ∀ S ⊆ A, S.card ≤ (S.biUnion (fun a => G.neighborFinset a)).card + d := by
   let f (S : Finset V) : ℕ := S.card - (S.biUnion (fun a => G.neighborFinset a)).card
-  have h_nonempty : A.powerset.Nonempty := ⟨∅, Finset.mem_powerset.mpr (Finset.empty_subset A)⟩
-  obtain ⟨S₁, hS₁_mem, hS₁_max⟩ := Finset.exists_max_image A.powerset f h_nonempty
+  obtain ⟨S₁, hS₁_mem, hS₁_max⟩ := Finset.exists_max_image A.powerset f
+    ⟨∅, Finset.mem_powerset.mpr (Finset.empty_subset A)⟩
   have hS₁_sub : S₁ ⊆ A := Finset.mem_powerset.mp hS₁_mem
   by_cases hd : f S₁ = 0
-  · refine ⟨∅, 0, Finset.empty_subset A, by simp, by simp, ?_⟩
-    intro S hS
-    have hS_pow : S ∈ A.powerset := Finset.mem_powerset.mpr hS
-    have hle := hS₁_max S hS_pow
-    have : f S ≤ 0 := by omega
-    have : S.card ≤ (S.biUnion (fun a => G.neighborFinset a)).card := by
-      dsimp [f] at this; omega
+  · refine ⟨∅, 0, Finset.empty_subset A, by simp, by simp, fun S hS => ?_⟩
+    have := hS₁_max S (Finset.mem_powerset.mpr hS)
+    dsimp [f] at hd this; omega
+  · refine ⟨S₁, f S₁, hS₁_sub, by dsimp [f] at *; omega, rfl, fun S hS => ?_⟩
+    have := hS₁_max S (Finset.mem_powerset.mpr hS)
+    dsimp [f] at *; omega
+
+/-! ### Modular Helpers for Kőnig's Duality Theorem -/
+
+/-- In a 2-colored graph, neighbors of vertices colored 0 all have color 1. -/
+lemma bipartite_neighborFinset_subset (G : SimpleGraph V) (c : G.Coloring (Fin 2)) (S : Finset V)
+    (hS : ∀ x ∈ S, c x = 0) :
+    S.biUnion (fun a => G.neighborFinset a) ⊆ Finset.filter (fun v => c v = 1) Finset.univ := by
+  intro b hb
+  simp only [Finset.mem_biUnion, G.mem_neighborFinset] at hb
+  obtain ⟨a, ha, hadj⟩ := hb
+  have hc := c.valid hadj
+  have ha0 : c a = 0 := hS a ha
+  simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+  cases fin2_cases (c b) with
+  | inl h0 => exfalso; apply hc; rw [ha0, h0]
+  | inr h1 => exact h1
+
+/-- Construction of a vertex cover $(A \setminus S_0) \cup N(S_0)$ from a defect set $S_0 \subseteq A$. -/
+lemma isVertexCover_bipartite_defect (G : SimpleGraph V) (c : G.Coloring (Fin 2))
+    (A S₀ : Finset V) (hA : A = Finset.filter (fun v => c v = 0) Finset.univ) (_hS₀ : S₀ ⊆ A) :
+    IsVertexCover G ((A \ S₀) ∪ S₀.biUnion (fun a => G.neighborFinset a)) := by
+  have h_cov (x y : V) (hxy : G.Adj x y) (hx0 : c x = 0) :
+      (x ∈ (A \ S₀) ∪ S₀.biUnion (fun a => G.neighborFinset a)) ∨ (y ∈ (A \ S₀) ∪ S₀.biUnion (fun a => G.neighborFinset a)) := by
+    by_cases hxS : x ∈ S₀
+    · exact Or.inr (Finset.mem_union_right _ (Finset.mem_biUnion.mpr ⟨x, hxS, (G.mem_neighborFinset x y).mpr hxy⟩))
+    · exact Or.inl (Finset.mem_union_left _ (Finset.mem_sdiff.mpr ⟨by simp [hA, hx0], hxS⟩))
+  intro u v hadj
+  have hc := c.valid hadj
+  rcases fin2_cases (c u) with hu0 | hu1
+  · exact h_cov u v hadj hu0
+  · rcases fin2_cases (c v) with hv0 | hv1
+    · exact (h_cov v u hadj.symm hv0).symm
+    · exact False.elim (hc (by rw [hu1, hv1]))
+
+/-- Cardinality of the vertex cover $(A \setminus S_0) \cup N(S_0)$ is exactly $|A| - d$. -/
+lemma bipartite_defect_cover_card (G : SimpleGraph V) (c : G.Coloring (Fin 2))
+    (A S₀ : Finset V) (d : ℕ)
+    (hA : A = Finset.filter (fun v => c v = 0) Finset.univ)
+    (hS₀ : S₀ ⊆ A)
+    (hd_eq : d = S₀.card - (S₀.biUnion (fun a => G.neighborFinset a)).card)
+    (hS₀_le : (S₀.biUnion (fun a => G.neighborFinset a)).card ≤ S₀.card) :
+    ((A \ S₀) ∪ S₀.biUnion (fun a => G.neighborFinset a)).card = A.card - d := by
+  have h_disj : Disjoint (A \ S₀) (S₀.biUnion (fun a => G.neighborFinset a)) := by
+    refine Disjoint.mono Finset.sdiff_subset (bipartite_neighborFinset_subset G c S₀ ?_) ?_
+    · intro x hx
+      have := hS₀ hx
+      rw [hA, Finset.mem_filter] at this
+      exact this.2
+    · rw [hA, Finset.disjoint_left]
+      intro x hxA hxB
+      have := (Finset.mem_filter.mp hxA).2.symm.trans (Finset.mem_filter.mp hxB).2
+      revert this; decide
+  rw [Finset.card_union_of_disjoint h_disj, Finset.card_sdiff, Finset.inter_eq_left.mpr hS₀, hd_eq]
+  have := Finset.card_le_card hS₀
+  omega
+
+/-- Augmented neighborhood family for Hall's condition with defect $d$. -/
+noncomputable def augmentedNeighbors (G : SimpleGraph V) (d : ℕ) (a : V) : Finset (V ⊕ Fin d) :=
+  (G.neighborFinset a).image Sum.inl ∪ (Finset.univ : Finset (Fin d)).image Sum.inr
+
+lemma augmentedNeighbors_biUnion (G : SimpleGraph V) (d : ℕ) {S : Finset V} (hS : S.Nonempty) :
+    S.biUnion (augmentedNeighbors G d) =
+      (S.biUnion (fun a => G.neighborFinset a)).image Sum.inl ∪ (Finset.univ : Finset (Fin d)).image Sum.inr := by
+  ext (v | i) <;> simp [augmentedNeighbors, hS.exists_mem]
+
+lemma card_augmentedNeighbors_biUnion (G : SimpleGraph V) (d : ℕ) {S : Finset V} (hS : S.Nonempty) :
+    (S.biUnion (augmentedNeighbors G d)).card = (S.biUnion (fun a => G.neighborFinset a)).card + d := by
+  have h_disj : Disjoint ((S.biUnion (fun a => G.neighborFinset a)).image Sum.inl)
+      ((Finset.univ : Finset (Fin d)).image Sum.inr) := by simp [Finset.disjoint_left]
+  rw [augmentedNeighbors_biUnion G d hS, Finset.card_union_of_disjoint h_disj,
+      Finset.card_image_of_injective _ (fun _ _ => Sum.inl.inj),
+      Finset.card_image_of_injective _ (fun _ _ => Sum.inr.inj),
+      Finset.card_fin]
+
+/-- Hall's condition holds for the augmented neighborhood family on the subtype $A$. -/
+lemma hall_condition_augmented (G : SimpleGraph V) (A : Finset V) (d : ℕ)
+    (hd_max : ∀ S ⊆ A, S.card ≤ (S.biUnion (fun a => G.neighborFinset a)).card + d)
+    (S' : Finset A) :
+    S'.card ≤ (S'.biUnion (fun a => augmentedNeighbors G d a.val)).card := by
+  by_cases hS' : S'.Nonempty
+  · have h_sub : S'.image Subtype.val ⊆ A := fun x hx => by
+      obtain ⟨⟨y, hyA⟩, -, rfl⟩ := Finset.mem_image.mp hx; exact hyA
+    have h_nonemp : (S'.image Subtype.val).Nonempty := hS'.image Subtype.val
+    have h_biUnion : (S'.image Subtype.val).biUnion (augmentedNeighbors G d) =
+        S'.biUnion (fun a => augmentedNeighbors G d a.val) := by
+      ext x; simp [augmentedNeighbors]
+    rw [← Finset.card_image_of_injective S' Subtype.val_injective, ← h_biUnion,
+        card_augmentedNeighbors_biUnion G d h_nonemp]
+    exact hd_max (S'.image Subtype.val) h_sub
+  · rw [Finset.nonempty_iff_ne_empty, not_not] at hS'
+    simp [hS']
+
+/-- Extraction of a valid matching $M$ of cardinality at least $|A| - d$ from Hall's injection. -/
+lemma exists_matching_from_hall_inj (G : SimpleGraph V) (c : G.Coloring (Fin 2))
+    (A : Finset V) (d : ℕ)
+    (hA : A = Finset.filter (fun v => c v = 0) Finset.univ)
+    (f : A → V ⊕ Fin d) (hf_inj : Function.Injective f)
+    (hf_mem : ∀ a : A, f a ∈ augmentedNeighbors G d a.val) :
+    ∃ M : Finset (Sym2 V), IsMatching G M ∧ A.card - d ≤ M.card := by
+  let A_mat : Finset A := Finset.filter (fun a => ∃ v : V, f a = Sum.inl v) Finset.univ
+  have h_compl_card : (Finset.univ \ A_mat : Finset A).card ≤ d := by
+    have h_inr : ∀ a ∈ (Finset.univ \ A_mat : Finset A), ∃ i : Fin d, f a = Sum.inr i := by
+      intro a ha
+      simp only [Finset.mem_sdiff, Finset.mem_univ, true_and, Finset.mem_filter, not_exists, A_mat] at ha
+      cases hfa : f a with
+      | inl v => exact (ha v hfa).elim
+      | inr i => exact ⟨i, rfl⟩
+    choose finr hfinr using h_inr
+    have h_sub : (Finset.univ \ A_mat).attach.image (fun ⟨a, ha⟩ => finr a ha) ⊆ Finset.univ :=
+      Finset.subset_univ _
+    have h_inj' : ∀ (x y : { a : A // a ∈ Finset.univ \ A_mat }), finr x.1 x.2 = finr y.1 y.2 → x = y := by
+      rintro ⟨a₁, h₁⟩ ⟨a₂, h₂⟩ heq
+      have : f a₁ = f a₂ := by rw [hfinr a₁ h₁, hfinr a₂ h₂, heq]
+      exact Subtype.ext (hf_inj this)
+    have := Finset.card_le_card h_sub
+    rw [Finset.card_image_of_injective _ (fun _ _ => h_inj' _ _), Finset.card_attach, Finset.card_fin] at this
+    exact this
+  have hA_mat_card : A.card - d ≤ A_mat.card := by
+    have h_split := Finset.card_sdiff (s := A_mat) (t := Finset.univ)
+    rw [Finset.inter_eq_left.mpr (Finset.subset_univ _), Finset.card_univ, Fintype.card_coe] at h_split
     omega
-  · have h_pos : 0 < f S₁ := by omega
-    have h_le_card : (S₁.biUnion (fun a => G.neighborFinset a)).card ≤ S₁.card := by
-      dsimp [f] at h_pos; omega
-    refine ⟨S₁, f S₁, hS₁_sub, h_le_card, rfl, ?_⟩
-    intro S hS
-    have hS_pow : S ∈ A.powerset := Finset.mem_powerset.mpr hS
-    have hle := hS₁_max S hS_pow
-    have : S.card ≤ (S.biUnion (fun a => G.neighborFinset a)).card + f S := by
-      dsimp [f]; omega
-    omega
+  have hg_choice : ∀ a ∈ A_mat, ∃ v : V, f a = Sum.inl v ∧ G.Adj a.val v := by
+    intro a ha
+    simp only [A_mat, Finset.mem_filter, Finset.mem_univ, true_and] at ha
+    obtain ⟨v, hv⟩ := ha
+    have hfa := hf_mem a
+    simp only [augmentedNeighbors, Finset.mem_union, Finset.mem_image, Finset.mem_univ, true_and] at hfa
+    rcases hfa with (⟨v', hv', heq⟩ | ⟨i, heq⟩)
+    · have : v = v' := Sum.inl.inj (hv.symm.trans heq.symm)
+      subst this
+      exact ⟨v, hv, (G.mem_neighborFinset a.val v).mp hv'⟩
+    · cases hv.symm.trans heq.symm
+  choose g hg_f hg_adj using hg_choice
+  let M : Finset (Sym2 V) := A_mat.attach.image (fun ⟨a, ha⟩ => s(a.val, g a ha))
+  have ha_c : ∀ a : A, c a.val = 0 := fun a => by
+    have ha := a.property
+    have : a.val ∈ Finset.filter (fun v => c v = 0) Finset.univ := hA ▸ ha
+    exact (Finset.mem_filter.mp this).2
+  have hg_c : ∀ (a : A) (ha : a ∈ A_mat), c (g a ha) = 1 := by
+    intro a ha
+    have hc := c.valid (hg_adj a ha)
+    cases fin2_cases (c (g a ha)) with
+    | inl h0 => exfalso; apply hc; rw [ha_c a, h0]
+    | inr h1 => exact h1
+  have hM_card : M.card = A_mat.card := by
+    rw [Finset.card_image_of_injective]
+    · exact Finset.card_attach
+    · rintro ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ heq
+      simp only [Subtype.mk.injEq]
+      rcases Sym2.eq_iff.mp heq with (⟨h1, -⟩ | ⟨h1, -⟩)
+      · exact Subtype.ext h1
+      · exfalso
+        have : c a₁.val = c (g a₂ ha₂) := congrArg c h1
+        rw [ha_c a₁, hg_c a₂ ha₂] at this
+        revert this; decide
+  refine ⟨M, ⟨?_, ?_⟩, by omega⟩
+  · rintro e he
+    obtain ⟨⟨a, ha⟩, -, rfl⟩ := Finset.mem_image.mp he
+    exact hg_adj a ha
+  · rintro e₁ he₁ e₂ he₂ hne ⟨w, hw₁, hw₂⟩
+    obtain ⟨⟨a₁, ha₁⟩, -, rfl⟩ := Finset.mem_image.mp he₁
+    obtain ⟨⟨a₂, ha₂⟩, -, rfl⟩ := Finset.mem_image.mp he₂
+    rcases Sym2.mem_iff.mp hw₁ with (hw1 | hw1) <;> rcases Sym2.mem_iff.mp hw₂ with (hw2 | hw2)
+    · have h_eq : a₁.val = a₂.val := hw1.symm.trans hw2
+      have : a₁ = a₂ := Subtype.ext h_eq
+      subst this; exact hne rfl
+    · exfalso
+      have : c a₁.val = c (g a₂ ha₂) := by rw [← hw1, hw2]
+      rw [ha_c a₁, hg_c a₂ ha₂] at this
+      revert this; decide
+    · exfalso
+      have : c (g a₁ ha₁) = c a₂.val := by rw [← hw1, hw2]
+      rw [hg_c a₁ ha₁, ha_c a₂] at this
+      revert this; decide
+    · have hg_eq : g a₁ ha₁ = g a₂ ha₂ := hw1.symm.trans hw2
+      have hf_eq : f a₁ = f a₂ := by rw [hg_f a₁ ha₁, hg_f a₂ ha₂, hg_eq]
+      have : a₁ = a₂ := hf_inj hf_eq
+      subst this; exact hne rfl
 
 /--
 **Strong Duality Inequality in Bipartite Graphs**:
@@ -247,278 +393,21 @@ $$\tau(G) \le \nu(G)$$
 theorem konig_duality_le (G : SimpleGraph V) (h_bip : G.Colorable 2) :
     vertexCoverNumber G ≤ matchingNumber G := by
   obtain ⟨c⟩ := h_bip
-  let A : Finset V := Finset.filter (fun v => c v = 0) Finset.univ
-  let B : Finset V := Finset.filter (fun v => c v = 1) Finset.univ
+  let A := Finset.filter (fun v => c v = 0) Finset.univ
   obtain ⟨S₀, d, hS₀_sub, hS₀_card_le, hd_eq, hd_max⟩ := exists_max_defect G A
-  let N (S : Finset V) : Finset V := S.biUnion (fun a => G.neighborFinset a)
-  let C : Finset V := (A \ S₀) ∪ N S₀
-  have hcu : ∀ v, c v = 0 ∨ c v = 1 := fun v => fin2_cases (c v)
-  have hC_cov : IsVertexCover G C := by
-    intro u v hadj
-    have hcuv := c.valid hadj
-    cases hcu u with
-    | inl hu0 =>
-      have huA : u ∈ A := by simp [A, hu0]
-      by_cases huS : u ∈ S₀
-      · right
-        have hv_in : v ∈ G.neighborFinset u := (G.mem_neighborFinset u v).mpr hadj
-        exact Finset.mem_union_right _ (Finset.mem_biUnion.mpr ⟨u, huS, hv_in⟩)
-      · left
-        exact Finset.mem_union_left _ (Finset.mem_sdiff.mpr ⟨huA, huS⟩)
-    | inr hu1 =>
-      cases hcu v with
-      | inl hv0 =>
-        have hvA : v ∈ A := by simp [A, hv0]
-        by_cases hvS : v ∈ S₀
-        · left
-          have hu_in : u ∈ G.neighborFinset v := (G.mem_neighborFinset v u).mpr hadj.symm
-          exact Finset.mem_union_right _ (Finset.mem_biUnion.mpr ⟨v, hvS, hu_in⟩)
-        · right
-          exact Finset.mem_union_left _ (Finset.mem_sdiff.mpr ⟨hvA, hvS⟩)
-      | inr hv1 =>
-        exfalso
-        apply hcuv
-        rw [hu1, hv1]
-  have hN_sub_B : ∀ S ⊆ A, N S ⊆ B := by
-    intro S hS b hb
-    simp only [N, Finset.mem_biUnion] at hb
-    obtain ⟨a, haS, hab⟩ := hb
-    have haA : a ∈ A := hS haS
-    simp only [A, Finset.mem_filter, Finset.mem_univ, true_and] at haA
-    rw [G.mem_neighborFinset] at hab
-    have h_adj := c.valid hab
-    simp only [B, Finset.mem_filter, Finset.mem_univ, true_and]
-    cases hcu b with
-    | inl h0 => exfalso; apply h_adj; rw [haA, h0]
-    | inr h1 => exact h1
-  have hA_disj_B : Disjoint A B := by
-    rw [Finset.disjoint_left]
-    intro x hxA hxB
-    simp only [A, Finset.mem_filter] at hxA
-    simp only [B, Finset.mem_filter] at hxB
-    have : (0 : Fin 2) = 1 := hxA.2.symm.trans hxB.2
-    revert this; decide
-  have h_disj_C : Disjoint (A \ S₀) (N S₀) := by
-    apply Disjoint.mono_left (Finset.sdiff_subset)
-    apply Disjoint.mono_right (hN_sub_B S₀ hS₀_sub)
-    exact hA_disj_B
-  have hC_card : C.card = A.card - d := by
-    rw [Finset.card_union_of_disjoint h_disj_C, Finset.card_sdiff, Finset.inter_eq_left.mpr hS₀_sub, hd_eq]
-    have hS₀_le_A : S₀.card ≤ A.card := Finset.card_le_card hS₀_sub
-    have hN_eq : (N S₀).card = (S₀.biUnion (fun a => G.neighborFinset a)).card := rfl
-    omega
-  -- Hall construction
-  let t (a : V) : Finset (V ⊕ Fin d) :=
-    ((G.neighborFinset a).image Sum.inl) ∪ ((Finset.univ : Finset (Fin d)).image Sum.inr)
-  have h_hall : ∀ (S : Finset V), S ⊆ A → S.card ≤ (S.biUnion t).card := by
-    intro S hS
-    by_cases hS_emp : S = ∅
-    · rw [hS_emp]; simp
-    · have h_biUnion_eq : S.biUnion t = (N S).image Sum.inl ∪ (Finset.univ : Finset (Fin d)).image Sum.inr := by
-        ext x
-        simp only [Finset.mem_biUnion, Finset.mem_union, Finset.mem_image, Finset.mem_univ, true_and, N, t]
-        constructor
-        · rintro ⟨a, haS, hx⟩
-          cases hx with
-          | inl hx =>
-            obtain ⟨v, hv, rfl⟩ := hx
-            left; exact ⟨v, ⟨a, haS, hv⟩, rfl⟩
-          | inr hx =>
-            obtain ⟨i, rfl⟩ := hx
-            right; exact ⟨i, rfl⟩
-        · rintro (⟨v, ⟨a, haS, hv⟩, rfl⟩ | ⟨i, rfl⟩)
-          · exact ⟨a, haS, Or.inl ⟨v, hv, rfl⟩⟩
-          · obtain ⟨a, haS⟩ := Finset.nonempty_iff_ne_empty.mpr hS_emp
-            exact ⟨a, haS, Or.inr ⟨i, rfl⟩⟩
-      have h_disj : Disjoint ((N S).image Sum.inl) ((Finset.univ : Finset (Fin d)).image Sum.inr) := by
-        rw [Finset.disjoint_iff_ne]
-        rintro _ h1 _ h2 rfl
-        obtain ⟨x, -, hx⟩ := Finset.mem_image.mp h1
-        obtain ⟨y, -, hy⟩ := Finset.mem_image.mp h2
-        rw [← hx] at hy
-        cases hy
-      rw [h_biUnion_eq, Finset.card_union_of_disjoint h_disj]
-      rw [Finset.card_image_of_injective _ (fun _ _ => Sum.inl.inj), Finset.card_image_of_injective _ (fun _ _ => Sum.inr.inj)]
-      rw [Finset.card_fin]
-      exact hd_max S hS
-  -- Apply Hall's theorem to the subtype A
-  let t' (a : A) : Finset (V ⊕ Fin d) := t a.val
-  have h_hall' : ∀ (S' : Finset A), S'.card ≤ (S'.biUnion t').card := by
-    intro S'
-    have h_sub : S'.image Subtype.val ⊆ A := by
-      intro x hx
-      obtain ⟨⟨y, hyA⟩, _, rfl⟩ := Finset.mem_image.mp hx
-      exact hyA
-    have h_card_eq : (S'.image Subtype.val).card = S'.card :=
-      Finset.card_image_of_injective S' Subtype.val_injective
-    have h_biUnion_eq : (S'.image Subtype.val).biUnion t = S'.biUnion t' := by
-      ext x
-      simp [t', t]
-    have := h_hall (S'.image Subtype.val) h_sub
-    rwa [h_card_eq, h_biUnion_eq] at this
-  obtain ⟨f, hf_inj, hf_mem⟩ := (Finset.all_card_le_biUnion_card_iff_exists_injective t').mp h_hall'
-  -- Filter matching edges
-  let A_matched : Finset A := Finset.filter (fun a => ∃ v : V, f a = Sum.inl v) Finset.univ
-  have hA_matched_card : A.card - d ≤ A_matched.card := by
-    have h_univ_card : (Finset.univ : Finset A).card = A.card := by
-      rw [Finset.card_univ, Fintype.card_coe]
-    have h_not_matched : (Finset.univ \ A_matched).card ≤ d := by
-      have h_all_inr : ∀ a ∈ (Finset.univ \ A_matched : Finset A), ∃ i : Fin d, f a = Sum.inr i := by
-        intro a ha
-        simp only [Finset.mem_sdiff, Finset.mem_univ, true_and, Finset.mem_filter, not_exists, A_matched] at ha
-        cases hfa : f a with
-        | inl v => exact (ha v hfa).elim
-        | inr i => exact ⟨i, rfl⟩
-      choose f_inr hf_inr using h_all_inr
-      have h_inj_on : ∀ a₁ (h₁ : a₁ ∈ Finset.univ \ A_matched) a₂ (h₂ : a₂ ∈ Finset.univ \ A_matched),
-          f_inr a₁ h₁ = f_inr a₂ h₂ → a₁ = a₂ := by
-        intro a₁ h₁ a₂ h₂ heq
-        have h1 := hf_inr a₁ h₁
-        have h2 := hf_inr a₂ h₂
-        have : f a₁ = f a₂ := by rw [h1, h2, heq]
-        exact hf_inj this
-      have h_img_card : ((Finset.univ \ A_matched).attach.image (fun ⟨a, ha⟩ => f_inr a ha)).card = (Finset.univ \ A_matched).card := by
-        rw [Finset.card_image_of_injective]
-        · simp
-        · intro ⟨a₁, h₁⟩ ⟨a₂, h₂⟩ heq
-          simp only [Subtype.mk.injEq]
-          exact h_inj_on a₁ h₁ a₂ h₂ heq
-      have h_le : ((Finset.univ \ A_matched).attach.image (fun ⟨a, ha⟩ => f_inr a ha)).card ≤ (Finset.univ : Finset (Fin d)).card :=
-        Finset.card_le_univ _
-      rw [Finset.card_fin] at h_le
-      rwa [h_img_card] at h_le
-    have h_split : (Finset.univ : Finset A).card = A_matched.card + (Finset.univ \ A_matched).card := by
-      have h_sub : A_matched ⊆ Finset.univ := Finset.subset_univ _
-      have hsdiff := Finset.card_sdiff (s := A_matched) (t := Finset.univ)
-      rw [Finset.inter_eq_left.mpr h_sub] at hsdiff
-      have h_le : A_matched.card ≤ (Finset.univ : Finset A).card := Finset.card_le_univ A_matched
-      omega
-    rw [h_univ_card] at h_split
-    omega
-  -- Extract matching function g : A_matched → V
-  have hg_choice : ∀ a ∈ A_matched, ∃ v : V, f a = Sum.inl v ∧ G.Adj a.val v := by
-    intro a ha
-    simp only [A_matched, Finset.mem_filter, Finset.mem_univ, true_and] at ha
-    obtain ⟨v, hv⟩ := ha
-    have hfa := hf_mem a
-    simp only [t', t, Finset.mem_union, Finset.mem_image, Finset.mem_univ, true_and] at hfa
-    cases hfa with
-    | inl h_adj =>
-      obtain ⟨v', hv', heq⟩ := h_adj
-      have heq' : Sum.inl v = Sum.inl v' := hv.symm.trans heq.symm
-      have : v = v' := Sum.inl.inj heq'
-      subst this
-      exact ⟨v, hv, (G.mem_neighborFinset a.val v).mp hv'⟩
-    | inr h_inr =>
-      obtain ⟨i, heq⟩ := h_inr
-      have heq' : Sum.inl v = Sum.inr i := hv.symm.trans heq.symm
-      cases heq'
-  choose g hg_f hg_adj using hg_choice
-  let M : Finset (Sym2 V) := A_matched.attach.image (fun ⟨a, ha⟩ => s(a.val, g a ha))
-  have hM_card : M.card = A_matched.card := by
-    rw [Finset.card_image_of_injective]
-    · simp
-    · intro ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ heq
-      simp only [Subtype.mk.injEq]
-      have h_a1_A : a₁.val ∈ A := a₁.property
-      have h_a2_A : a₂.val ∈ A := a₂.property
-      have h_ga1_B : g a₁ ha₁ ∈ B := by
-        have := hg_adj a₁ ha₁
-        have h_adj := c.valid this
-        simp only [A, Finset.mem_filter, Finset.mem_univ, true_and] at h_a1_A
-        simp only [B, Finset.mem_filter, Finset.mem_univ, true_and]
-        cases hcu (g a₁ ha₁) with
-        | inl h0 => exfalso; apply h_adj; rw [h_a1_A, h0]
-        | inr h1 => exact h1
-      have h_ga2_B : g a₂ ha₂ ∈ B := by
-        have := hg_adj a₂ ha₂
-        have h_adj := c.valid this
-        simp only [A, Finset.mem_filter, Finset.mem_univ, true_and] at h_a2_A
-        simp only [B, Finset.mem_filter, Finset.mem_univ, true_and]
-        cases hcu (g a₂ ha₂) with
-        | inl h0 => exfalso; apply h_adj; rw [h_a2_A, h0]
-        | inr h1 => exact h1
-      have h_symm := Sym2.eq_iff.mp heq
-      cases h_symm with
-      | inl h_eq_pair =>
-        exact Subtype.ext h_eq_pair.1
-      | inr h_cross =>
-        have ha1_in_B : a₁.val ∈ B := by rw [h_cross.1]; exact h_ga2_B
-        have : a₁.val ∈ A ∩ B := Finset.mem_inter.mpr ⟨h_a1_A, ha1_in_B⟩
-        rw [Finset.disjoint_iff_inter_eq_empty.mp hA_disj_B] at this
-        simp at this
-  have hM_matching : IsMatching G M := by
-    constructor
-    · intro e he
-      obtain ⟨⟨a, ha⟩, -, rfl⟩ := Finset.mem_image.mp he
-      simp only [SimpleGraph.mem_edgeSet]
-      exact hg_adj a ha
-    · intro e₁ he₁ e₂ he₂ hne
-      obtain ⟨⟨a₁, ha₁⟩, -, rfl⟩ := Finset.mem_image.mp he₁
-      obtain ⟨⟨a₂, ha₂⟩, -, rfl⟩ := Finset.mem_image.mp he₂
-      intro ⟨v, hv₁, hv₂⟩
-      have h_a1_A : a₁.val ∈ A := a₁.property
-      have h_a2_A : a₂.val ∈ A := a₂.property
-      have h_ga1_B : g a₁ ha₁ ∈ B := by
-        have := hg_adj a₁ ha₁
-        have h_adj := c.valid this
-        simp only [A, Finset.mem_filter, Finset.mem_univ, true_and] at h_a1_A
-        simp only [B, Finset.mem_filter, Finset.mem_univ, true_and]
-        cases hcu (g a₁ ha₁) with
-        | inl h0 => exfalso; apply h_adj; rw [h_a1_A, h0]
-        | inr h1 => exact h1
-      have h_ga2_B : g a₂ ha₂ ∈ B := by
-        have := hg_adj a₂ ha₂
-        have h_adj := c.valid this
-        simp only [A, Finset.mem_filter, Finset.mem_univ, true_and] at h_a2_A
-        simp only [B, Finset.mem_filter, Finset.mem_univ, true_and]
-        cases hcu (g a₂ ha₂) with
-        | inl h0 => exfalso; apply h_adj; rw [h_a2_A, h0]
-        | inr h1 => exact h1
-      have hv1_cases : v = a₁.val ∨ v = g a₁ ha₁ := Sym2.mem_iff.mp hv₁
-      have hv2_cases : v = a₂.val ∨ v = g a₂ ha₂ := Sym2.mem_iff.mp hv₂
-      cases hv1_cases with
-      | inl hv_a1 =>
-        cases hv2_cases with
-        | inl hv_a2 =>
-          have : a₁.val = a₂.val := hv_a1.symm.trans hv_a2
-          have : a₁ = a₂ := Subtype.ext this
-          subst this
-          exact hne rfl
-        | inr hv_ga2 =>
-          have : a₁.val = g a₂ ha₂ := hv_a1.symm.trans hv_ga2
-          have : a₁.val ∈ B := this ▸ h_ga2_B
-          have : a₁.val ∈ A ∩ B := Finset.mem_inter.mpr ⟨h_a1_A, this⟩
-          rw [Finset.disjoint_iff_inter_eq_empty.mp hA_disj_B] at this
-          simp at this
-      | inr hv_ga1 =>
-        cases hv2_cases with
-        | inl hv_a2 =>
-          have : g a₁ ha₁ = a₂.val := hv_ga1.symm.trans hv_a2
-          have : a₂.val ∈ B := this ▸ h_ga1_B
-          have : a₂.val ∈ A ∩ B := Finset.mem_inter.mpr ⟨h_a2_A, this⟩
-          rw [Finset.disjoint_iff_inter_eq_empty.mp hA_disj_B] at this
-          simp at this
-        | inr hv_ga2 =>
-          have hg_eq : g a₁ ha₁ = g a₂ ha₂ := hv_ga1.symm.trans hv_ga2
-          have hf_eq : f a₁ = f a₂ := by
-            rw [hg_f a₁ ha₁, hg_f a₂ ha₂, hg_eq]
-          have : a₁ = a₂ := hf_inj hf_eq
-          subst this
-          exact hne rfl
-  -- Now connect vertex cover and matching numbers
-  let SC := { k : ℕ | ∃ C : Finset V, IsVertexCover G C ∧ C.card = k }
-  let SM := { k : ℕ | ∃ M : Finset (Sym2 V), IsMatching G M ∧ M.card = k }
-  have hC_in_SC : C.card ∈ SC := ⟨C, hC_cov, rfl⟩
-  have hM_in_SM : M.card ∈ SM := ⟨M, hM_matching, rfl⟩
-  have hSC_bddBelow : BddBelow SC := ⟨0, fun _ _ => Nat.zero_le _⟩
-  have hSM_bddAbove : BddAbove SM := ⟨Fintype.card (Sym2 V), by
-    rintro k ⟨M', _, rfl⟩
-    exact Finset.card_le_univ M'⟩
-  have h_tau_le : vertexCoverNumber G ≤ C.card := csInf_le hSC_bddBelow hC_in_SC
-  have h_le_nu : M.card ≤ matchingNumber G := le_csSup hSM_bddAbove hM_in_SM
-  rw [hC_card] at h_tau_le
-  rw [hM_card] at h_le_nu
+  let C := (A \ S₀) ∪ S₀.biUnion (fun a => G.neighborFinset a)
+  have hC_cov : IsVertexCover G C := isVertexCover_bipartite_defect G c A S₀ rfl hS₀_sub
+  have hC_card : C.card = A.card - d :=
+    bipartite_defect_cover_card G c A S₀ d rfl hS₀_sub hd_eq hS₀_card_le
+  have h_hall' : ∀ S' : Finset A, S'.card ≤ (S'.biUnion (fun a => augmentedNeighbors G d a.val)).card :=
+    hall_condition_augmented G A d hd_max
+  obtain ⟨f, hf_inj, hf_mem⟩ :=
+    (Finset.all_card_le_biUnion_card_iff_exists_injective (fun (a : A) => augmentedNeighbors G d a.val)).mp h_hall'
+  obtain ⟨M, hM_match, hM_card⟩ := exists_matching_from_hall_inj G c A d rfl f hf_inj hf_mem
+  have h_tau_le : vertexCoverNumber G ≤ C.card :=
+    csInf_le ⟨0, fun _ _ => Nat.zero_le _⟩ ⟨C, hC_cov, rfl⟩
+  have h_le_nu : M.card ≤ matchingNumber G :=
+    le_csSup ⟨Fintype.card (Sym2 V), by rintro _ ⟨M', -, rfl⟩; exact Finset.card_le_univ M'⟩ ⟨M, hM_match, rfl⟩
   omega
 
 /--
@@ -538,45 +427,32 @@ $$\alpha(G) + \tau(G) = |V|$$
 -/
 theorem gallai_independence_vertex_cover (G : SimpleGraph V) :
     independenceNumber G + vertexCoverNumber G = Fintype.card V := by
-  let SI := { k : ℕ | ∃ S : Finset V, IsIndependentSet G S ∧ S.card = k }
-  let SC := { k : ℕ | ∃ C : Finset V, IsVertexCover G C ∧ C.card = k }
-  have hSI_nonempty : SI.Nonempty := ⟨0, ∅, isIndependentSet_empty G, rfl⟩
-  have hSC_nonempty : SC.Nonempty := ⟨Fintype.card V, Finset.univ, isVertexCover_univ G, Finset.card_univ⟩
-  have hSI_bdd : BddAbove SI := by
-    refine ⟨Fintype.card V, ?_⟩
-    rintro a ⟨S, _, rfl⟩
-    exact Finset.card_le_univ S
-  have hSC_bddBelow : BddBelow SC := ⟨0, fun _ _ => Nat.zero_le _⟩
-  have hC_mem : vertexCoverNumber G ∈ SC := Nat.sInf_mem hSC_nonempty
-  obtain ⟨C_opt, hC_opt_cov, hC_opt_card⟩ := hC_mem
-  have hS_opt_ind : IsIndependentSet G (Finset.univ \ C_opt) := by
+  have hSC_nonempty : { k : ℕ | ∃ C : Finset V, IsVertexCover G C ∧ C.card = k }.Nonempty :=
+    ⟨Fintype.card V, Finset.univ, isVertexCover_univ G, Finset.card_univ⟩
+  obtain ⟨C, hC_cov, hC_card⟩ := Nat.sInf_mem hSC_nonempty
+  have hS_ind : IsIndependentSet G (Finset.univ \ C) := by
     rw [isIndependentSet_iff_isVertexCover_compl]
-    have : Finset.univ \ (Finset.univ \ C_opt) = C_opt := by ext x; simp
+    have : Finset.univ \ (Finset.univ \ C) = C := by ext x; simp
     rw [this]
-    exact hC_opt_cov
-  have hS_opt_card : (Finset.univ \ C_opt).card = Fintype.card V - vertexCoverNumber G := by
-    rw [Finset.card_sdiff, Finset.inter_univ, Finset.card_univ, hC_opt_card]
-  have h_compl_in_SI : (Fintype.card V - vertexCoverNumber G) ∈ SI := by
-    refine ⟨Finset.univ \ C_opt, hS_opt_ind, hS_opt_card⟩
+    exact hC_cov
+  have hS_card : (Finset.univ \ C).card = Fintype.card V - vertexCoverNumber G := by
+    rw [Finset.card_sdiff, Finset.inter_univ, Finset.card_univ, hC_card]
+    rfl
   have h_le1 : Fintype.card V - vertexCoverNumber G ≤ independenceNumber G :=
-    le_csSup hSI_bdd h_compl_in_SI
-  have h_le2 : ∀ k ∈ SI, k ≤ Fintype.card V - vertexCoverNumber G := by
-    rintro k ⟨S, hS_ind, rfl⟩
-    have hC_cov : IsVertexCover G (Finset.univ \ S) := (isIndependentSet_iff_isVertexCover_compl G S).mp hS_ind
-    have hC_card : (Finset.univ \ S).card = Fintype.card V - S.card := by
-      rw [Finset.card_sdiff, Finset.inter_univ, Finset.card_univ]
-    have h_in_SC : (Fintype.card V - S.card) ∈ SC := ⟨Finset.univ \ S, hC_cov, hC_card⟩
-    have h_tau_le : vertexCoverNumber G ≤ Fintype.card V - S.card :=
-      csInf_le hSC_bddBelow h_in_SC
-    have hS_le_V : S.card ≤ Fintype.card V := Finset.card_le_univ S
+    le_csSup ⟨Fintype.card V, by rintro _ ⟨S, -, rfl⟩; exact Finset.card_le_univ S⟩ ⟨_, hS_ind, hS_card⟩
+  have h_le2 : ∀ k ∈ { k : ℕ | ∃ S : Finset V, IsIndependentSet G S ∧ S.card = k },
+      k ≤ Fintype.card V - vertexCoverNumber G := by
+    rintro k ⟨S, hS, rfl⟩
+    have hC' : IsVertexCover G (Finset.univ \ S) := (isIndependentSet_iff_isVertexCover_compl G S).mp hS
+    have h_tau : vertexCoverNumber G ≤ (Finset.univ \ S).card :=
+      csInf_le ⟨0, fun _ _ => Nat.zero_le _⟩ ⟨_, hC', rfl⟩
+    rw [Finset.card_sdiff, Finset.inter_univ, Finset.card_univ] at h_tau
+    have : S.card ≤ Fintype.card V := Finset.card_le_univ S
     omega
-  have h_indep_le : independenceNumber G ≤ Fintype.card V - vertexCoverNumber G :=
-    csSup_le hSI_nonempty h_le2
-  have h_eq : independenceNumber G = Fintype.card V - vertexCoverNumber G :=
-    le_antisymm h_indep_le h_le1
-  have h_tau_le_V : vertexCoverNumber G ≤ Fintype.card V := by
-    have h_univ_in_SC : Fintype.card V ∈ SC := ⟨Finset.univ, isVertexCover_univ G, Finset.card_univ⟩
-    exact csInf_le hSC_bddBelow h_univ_in_SC
+  have h_ind_le : independenceNumber G ≤ Fintype.card V - vertexCoverNumber G :=
+    csSup_le ⟨0, ∅, isIndependentSet_empty G, rfl⟩ h_le2
+  have h_tau_le : vertexCoverNumber G ≤ Fintype.card V :=
+    csInf_le ⟨0, fun _ _ => Nat.zero_le _⟩ ⟨Finset.univ, isVertexCover_univ G, Finset.card_univ⟩
   omega
 
 /--
