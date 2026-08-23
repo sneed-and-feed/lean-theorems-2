@@ -588,6 +588,459 @@ lemma last_edge_alternating {α β : Fin k} :
         dsimp
         exact hz_col
 
+lemma kempe_adj_unique_left (α β : Fin k) (col : Fin k) (x y z : V)
+    (hxy : (c.kempeGraph α β).Adj x y) (hxz : (c.kempeGraph α β).Adj x z)
+    (h_col_xy : c.colorOf x y hxy.1 = some col)
+    (h_col_xz : c.colorOf x z hxz.1 = some col) :
+    y = z := by
+  by_contra hne
+  have h_edge_ne : (⟨s(x, y), hxy.1⟩ : G.edgeSet) ≠ ⟨s(x, z), hxz.1⟩ := by
+    intro heq
+    have : s(x, y) = s(x, z) := Subtype.ext_iff.mp heq
+    rw [Sym2.eq_iff] at this
+    rcases this with ⟨-, rfl⟩ | ⟨rfl, rfl⟩
+    · exact hne rfl
+    · exact hxy.1.ne rfl
+  have h_share : ShareVertex G ⟨s(x, y), hxy.1⟩ ⟨s(x, z), hxz.1⟩ := by
+    exact ⟨x, Sym2.mem_mk_left x y, Sym2.mem_mk_left x z⟩
+  exact c.proper h_edge_ne h_share h_col_xy h_col_xz
+
+lemma alternating_walk_eq {α β : Fin k} :
+    ∀ {x y₁ y₂ : V} (p₁ : (c.kempeGraph α β).Walk x y₁) (p₂ : (c.kempeGraph α β).Walk x y₂) (col : Fin k),
+      (col = α ∨ col = β) →
+      c.IsAlternating α β p₁ col → c.IsAlternating α β p₂ col →
+      (∀ w (h : G.Adj y₁ w), c.colorOf y₁ w h ≠ some (if p₁.length % 2 = 1 then otherColor α β col else col)) →
+      (∀ w (h : G.Adj y₂ w), c.colorOf y₂ w h ≠ some (if p₂.length % 2 = 1 then otherColor α β col else col)) →
+      y₁ = y₂ := by
+  intro x y₁ y₂ p₁
+  induction p₁ with
+  | nil =>
+    intro p₂ col hcol halt1 halt2 hend1 hend2
+    cases p₂ with
+    | nil => rfl
+    | cons h p₂' =>
+      dsimp [Walk.length] at hend1
+      dsimp [IsAlternating] at halt2
+      have hcol_edge : c.colorOf _ _ h.1 = some col := halt2.1
+      exfalso
+      exact hend1 _ h.1 hcol_edge
+  | @cons x₀ w₀ y₁' h₁ p₁' ih =>
+    intro p₂ col hcol halt1 halt2 hend1 hend2
+    cases p₂ with
+    | nil =>
+      dsimp [Walk.length] at hend2
+      dsimp [IsAlternating] at halt1
+      have hcol_edge : c.colorOf _ _ h₁.1 = some col := halt1.1
+      exfalso
+      exact hend2 _ h₁.1 hcol_edge
+    | @cons _ w₁ y₂' h₂ p₂' =>
+      dsimp [IsAlternating] at halt1 halt2
+      have hc1 : c.colorOf x₀ w₀ h₁.1 = some col := halt1.1
+      have hc2 : c.colorOf x₀ w₁ h₂.1 = some col := halt2.1
+      have hw_eq : w₀ = w₁ := c.kempe_adj_unique_left α β col x₀ w₀ w₁ h₁ h₂ hc1 hc2
+      subst hw_eq
+      have halt1' : c.IsAlternating α β p₁' (otherColor α β col) := halt1.2
+      have halt2' : c.IsAlternating α β p₂' (otherColor α β col) := halt2.2
+      have h_other_mem : otherColor α β col = α ∨ otherColor α β col = β := by
+        dsimp [otherColor]; split_ifs <;> tauto
+      have h_inv := otherColor_involutive α β col hcol
+      apply ih p₂' (otherColor α β col) h_other_mem halt1' halt2'
+      · intro w hw
+        have h_len1 : (Walk.cons h₁ p₁').length = p₁'.length + 1 := rfl
+        rw [h_len1] at hend1
+        have hmod_cases : p₁'.length % 2 = 0 ∨ p₁'.length % 2 = 1 := by omega
+        rcases hmod_cases with h0 | h1
+        · have : (p₁'.length + 1) % 2 = 1 := by omega
+          rw [this] at hend1
+          rw [h0]
+          dsimp at hend1 ⊢
+          exact hend1 w hw
+        · have : (p₁'.length + 1) % 2 = 0 := by omega
+          rw [this] at hend1
+          rw [h1]
+          dsimp at hend1 ⊢
+          rw [h_inv]
+          exact hend1 w hw
+      · intro w hw
+        have h_len2 : (Walk.cons h₂ p₂').length = p₂'.length + 1 := rfl
+        rw [h_len2] at hend2
+        have hmod_cases : p₂'.length % 2 = 0 ∨ p₂'.length % 2 = 1 := by omega
+        rcases hmod_cases with h0 | h1
+        · have : (p₂'.length + 1) % 2 = 1 := by omega
+          rw [this] at hend2
+          rw [h0]
+          dsimp at hend2 ⊢
+          exact hend2 w hw
+        · have : (p₂'.length + 1) % 2 = 0 := by omega
+          rw [this] at hend2
+          rw [h1]
+          dsimp at hend2 ⊢
+          rw [h_inv]
+          exact hend2 w hw
+
+/--
+Two distinct vertices missing the same color $\beta$ cannot both be reachable
+from a vertex $u$ missing color $\alpha$ in the $(\alpha, \beta)$ Kempe graph.
+-/
+theorem kempe_not_reachable_both {u v₁ v₂ : V} {α β : Fin k} (hne : α ≠ β)
+    (hα : α ∈ c.missingColors u) (hv1 : β ∈ c.missingColors v₁) (hv2 : β ∈ c.missingColors v₂)
+    (hne_v : v₁ ≠ v₂) :
+    ¬ ((c.kempeGraph α β).Reachable u v₁ ∧ (c.kempeGraph α β).Reachable u v₂) := by
+  rintro ⟨hreach1, hreach2⟩
+  obtain ⟨p₁, hp1_path⟩ := hreach1.exists_isPath
+  obtain ⟨p₂, hp2_path⟩ := hreach2.exists_isPath
+  have h_first1 : c.FirstColor α β p₁ β := by
+    cases p₁ with
+    | nil => dsimp [FirstColor]
+    | cons h p' =>
+      dsimp [FirstColor]
+      rcases h.2 with hcolα | hcolβ
+      · rw [mem_missingColors_iff] at hα
+        exact (hα _ h.1 hcolα).elim
+      · exact hcolβ
+  have h_first2 : c.FirstColor α β p₂ β := by
+    cases p₂ with
+    | nil => dsimp [FirstColor]
+    | cons h p' =>
+      dsimp [FirstColor]
+      rcases h.2 with hcolα | hcolβ
+      · rw [mem_missingColors_iff] at hα
+        exact (hα _ h.1 hcolα).elim
+      · exact hcolβ
+  have h_alt1 : c.IsAlternating α β p₁ β :=
+    isAlternating_of_isPath c hne p₁ β hp1_path (Or.inr rfl) h_first1
+  have h_alt2 : c.IsAlternating α β p₂ β :=
+    isAlternating_of_isPath c hne p₂ β hp2_path (Or.inr rfl) h_first2
+  have hp1_len_even : p₁.length % 2 = 0 := by
+    by_contra h_odd
+    have h1 : p₁.length % 2 = 1 := by omega
+    have hlen_pos : p₁.length > 0 := by omega
+    obtain ⟨z, hz_adj, hz_col⟩ := last_edge_alternating c p₁ β h_alt1 (Or.inr rfl) hlen_pos
+    rw [h1] at hz_col
+    dsimp at hz_col
+    rw [mem_missingColors_iff] at hv1
+    have heq : (⟨s(v₁, z), hz_adj.symm⟩ : G.edgeSet) = ⟨s(z, v₁), hz_adj⟩ := Subtype.ext Sym2.eq_swap
+    have hc : c.colorOf v₁ z hz_adj.symm = some β := by
+      dsimp [colorOf]; rwa [heq]
+    exact hv1 z hz_adj.symm hc
+  have hp2_len_even : p₂.length % 2 = 0 := by
+    by_contra h_odd
+    have h1 : p₂.length % 2 = 1 := by omega
+    have hlen_pos : p₂.length > 0 := by omega
+    obtain ⟨z, hz_adj, hz_col⟩ := last_edge_alternating c p₂ β h_alt2 (Or.inr rfl) hlen_pos
+    rw [h1] at hz_col
+    dsimp at hz_col
+    rw [mem_missingColors_iff] at hv2
+    have heq : (⟨s(v₂, z), hz_adj.symm⟩ : G.edgeSet) = ⟨s(z, v₂), hz_adj⟩ := Subtype.ext Sym2.eq_swap
+    have hc : c.colorOf v₂ z hz_adj.symm = some β := by
+      dsimp [colorOf]; rwa [heq]
+    exact hv2 z hz_adj.symm hc
+  have hend1 : ∀ w (h : G.Adj v₁ w), c.colorOf v₁ w h ≠ some (if p₁.length % 2 = 1 then otherColor α β β else β) := by
+    intro w hw
+    rw [hp1_len_even]
+    dsimp
+    rw [mem_missingColors_iff] at hv1
+    exact hv1 w hw
+  have hend2 : ∀ w (h : G.Adj v₂ w), c.colorOf v₂ w h ≠ some (if p₂.length % 2 = 1 then otherColor α β β else β) := by
+    intro w hw
+    rw [hp2_len_even]
+    dsimp
+    rw [mem_missingColors_iff] at hv2
+    exact hv2 w hw
+  have heq_v1_v2 := alternating_walk_eq c p₁ p₂ β (Or.inr rfl) h_alt1 h_alt2 hend1 hend2
+  exact hne_v heq_v1_v2
+
+theorem card_usedColors_le_degree (u : V) : (c.usedColors u).card ≤ G.degree u := by
+  have h_choice : ∀ col ∈ c.usedColors u, ∃ w ∈ G.neighborFinset u, ∃ h' : G.Adj u w, c.colorOf u w h' = some col := by
+    intro col hcol
+    rw [mem_usedColors_iff] at hcol
+    obtain ⟨w, h', heq⟩ := hcol
+    exact ⟨w, (G.mem_neighborFinset u w).mpr h', h', heq⟩
+  choose f hf_mem hf_adj hf_col using h_choice
+  have h_inj : ∀ col₁ (h₁ : col₁ ∈ c.usedColors u) col₂ (h₂ : col₂ ∈ c.usedColors u),
+      f col₁ h₁ = f col₂ h₂ → col₁ = col₂ := by
+    intro col₁ h₁ col₂ h₂ heq
+    have h1_col := hf_col col₁ h₁
+    have h2_col := hf_col col₂ h₂
+    dsimp [colorOf] at h1_col h2_col
+    have h_adj1 : s(u, f col₁ h₁) ∈ G.edgeSet := hf_adj col₁ h₁
+    have h_adj2 : s(u, f col₂ h₂) ∈ G.edgeSet := hf_adj col₂ h₂
+    have : col₁ = col₂ := by
+      have h_eq_pair : (⟨s(u, f col₁ h₁), h_adj1⟩ : G.edgeSet) = ⟨s(u, f col₂ h₂), h_adj2⟩ := by
+        ext; simp [heq]
+      have h_same_col : (some col₁ : Option (Fin k)) = some col₂ := by
+        rw [← h1_col, ← h2_col]
+        congr 1
+      exact Option.some.inj h_same_col
+    exact this
+  have h_img_sub : (c.usedColors u).attach.image (fun ⟨col, hcol⟩ => f col hcol) ⊆ G.neighborFinset u := by
+    intro w hw
+    simp only [Finset.mem_image, Finset.mem_attach, true_and, Subtype.exists] at hw
+    obtain ⟨col, hcol, rfl⟩ := hw
+    exact hf_mem col hcol
+  have h_card_eq : ((c.usedColors u).attach.image (fun ⟨col, hcol⟩ => f col hcol)).card = (c.usedColors u).card := by
+    rw [Finset.card_image_of_injective]
+    · simp
+    · intro ⟨c₁, h₁⟩ ⟨c₂, h₂⟩ heq
+      simp only [Subtype.mk.injEq]
+      exact h_inj c₁ h₁ c₂ h₂ heq
+  have h_sub_card := Finset.card_le_card h_img_sub
+  rw [h_card_eq, G.card_neighborFinset_eq_degree u] at h_sub_card
+  exact h_sub_card
+
+theorem exists_missingColor_of_maxDegree_lt {u : V} (h_max : G.maxDegree < k) :
+    (c.missingColors u).Nonempty := by
+  have h_deg := c.card_usedColors_le_degree u
+  have h_deg_le_max : G.degree u ≤ G.maxDegree := G.degree_le_maxDegree u
+  have h_used_lt : (c.usedColors u).card < k := by omega
+  by_contra h_empty
+  rw [Finset.nonempty_iff_ne_empty, not_not] at h_empty
+  have h_univ_card : (Finset.univ : Finset (Fin k)).card = k := Finset.card_fin k
+  have h_sub : c.usedColors u ⊆ Finset.univ := Finset.subset_univ _
+  have h_diff_card := Finset.card_sdiff (s := c.usedColors u) (t := Finset.univ)
+  rw [Finset.inter_eq_left.mpr h_sub] at h_diff_card
+  dsimp [missingColors] at h_empty
+  rw [h_empty, Finset.card_empty, h_univ_card] at h_diff_card
+  omega
+
+theorem card_usedColors_le_of_uncolored {u v : V} (h : G.Adj u v) (h_none : c.colorOf u v h = none) :
+    (c.usedColors u).card ≤ G.maxDegree - 1 := by
+  have h_choice : ∀ col ∈ c.usedColors u, ∃ w ∈ G.neighborFinset u, ∃ h' : G.Adj u w, c.colorOf u w h' = some col := by
+    intro col hcol
+    rw [mem_usedColors_iff] at hcol
+    obtain ⟨w, h', heq⟩ := hcol
+    exact ⟨w, (G.mem_neighborFinset u w).mpr h', h', heq⟩
+  choose f hf_mem hf_adj hf_col using h_choice
+  have h_inj : ∀ col₁ (h₁ : col₁ ∈ c.usedColors u) col₂ (h₂ : col₂ ∈ c.usedColors u),
+      f col₁ h₁ = f col₂ h₂ → col₁ = col₂ := by
+    intro col₁ h₁ col₂ h₂ heq
+    have h1_col := hf_col col₁ h₁
+    have h2_col := hf_col col₂ h₂
+    dsimp [colorOf] at h1_col h2_col
+    have h_adj1 : s(u, f col₁ h₁) ∈ G.edgeSet := hf_adj col₁ h₁
+    have h_adj2 : s(u, f col₂ h₂) ∈ G.edgeSet := hf_adj col₂ h₂
+    have : col₁ = col₂ := by
+      have h_eq_pair : (⟨s(u, f col₁ h₁), h_adj1⟩ : G.edgeSet) = ⟨s(u, f col₂ h₂), h_adj2⟩ := by
+        ext; simp [heq]
+      have h_same_col : (some col₁ : Option (Fin k)) = some col₂ := by
+        rw [← h1_col, ← h2_col]
+        congr 1
+      exact Option.some.inj h_same_col
+    exact this
+  have h_ne_v : ∀ col (hcol : col ∈ c.usedColors u), f col hcol ≠ v := by
+    intro col hcol heq
+    have h_col := hf_col col hcol
+    dsimp [colorOf] at h_col
+    have h_adj_f : s(u, f col hcol) ∈ G.edgeSet := hf_adj col hcol
+    have h_adj_v : s(u, v) ∈ G.edgeSet := h
+    have heq_edge : (⟨s(u, f col hcol), h_adj_f⟩ : G.edgeSet) = ⟨s(u, v), h_adj_v⟩ := by
+      ext; simp [heq]
+    have : c.color ⟨s(u, v), h_adj_v⟩ = some col := by
+      rw [← heq_edge, h_col]
+    dsimp [colorOf] at h_none
+    rw [h_none] at this
+    cases this
+  have h_img_sub : (c.usedColors u).attach.image (fun ⟨col, hcol⟩ => f col hcol) ⊆ (G.neighborFinset u).erase v := by
+    intro w hw
+    simp only [Finset.mem_image, Finset.mem_attach, true_and, Subtype.exists] at hw
+    obtain ⟨col, hcol, rfl⟩ := hw
+    rw [Finset.mem_erase]
+    exact ⟨h_ne_v col hcol, hf_mem col hcol⟩
+  have h_card_eq : ((c.usedColors u).attach.image (fun ⟨col, hcol⟩ => f col hcol)).card = (c.usedColors u).card := by
+    rw [Finset.card_image_of_injective]
+    · simp
+    · intro ⟨c₁, h₁⟩ ⟨c₂, h₂⟩ heq
+      simp only [Subtype.mk.injEq]
+      exact h_inj c₁ h₁ c₂ h₂ heq
+  have hv_mem : v ∈ G.neighborFinset u := (G.mem_neighborFinset u v).mpr h
+  have h_erase_card : ((G.neighborFinset u).erase v).card = (G.neighborFinset u).card - 1 :=
+    Finset.card_erase_of_mem hv_mem
+  have h_sub_card := Finset.card_le_card h_img_sub
+  rw [h_card_eq, h_erase_card, G.card_neighborFinset_eq_degree u] at h_sub_card
+  have h_deg_le_max : G.degree u ≤ G.maxDegree := G.degree_le_maxDegree u
+  omega
+
+theorem card_missingColors_ge_two_of_uncolored {u v : V} (h : G.Adj u v) (h_none : c.colorOf u v h = none)
+    (h_max : G.maxDegree < k) :
+    2 ≤ (c.missingColors u).card := by
+  have h_used := card_usedColors_le_of_uncolored c h h_none
+  have h_sub : c.usedColors u ⊆ Finset.univ := Finset.subset_univ _
+  have h_card_sdiff := Finset.card_sdiff (s := c.usedColors u) (t := Finset.univ)
+  rw [Finset.inter_eq_left.mpr h_sub] at h_card_sdiff
+  dsimp [missingColors]
+  have h_univ : (Finset.univ : Finset (Fin k)).card = k := Finset.card_fin k
+  have hv_mem : v ∈ G.neighborFinset u := (G.mem_neighborFinset u v).mpr h
+  have h_deg_pos : 0 < G.degree u := Finset.card_pos.mpr ⟨v, hv_mem⟩
+  have h_max_pos : 1 ≤ G.maxDegree := by
+    have := G.degree_le_maxDegree u
+    omega
+  omega
+
+lemma exists_ne_of_card_ge_two {α : Type*} [DecidableEq α] {s : Finset α} (h : 2 ≤ s.card) (a : α) :
+    ∃ b ∈ s, b ≠ a := by
+  have h_erase : 1 ≤ (s.erase a).card := by
+    by_cases ha : a ∈ s
+    · rw [Finset.card_erase_of_mem ha]
+      omega
+    · rw [Finset.erase_eq_of_notMem ha]
+      omega
+  have h_ne : (s.erase a).Nonempty := Finset.card_pos.mp (by omega)
+  obtain ⟨b, hb⟩ := h_ne
+  rw [Finset.mem_erase] at hb
+  exact ⟨b, hb.2, hb.1⟩
+
+def shiftStep (u v w : V) (huv : G.Adj u v) (huw : G.Adj u w)
+    (col : Fin k) (h_col : c.colorOf u w huw = some col)
+    (h_miss : col ∈ c.missingColors v) : PartialEdgeColoring G k where
+  color e :=
+    if e = ⟨s(u, v), huv⟩ then some col
+    else if e = ⟨s(u, w), huw⟩ then none
+    else c.color e
+  proper := by
+    intro e₁ e₂ hne ⟨v₀, hv1, hv2⟩ c' h1 h2
+    have he_vw : (⟨s(u, v), huv⟩ : G.edgeSet) ≠ ⟨s(u, w), huw⟩ := by
+      intro heq
+      have hc : c.color ⟨s(u, v), huv⟩ = some col := by
+        rw [heq]
+        exact h_col
+      rw [mem_missingColors_iff] at h_miss
+      exact h_miss u huv.symm (by
+        dsimp [colorOf]
+        have hswap : (⟨s(v, u), huv.symm⟩ : G.edgeSet) = ⟨s(u, v), huv⟩ := Subtype.ext Sym2.eq_swap
+        rwa [hswap])
+    by_cases he1_v : e₁ = ⟨s(u, v), huv⟩
+    · subst he1_v
+      have hc' : some col = some c' := by simpa using h1
+      have heq_c' : c' = col := (Option.some.inj hc').symm
+      have he2_v : e₂ ≠ ⟨s(u, v), huv⟩ := hne.symm
+      have he2_w : e₂ ≠ ⟨s(u, w), huw⟩ := by
+        intro heq; subst heq
+        have : (none : Option (Fin k)) = some c' := by simpa [he_vw.symm] using h2
+        cases this
+      have h2_orig : c.color e₂ = some col := by
+        have : c.color e₂ = some c' := by simpa [he2_v, he2_w] using h2
+        rwa [heq_c'] at this
+      obtain ⟨z, hz_adj, rfl⟩ := edge_eq_of_mem G e₂ v₀ hv2
+      have hv1_cases : v₀ = u ∨ v₀ = v := Sym2.mem_iff.mp hv1
+      rcases hv1_cases with rfl | rfl
+      · apply c.proper (e₁ := ⟨s(v₀, w), huw⟩) (e₂ := ⟨s(v₀, z), hz_adj⟩)
+        · exact he2_w.symm
+        · exact ⟨v₀, Sym2.mem_mk_left v₀ w, Sym2.mem_mk_left v₀ z⟩
+        · exact h_col
+        · exact h2_orig
+      · rw [mem_missingColors_iff] at h_miss
+        exact h_miss z hz_adj h2_orig
+    · by_cases he2_v : e₂ = ⟨s(u, v), huv⟩
+      · subst he2_v
+        have hc' : some col = some c' := by simpa using h2
+        have heq_c' : c' = col := (Option.some.inj hc').symm
+        have he1_w : e₁ ≠ ⟨s(u, w), huw⟩ := by
+          intro heq; subst heq
+          have : (none : Option (Fin k)) = some c' := by simpa [he_vw.symm] using h1
+          cases this
+        have h1_orig : c.color e₁ = some col := by
+          have : c.color e₁ = some c' := by simpa [he1_v, he1_w] using h1
+          rwa [heq_c'] at this
+        obtain ⟨z, hz_adj, rfl⟩ := edge_eq_of_mem G e₁ v₀ hv1
+        have hv2_cases : v₀ = u ∨ v₀ = v := Sym2.mem_iff.mp hv2
+        rcases hv2_cases with rfl | rfl
+        · apply c.proper (e₁ := ⟨s(v₀, z), hz_adj⟩) (e₂ := ⟨s(v₀, w), huw⟩)
+          · exact he1_w
+          · exact ⟨v₀, Sym2.mem_mk_left v₀ z, Sym2.mem_mk_left v₀ w⟩
+          · exact h1_orig
+          · exact h_col
+        · rw [mem_missingColors_iff] at h_miss
+          exact h_miss z hz_adj h1_orig
+      · by_cases he1_w : e₁ = ⟨s(u, w), huw⟩
+        · subst he1_w
+          have : (none : Option (Fin k)) = some c' := by simpa [he1_v] using h1
+          cases this
+        · by_cases he2_w : e₂ = ⟨s(u, w), huw⟩
+          · subst he2_w
+            have : (none : Option (Fin k)) = some c' := by simpa [he2_v] using h2
+            cases this
+          · have h1_orig : c.color e₁ = some c' := by simpa [he1_v, he1_w] using h1
+            have h2_orig : c.color e₂ = some c' := by simpa [he2_v, he2_w] using h2
+            exact c.proper hne ⟨v₀, hv1, hv2⟩ h1_orig h2_orig
+
+lemma card_uncoloredEdges_shiftStep [Fintype G.edgeSet] (u v w : V) (huv : G.Adj u v) (huw : G.Adj u w)
+    (col : Fin k) (h_col : c.colorOf u w huw = some col)
+    (h_miss : col ∈ c.missingColors v) (h_none : c.colorOf u v huv = none) :
+    (c.shiftStep u v w huv huw col h_col h_miss).uncoloredEdges.card = c.uncoloredEdges.card := by
+  have he_vw : (⟨s(u, v), huv⟩ : G.edgeSet) ≠ ⟨s(u, w), huw⟩ := by
+    intro heq
+    have hc : c.color ⟨s(u, v), huv⟩ = some col := by rw [heq]; exact h_col
+    dsimp [colorOf] at h_none
+    rw [h_none] at hc; cases hc
+  have he_v_mem : (⟨s(u, v), huv⟩ : G.edgeSet) ∈ c.uncoloredEdges := by
+    simp [uncoloredEdges, colorOf] at h_none ⊢; exact h_none
+  have he_w_not_mem : (⟨s(u, w), huw⟩ : G.edgeSet) ∉ c.uncoloredEdges := by
+    simp only [uncoloredEdges, Finset.mem_filter, Finset.mem_univ, true_and]
+    intro hc
+    dsimp [colorOf] at h_col
+    rw [hc] at h_col
+    cases h_col
+  have heq_set : (c.shiftStep u v w huv huw col h_col h_miss).uncoloredEdges =
+      insert ⟨s(u, w), huw⟩ (c.uncoloredEdges.erase ⟨s(u, v), huv⟩) := by
+    ext e
+    simp only [uncoloredEdges, Finset.mem_filter, Finset.mem_univ, true_and,
+      Finset.mem_insert, Finset.mem_erase]
+    dsimp [shiftStep]
+    split_ifs with he1 he2
+    · simp [he1, he_vw]
+    · simp [he2]
+    · constructor
+      · intro h; exact Or.inr ⟨he1, h⟩
+      · rintro (rfl | ⟨-, h⟩)
+        · exfalso; exact he2 rfl
+        · exact h
+  rw [heq_set]
+  rw [Finset.card_insert_of_notMem]
+  · rw [Finset.card_erase_of_mem he_v_mem]
+    have hpos : 0 < c.uncoloredEdges.card := Finset.card_pos.mpr ⟨⟨s(u, v), huv⟩, he_v_mem⟩
+    omega
+  · simp [he_vw.symm, he_w_not_mem]
+
+lemma shiftStep_colorOf_none (u v w : V) (huv : G.Adj u v) (huw : G.Adj u w)
+    (col : Fin k) (h_col : c.colorOf u w huw = some col)
+    (h_miss : col ∈ c.missingColors v) :
+    (c.shiftStep u v w huv huw col h_col h_miss).colorOf u w huw = none := by
+  dsimp [colorOf, shiftStep]
+  have he_vw : (⟨s(u, w), huw⟩ : G.edgeSet) ≠ ⟨s(u, v), huv⟩ := by
+    intro heq
+    have hc : c.color ⟨s(u, v), huv⟩ = some col := by rw [heq.symm]; exact h_col
+    rw [mem_missingColors_iff] at h_miss
+    exact h_miss u huv.symm (by
+      dsimp [colorOf]
+      have hswap : (⟨s(v, u), huv.symm⟩ : G.edgeSet) = ⟨s(u, v), huv⟩ := Subtype.ext Sym2.eq_swap
+      rwa [hswap])
+  split_ifs with he1 he2
+  · exfalso; exact he_vw he1
+  · rfl
+  · exfalso; exact he2 rfl
+
+lemma shiftStep_missing_u (u v w : V) (huv : G.Adj u v) (huw : G.Adj u w)
+    (col : Fin k) (h_col : c.colorOf u w huw = some col)
+    (h_miss : col ∈ c.missingColors v) (α : Fin k) (hα : α ∈ c.missingColors u) :
+    α ∈ (c.shiftStep u v w huv huw col h_col h_miss).missingColors u := by
+  rw [mem_missingColors_iff] at hα ⊢
+  intro z hz
+  dsimp [colorOf, shiftStep]
+  split_ifs with he1 he2
+  · intro heq
+    have hc_eq : col = α := Option.some.inj heq
+    subst hc_eq
+    exact hα w huw h_col
+  · intro heq; cases heq
+  · exact hα z hz
+
+lemma kempeSwap_color_none (α β : Fin k) (u : V) (e : G.edgeSet) (h : c.color e = none) :
+    (c.kempeSwap α β u).color e = none := by
+  dsimp [kempeSwap]
+  split_ifs with h_in
+  · dsimp [swapColor]; rw [h]
+  · exact h
+
 lemma bipartite_walk_length (b : V → Fin 2) (hb : ∀ x y, G.Adj x y → b x ≠ b y)
     (H : SimpleGraph V) (hH : H ≤ G) :
     ∀ {x y : V} (p : H.Walk x y), (b y).val = ((b x).val + p.length) % 2 := by
