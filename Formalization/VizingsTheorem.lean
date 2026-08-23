@@ -27,12 +27,6 @@ variable (G : SimpleGraph V) [DecidableRel G.Adj]
 
 namespace SimpleGraph
 
-lemma fin2_cases (y : Fin 2) : y = 0 ∨ y = 1 := by
-  rcases y with ⟨val, hlt⟩
-  have : val = 0 ∨ val = 1 := by omega
-  rcases this with rfl | rfl
-  · left; ext; rfl
-  · right; ext; rfl
 
 lemma mk_edge_symm {u v : V} (h : G.Adj v u) :
     (⟨s(v, u), h⟩ : G.edgeSet) = ⟨s(u, v), h.symm⟩ := Subtype.ext Sym2.eq_swap
@@ -143,57 +137,42 @@ lemma colorOf_inj_neighbor (u v w : V) (hv : G.Adj u v) (hw : G.Adj u w) (col : 
     · exact hv.ne rfl
   exact c.proper he_ne ⟨u, Sym2.mem_mk_left u v, Sym2.mem_mk_left u w⟩ h1 h2
 
+noncomputable def neighborOfColor (u : V) (col : Fin k) : V :=
+  if h : col ∈ c.usedColors u then Classical.choose (c.mem_usedColors_iff u col |>.mp h) else u
+
+lemma neighborOfColor_spec (u : V) {col : Fin k} (h : col ∈ c.usedColors u) :
+    ∃ h' : G.Adj u (c.neighborOfColor u col), c.colorOf u (c.neighborOfColor u col) h' = some col := by
+  dsimp [neighborOfColor]; split_ifs; exact Classical.choose_spec (c.mem_usedColors_iff u col |>.mp h)
+
+lemma neighborOfColor_inj (u : V) : Set.InjOn (c.neighborOfColor u) (c.usedColors u : Set (Fin k)) := by
+  intro c1 hc1 c2 hc2 heq
+  obtain ⟨h1, hc1'⟩ := c.neighborOfColor_spec u (Finset.mem_coe.mp hc1)
+  obtain ⟨h2, hc2'⟩ := c.neighborOfColor_spec u (Finset.mem_coe.mp hc2)
+  dsimp [colorOf] at hc1' hc2'
+  have he : (⟨s(u, c.neighborOfColor u c1), h1⟩ : G.edgeSet) = ⟨s(u, c.neighborOfColor u c2), h2⟩ := by ext; simp [heq]
+  exact Option.some.inj (hc1'.symm.trans (he ▸ hc2'))
+
 theorem card_usedColors_le_degree (u : V) : (c.usedColors u).card ≤ G.degree u := by
-  have h_choice : ∀ col ∈ c.usedColors u, ∃ w ∈ G.neighborFinset u, ∃ h' : G.Adj u w, c.colorOf u w h' = some col := by
-    intro col hcol; rw [mem_usedColors_iff] at hcol; obtain ⟨w, h', heq⟩ := hcol
-    exact ⟨w, (G.mem_neighborFinset u w).mpr h', h', heq⟩
-  choose f hf_mem hf_adj hf_col using h_choice
-  have h_inj : ∀ col₁ (h₁ : col₁ ∈ c.usedColors u) col₂ (h₂ : col₂ ∈ c.usedColors u), f col₁ h₁ = f col₂ h₂ → col₁ = col₂ := by
-    intro col₁ h₁ col₂ h₂ heq
-    have h1 := hf_col col₁ h₁
-    have h2 := hf_col col₂ h₂
-    dsimp [colorOf] at h1 h2
-    have he : (⟨s(u, f col₁ h₁), hf_adj col₁ h₁⟩ : G.edgeSet) = ⟨s(u, f col₂ h₂), hf_adj col₂ h₂⟩ := by ext; simp [heq]
-    exact Option.some.inj (h1.symm.trans (he ▸ h2))
-  have h_sub : (c.usedColors u).attach.image (fun ⟨col, hcol⟩ => f col hcol) ⊆ G.neighborFinset u := by
-    intro w hw; simp only [Finset.mem_image, Finset.mem_attach, true_and, Subtype.exists] at hw
-    obtain ⟨col, hcol, rfl⟩ := hw; exact hf_mem col hcol
-  have h_card_eq : ((c.usedColors u).attach.image (fun ⟨col, hcol⟩ => f col hcol)).card = (c.usedColors u).card := by
-    rw [Finset.card_image_of_injective]
-    · simp
-    · intro ⟨c₁, h₁⟩ ⟨c₂, h₂⟩ heq; exact Subtype.ext (h_inj c₁ h₁ c₂ h₂ heq)
-  have h_le := Finset.card_le_card h_sub
-  rwa [h_card_eq, G.card_neighborFinset_eq_degree u] at h_le
+  have h_maps : Set.MapsTo (c.neighborOfColor u) (c.usedColors u : Set (Fin k)) (G.neighborFinset u : Set V) := by
+    intro col hcol; obtain ⟨h', -⟩ := c.neighborOfColor_spec u (Finset.mem_coe.mp hcol)
+    exact Finset.mem_coe.mpr ((G.mem_neighborFinset u _).mpr h')
+  have h_le := Finset.card_le_card_of_injOn (c.neighborOfColor u) h_maps (c.neighborOfColor_inj u)
+  rwa [G.card_neighborFinset_eq_degree u] at h_le
 
 theorem card_usedColors_le_of_uncolored {u v : V} (h : G.Adj u v) (h_none : c.colorOf u v h = none) :
     (c.usedColors u).card ≤ G.maxDegree - 1 := by
-  have h_choice : ∀ col ∈ c.usedColors u, ∃ w ∈ G.neighborFinset u, ∃ h' : G.Adj u w, c.colorOf u w h' = some col := by
-    intro col hcol; rw [mem_usedColors_iff] at hcol; obtain ⟨w, h', heq⟩ := hcol
-    exact ⟨w, (G.mem_neighborFinset u w).mpr h', h', heq⟩
-  choose f hf_mem hf_adj hf_col using h_choice
-  have h_inj : ∀ col₁ (h₁ : col₁ ∈ c.usedColors u) col₂ (h₂ : col₂ ∈ c.usedColors u), f col₁ h₁ = f col₂ h₂ → col₁ = col₂ := by
-    intro col₁ h₁ col₂ h₂ heq
-    have h1 := hf_col col₁ h₁
-    have h2 := hf_col col₂ h₂
-    dsimp [colorOf] at h1 h2
-    have he : (⟨s(u, f col₁ h₁), hf_adj col₁ h₁⟩ : G.edgeSet) = ⟨s(u, f col₂ h₂), hf_adj col₂ h₂⟩ := by ext; simp [heq]
-    exact Option.some.inj (h1.symm.trans (he ▸ h2))
-  have h_ne_v : ∀ col (hcol : col ∈ c.usedColors u), f col hcol ≠ v := by
-    intro col hcol heq
-    have h_col := hf_col col hcol; dsimp [colorOf] at h_col
-    have he : (⟨s(u, f col hcol), hf_adj col hcol⟩ : G.edgeSet) = ⟨s(u, v), h⟩ := by ext; simp [heq]
-    have : c.color ⟨s(u, v), h⟩ = some col := by rwa [← he]
-    dsimp [colorOf] at h_none; rw [h_none] at this; cases this
-  have h_sub : (c.usedColors u).attach.image (fun ⟨col, hcol⟩ => f col hcol) ⊆ (G.neighborFinset u).erase v := by
-    intro w hw; simp only [Finset.mem_image, Finset.mem_attach, true_and, Subtype.exists] at hw
-    obtain ⟨col, hcol, rfl⟩ := hw; rw [Finset.mem_erase]; exact ⟨h_ne_v col hcol, hf_mem col hcol⟩
-  have h_card_eq : ((c.usedColors u).attach.image (fun ⟨col, hcol⟩ => f col hcol)).card = (c.usedColors u).card := by
-    rw [Finset.card_image_of_injective]
-    · simp
-    · intro ⟨c₁, h₁⟩ ⟨c₂, h₂⟩ heq; exact Subtype.ext (h_inj c₁ h₁ c₂ h₂ heq)
-  have hv_mem : v ∈ G.neighborFinset u := (G.mem_neighborFinset u v).mpr h
-  have h_le := Finset.card_le_card h_sub
-  rw [h_card_eq, Finset.card_erase_of_mem hv_mem, G.card_neighborFinset_eq_degree u] at h_le
+  have h_maps : Set.MapsTo (c.neighborOfColor u) (c.usedColors u : Set (Fin k)) ((G.neighborFinset u).erase v : Set V) := by
+    intro col hcol
+    obtain ⟨h', hc'⟩ := c.neighborOfColor_spec u (Finset.mem_coe.mp hcol)
+    have hne : c.neighborOfColor u col ≠ v := by
+      intro heq
+      have : c.colorOf u v (heq ▸ h') = some col := heq ▸ hc'
+      rw [show c.colorOf u v (heq ▸ h') = c.colorOf u v h from rfl, h_none] at this
+      cases this
+    exact Finset.mem_coe.mpr (Finset.mem_erase.mpr ⟨hne, (G.mem_neighborFinset u _).mpr h'⟩)
+  have h_le := Finset.card_le_card_of_injOn (c.neighborOfColor u) h_maps (c.neighborOfColor_inj u)
+  have hv_mem : v ∈ G.neighborFinset u := (G.mem_neighborFinset u _).mpr h
+  rw [Finset.card_erase_of_mem hv_mem, G.card_neighborFinset_eq_degree u] at h_le
   exact h_le.trans (Nat.sub_le_sub_right (G.degree_le_maxDegree u) 1)
 
 theorem card_usedColors_lt_of_uncolored {u v : V} (h : G.Adj u v) (h_none : c.colorOf u v h = none)
@@ -672,25 +651,20 @@ lemma shiftStep_colorOf_of_ne (u v w y z : V) (huv : G.Adj u v) (huw : G.Adj u w
     (c.shiftStep u v w huv huw col h_col h_miss).colorOf y z hyz = c.colorOf y z hyz := by
   dsimp [colorOf, shiftStep]; simp [h_ne1, h_ne2]
 
-lemma bipartite_walk_length (b : V → Fin 2) (hb : ∀ x y, G.Adj x y → b x ≠ b y)
+lemma bipartite_walk_length (b : V → Bool) (hb : ∀ x y, G.Adj x y → b y = !b x)
     (H : SimpleGraph V) (hH : H ≤ G) :
-    ∀ {x y : V} (p : H.Walk x y), (b y).val = ((b x).val + p.length) % 2
-  | x, _, .nil => by
-    dsimp [Walk.length]
-    have : (b x).val < 2 := (b x).isLt
-    omega
+    ∀ {x y : V} (p : H.Walk x y), b y = if p.length % 2 = 1 then !b x else b x
+  | x, _, .nil => by simp
   | x, y, @Walk.cons _ _ _ v _ h p => by
-    have h_ne := hb x v (hH h)
     have ih := bipartite_walk_length b hb H hH p
-    rcases fin2_cases (b x) with hx | hx <;> rcases fin2_cases (b v) with hv | hv
-    · exfalso; exact h_ne (hx.trans hv.symm)
-    · have hx' : (b x).val = 0 := congr_arg Fin.val hx
-      have hv' : (b v).val = 1 := congr_arg Fin.val hv
-      rw [Walk.length_cons, ih, hx', hv']; omega
-    · have hx' : (b x).val = 1 := congr_arg Fin.val hx
-      have hv' : (b v).val = 0 := congr_arg Fin.val hv
-      rw [Walk.length_cons, ih, hx', hv']; omega
-    · exfalso; exact h_ne (hx.trans hv.symm)
+    have h_adj := hb x v (hH h)
+    rw [Walk.length_cons, ih, h_adj]
+    have hcases : p.length % 2 = 0 ∨ p.length % 2 = 1 := by omega
+    rcases hcases with h0 | h1
+    · have : (p.length + 1) % 2 = 1 := by omega
+      simp [h0, this]
+    · have : (p.length + 1) % 2 = 0 := by omega
+      simp [h1, this]
 
 /--
 In any bipartite graph ($G.\text{Colorable } 2$), if $u v$ is an uncolored edge, no alternating
@@ -701,31 +675,16 @@ theorem kempe_not_reachable_bipartite (h_bip : G.Colorable 2) {u v : V} (hadj : 
     ¬ (c.kempeGraph α β).Reachable u v := by
   intro hreach
   obtain ⟨bicol⟩ := h_bip
-  have hb_adj : ∀ x y, G.Adj x y → bicol x ≠ bicol y := fun x y h => bicol.valid h
-  let b : V → Fin 2 := fun x => if bicol x = bicol u then 0 else 1
-  have hb : ∀ x y, G.Adj x y → b x ≠ b y := by
+  let b : V → Bool := fun x => (bicol x).val == 0
+  have hb : ∀ x y, G.Adj x y → b y = !b x := by
     intro x y hxy
+    have hne' : (bicol x).val ≠ (bicol y).val := fun h => bicol.valid hxy (Fin.ext h)
+    have hx := (bicol x).isLt; have hy := (bicol y).isLt
     dsimp [b]
-    have h_ne := hb_adj x y hxy
-    split_ifs with h1 h2
-    · exfalso; exact h_ne (h1.trans h2.symm)
-    · decide
-    · decide
-    · exfalso
-      rcases fin2_cases (bicol u) with hu0 | hu1 <;>
-      rcases fin2_cases (bicol x) with hx0 | hx1 <;>
-      rcases fin2_cases (bicol y) with hy0 | hy1
-      all_goals solve | contradiction | aesop
-  have hbu : b u = 0 := by
-    dsimp [b]
-    split_ifs with h
-    · rfl
-    · exact (h rfl).elim
-  have hbv : b v = 1 := by
-    dsimp [b]
-    split_ifs with h1
-    · exfalso; exact hb_adj u v hadj h1.symm
-    · rfl
+    have : (bicol x).val = 0 ∨ (bicol x).val = 1 := by omega
+    have : (bicol y).val = 0 ∨ (bicol y).val = 1 := by omega
+    rcases ‹(bicol x).val = 0 ∨ (bicol x).val = 1› with hx0 | hx1 <;>
+    rcases ‹(bicol y).val = 0 ∨ (bicol y).val = 1› with hy0 | hy1 <;> simp [*] <;> omega
   obtain ⟨p, hp_path⟩ := hreach.exists_isPath
   have h_first : c.FirstColor α β p β := by
     cases p with
@@ -733,16 +692,17 @@ theorem kempe_not_reachable_bipartite (h_bip : G.Colorable 2) {u v : V} (hadj : 
     | cons h p' =>
       dsimp [FirstColor]
       rcases h.2 with hcolα | hcolβ
-      · rw [mem_missingColors_iff] at hα
-        exact (hα _ h.1 hcolα).elim
+      · rw [mem_missingColors_iff] at hα; exact (hα _ h.1 hcolα).elim
       · exact hcolβ
-  have h_alt : c.IsAlternating α β p β :=
-    isAlternating_of_isPath c hne p β hp_path (Or.inr rfl) h_first
+  have h_alt := isAlternating_of_isPath c hne p β hp_path (Or.inr rfl) h_first
   have h_len_eq := bipartite_walk_length b hb (c.kempeGraph α β) (c.kempeGraph_le α β) p
-  have hbu_val : (b u).val = 0 := congr_arg Fin.val hbu
-  have hbv_val : (b v).val = 1 := congr_arg Fin.val hbv
-  rw [hbu_val, hbv_val] at h_len_eq
-  have h_mod : p.length % 2 = 1 := by omega
+  have hbv := hb u v hadj
+  rw [hbv] at h_len_eq
+  have h_mod : p.length % 2 = 1 := by
+    by_contra h0
+    have : p.length % 2 = 0 := by omega
+    rw [this] at h_len_eq
+    revert h_len_eq; cases b u <;> decide
   have h_len_pos : p.length > 0 := by omega
   obtain ⟨z, hz_adj, hz_col⟩ := last_edge_alternating c p β h_alt (Or.inr rfl) h_len_pos
   rw [h_mod] at hz_col
@@ -915,40 +875,6 @@ lemma exists_extended_of_fan (u : V) :
     refine ⟨c', ?_⟩
     rwa [hcard_c1] at hlt
 
-lemma list_take_head {α : Type*} (l : List α) (n : ℕ) (hne : l ≠ []) (hne' : l.take (n + 1) ≠ []) :
-    (l.take (n + 1)).head hne' = l.head hne := by cases l with | nil => contradiction | cons x xs => rfl
-
-lemma list_getElem_take {α : Type*} (l : List α) (n : ℕ) (i : ℕ) (hi : i < n + 1) (hi' : i < l.length) :
-    (l.take (n + 1))[i]'(by simp [List.length_take]; omega) = l[i] := by simp [List.getElem_take]
-
-lemma list_getLast_take {α : Type*} (l : List α) (j : ℕ) (hj : j < l.length) (hne : l.take (j + 1) ≠ []) :
-    (l.take (j + 1)).getLast hne = l[j] := by
-  have hlen : (l.take (j + 1)).length = j + 1 := by simp [hj]
-  rw [List.getLast_eq_getElem]
-  simp [hlen, List.getElem_take]
-
-lemma list_getElem_set {α : Type*} (l : List α) (j : ℕ) (x : α) (i : ℕ) (hi : i < (l.set j x).length) :
-    (l.set j x)[i] = if i = j then x else l[i]'(by simpa [List.length_set] using hi) := by
-  simp [List.getElem_set]; by_cases h : j = i <;> simp [h, eq_comm]
-
-lemma list_getLast_set {α : Type*} (l : List α) (j : ℕ) (hj : j + 1 < l.length) (x : α) (hne1 : l.set j x ≠ []) (hne2 : l ≠ []) :
-    (l.set j x).getLast hne1 = l.getLast hne2 := by
-  rw [List.getLast_eq_getElem, List.getLast_eq_getElem]; simp [List.getElem_set, show j ≠ l.length - 1 by omega]
-
-lemma list_nodup_concat {α : Type*} (l : List α) (x : α) (hnodup : l.Nodup) (hx : x ∉ l) :
-    (l ++ [x]).Nodup := by
-  rw [List.nodup_append]
-  refine ⟨hnodup, List.nodup_singleton x, fun a ha b hb => by simp only [List.mem_singleton] at hb; subst hb; rintro rfl; exact hx ha⟩
-
-lemma list_getElem_concat_last {α : Type*} (l : List α) (x : α) :
-    (l ++ [x])[l.length]'(by simp) = x := by simp
-
-lemma list_getElem_concat_left {α : Type*} (l : List α) (x : α) (i : ℕ) (hi : i < l.length) :
-    (l ++ [x])[i]'(by simp; omega) = l[i] := by simp [List.getElem_append_left hi]
-
-lemma list_concat_head {α : Type*} (l : List α) (x : α) (hne : l ≠ []) (hne' : l ++ [x] ≠ []) :
-    (l ++ [x]).head hne' = l.head hne := by cases l with | nil => contradiction | cons y ys => rfl
-
 lemma exists_extended_of_fan_cycle (u : V) (n : ℕ) (vs : List V) (cols : List (Fin k))
     (c : PartialEdgeColoring G k) (α : Fin k) (j : ℕ)
     (hlen_vs : vs.length = n + 1)
@@ -1014,10 +940,12 @@ lemma exists_extended_of_fan_cycle (u : V) (n : ℕ) (vs : List V) (cols : List 
       have h_col_orig := hstep i hi
       by_cases heq_ij : i = j
       · subst heq_ij
-        have h_get_cols' : cols'[i] = α := by rw [list_getElem_set cols i α i hi_lt_cols']; simp
+        have h_get_cols' : cols'[i] = α := by simp [cols', List.getElem_set]
         rw [h_get_cols']
         exact kempeSwap_colorOf_alpha c α β u vs[i + 1] (hadj _ (List.getElem_mem _)) h_col_orig
-      · have h_get_cols' : cols'[i] = cols[i] := by rw [list_getElem_set cols j α i hi_lt_cols']; simp [heq_ij]
+      · have h_get_cols' : cols'[i] = cols[i] := by
+          have : j ≠ i := fun h => heq_ij h.symm
+          simp [cols', List.getElem_set, this]
         rw [h_get_cols']
         exact kempeSwap_colorOf_of_ne c α β (cols[i]) u u vs[i + 1] (hadj _ (List.getElem_mem _))
           (h_col_ne_α i hi_lt_n) (h_diff i hi_lt_n heq_ij) h_col_orig
@@ -1026,32 +954,33 @@ lemma exists_extended_of_fan_cycle (u : V) (n : ℕ) (vs : List V) (cols : List 
       by_cases heq_ij : i = j
       · subst heq_ij
         have : i < cols'.length := by rw [hlen_cols']; exact hi
-        have h_get_cols' : cols'[i] = α := by rw [list_getElem_set cols i α i this]; simp
+        have h_get_cols' : cols'[i] = α := by simp [cols', List.getElem_set]
         rw [h_get_cols']; exact hmiss_j_swap
       · by_cases heq_in : i = n
         · have h_get_cols' : cols'[i] = β := by
             have : i < cols'.length := by rw [hlen_cols']; exact hi
             have h_idx_eq : cols'[i] = cols'[n] := by congr 1
-            rw [h_idx_eq, list_getElem_set cols j α n hn_lt_cols']
-            have : n ≠ j := ne_of_gt hj
+            rw [h_idx_eq, List.getElem_set]
+            have : j ≠ n := ne_of_lt hj
             simp [this, hβ_eq]
           rw [h_get_cols']
           have : vs[i] = vs[n] := by congr 1
           rw [this]; exact hmiss_n_swap
         · have hi_lt_n : i < n := by rw [hlen_vs] at hi; omega
           have : i < cols'.length := by rw [hlen_cols']; exact hi
-          have h_get_cols' : cols'[i] = cols[i] := by rw [list_getElem_set cols j α i this]; simp [heq_ij]
+          have h_get_cols' : cols'[i] = cols[i] := by
+            have : j ≠ i := fun h => heq_ij h.symm
+            simp [cols', List.getElem_set, this]
           rw [h_get_cols']
-          exact kempeSwap_missing_of_ne c α β (cols[i]) u vs[i] (h_col_ne_α i hi_lt_n) (h_diff i hi_lt_n heq_ij) (hmiss i hi)
+          exact kempeSwap_missing_of_ne c α β (cols[i]) u vs[i] (h_col_ne_α i hi_lt_n) (h_diff i hi_lt_n heq_ij) (hmiss i (by rw [hlen_vs]; omega))
     have hend_swap : ∀ (hne : cols' ≠ []), cols'.getLast hne ∈ c_swap.missingColors u := by
       intro hne
       have h_last : cols'.getLast hne = β := by
-        have hne_cols : cols ≠ [] := List.ne_nil_of_length_pos (by rw [hlen, hlen_vs]; omega)
-        have hj_lt_len : j + 1 < cols.length := by rw [hlen, hlen_vs]; omega
-        rw [list_getLast_set cols j hj_lt_len α hne hne_cols, List.getLast_eq_getElem]
-        have : cols.length - 1 = n := by rw [hlen, hlen_vs]; omega
-        have h_get : cols[cols.length - 1] = cols[n] := by congr 1
-        rw [h_get, hβ_eq]
+        rw [List.getLast_eq_getElem, List.getElem_set]
+        have : j ≠ cols'.length - 1 := by rw [hlen_cols', hlen_vs]; omega
+        have : cols'.length - 1 = n := by rw [hlen_cols', hlen_vs]; omega
+        have : j ≠ n := ne_of_lt hj
+        simp [*, hβ_eq]
       rw [h_last]; exact h_miss_u_swap
     obtain ⟨c', hlt⟩ := exists_extended_of_fan u n vs cols' c_swap hlen_vs hlen_cols' hnodup hadj hnone_swap' hstep_swap hmiss_swap hend_swap
     refine ⟨c', ?_⟩
@@ -1067,7 +996,7 @@ lemma exists_extended_of_fan_cycle (u : V) (n : ℕ) (vs : List V) (cols : List 
     have hnone_swap_sub : ∀ (hne : vs_sub ≠ []), c_swap.colorOf u (vs_sub.head hne) (hadj_sub _ (List.head_mem hne)) = none := by
       intro hne
       have hne_vs : vs ≠ [] := List.ne_nil_of_length_pos (by rw [hlen_vs]; omega)
-      have hhead : vs_sub.head hne = vs.head hne_vs := list_take_head vs j hne_vs hne
+      have hhead : vs_sub.head hne = vs.head hne_vs := by cases vs with | nil => contradiction | cons _ _ => rfl
       have h0 := hnone hne_vs
       dsimp [colorOf] at h0 ⊢
       have heq_edge : (⟨s(u, vs_sub.head hne), hadj_sub _ (List.head_mem hne)⟩ : G.edgeSet) = ⟨s(u, vs.head hne_vs), hadj _ (List.head_mem hne_vs)⟩ := by
@@ -1080,8 +1009,8 @@ lemma exists_extended_of_fan_cycle (u : V) (n : ℕ) (vs : List V) (cols : List 
       have hi_lt_j : i < j := by rw [hlen_vs_sub] at hi; omega
       have hi_lt_n : i < n := by omega
       have h_col_orig := hstep i (by rw [hlen_vs]; omega)
-      have h_get_vs : vs_sub[i + 1] = vs[i + 1] := list_getElem_take vs j (i + 1) (by omega) (by rw [hlen_vs]; omega)
-      have h_get_cols : cols_sub[i] = cols[i] := list_getElem_take cols j i (by omega) (by rw [hlen, hlen_vs]; omega)
+      have h_get_vs : vs_sub[i + 1] = vs[i + 1] := List.getElem_take
+      have h_get_cols : cols_sub[i] = cols[i] := List.getElem_take
       have heq_edge : (⟨s(u, vs_sub[i + 1]), hadj_sub _ (List.getElem_mem _)⟩ : G.edgeSet) = ⟨s(u, vs[i + 1]), hadj _ (List.getElem_mem (by rw [hlen_vs]; omega))⟩ := by
         ext; simp [h_get_vs]
       dsimp [colorOf] at h_col_orig ⊢
@@ -1091,8 +1020,8 @@ lemma exists_extended_of_fan_cycle (u : V) (n : ℕ) (vs : List V) (cols : List 
     have hmiss_swap_sub : ∀ (i : ℕ) (hi : i < vs_sub.length), cols_sub[i] ∈ c_swap.missingColors vs_sub[i] := by
       intro i hi
       have hi_le_j : i ≤ j := by rw [hlen_vs_sub] at hi; omega
-      have h_get_vs : vs_sub[i] = vs[i] := list_getElem_take vs j i (by omega) (by rw [hlen_vs]; omega)
-      have h_get_cols : cols_sub[i] = cols[i] := list_getElem_take cols j i (by omega) (by rw [hlen, hlen_vs]; omega)
+      have h_get_vs : vs_sub[i] = vs[i] := List.getElem_take
+      have h_get_cols : cols_sub[i] = cols[i] := List.getElem_take
       rw [h_get_vs, h_get_cols]
       by_cases heq_ij : i = j
       · subst heq_ij; exact hmiss_j_swap
@@ -1101,7 +1030,10 @@ lemma exists_extended_of_fan_cycle (u : V) (n : ℕ) (vs : List V) (cols : List 
         exact kempeSwap_missing_of_ne c α β (cols[i]) u vs[i] (h_col_ne_α i hi_lt_n) (h_diff i hi_lt_n heq_ij) (hmiss i (by rw [hlen_vs]; omega))
     have hend_swap_sub : ∀ (hne : cols_sub ≠ []), cols_sub.getLast hne ∈ c_swap.missingColors u := by
       intro hne
-      have h_last : cols_sub.getLast hne = β := list_getLast_take cols j hj_lt_cols hne
+      have h_last : cols_sub.getLast hne = β := by
+        have hlen_sub : cols_sub.length = j + 1 := by dsimp [cols_sub]; rw [List.length_take]; omega
+        have h_get : cols_sub[j] = cols[j] := List.getElem_take
+        rw [List.getLast_eq_getElem, show cols_sub[cols_sub.length - 1] = cols_sub[j] by congr 1; omega, h_get]
       rw [h_last]; exact h_miss_u_swap
     obtain ⟨c', hlt⟩ := exists_extended_of_fan u j vs_sub cols_sub c_swap hlen_vs_sub hlen_cols_sub hnodup_sub hadj_sub hnone_swap_sub hstep_swap_sub hmiss_swap_sub hend_swap_sub
     refine ⟨c', ?_⟩
@@ -1169,94 +1101,70 @@ lemma exists_extended_coloring_of_fan (u : V) (α : Fin k) (hα : α ∈ c.missi
           · exact h_diff i hi j hgt
         exact exists_extended_of_fan_cycle u n vs cols c α j hlen_vs hlen hnodup hadj hnone hstep hmiss hα hj h_cycle h_diff_cycle
       · obtain ⟨β_next, hβ_next⟩ := exists_missingColor_of_maxDegree_lt c h_max (u := w)
-        let vs' := vs ++ [w]
-        let cols' := cols ++ [β_next]
-        let n' := n + 1
-        have hlen_vs' : vs'.length = n' + 1 := by dsimp [vs', n']; rw [List.length_append, List.length_singleton, hlen_vs]
-        have hlen_cols' : cols'.length = vs'.length := by dsimp [cols', vs']; rw [List.length_append, List.length_append, List.length_singleton, List.length_singleton, hlen]
-        have hnodup' : vs'.Nodup := list_nodup_concat vs w hnodup hw_in
-        have hadj' : ∀ v ∈ vs', G.Adj u v := by
+        have hlen_vs' : (vs ++ [w]).length = (n + 1) + 1 := by simp [hlen_vs]
+        have hlen_cols' : (cols ++ [β_next]).length = (vs ++ [w]).length := by simp [hlen, hlen_vs]
+        have hnodup' : (vs ++ [w]).Nodup := by
+          rw [List.nodup_append]; exact ⟨hnodup, by simp, fun a ha b hb => by simp only [List.mem_singleton] at hb; subst hb; rintro rfl; exact hw_in ha⟩
+        have hadj' : ∀ v ∈ vs ++ [w], G.Adj u v := by
           intro v hv; rcases List.mem_append.mp hv with hv | hv
           · exact hadj v hv
-          · have : v = w := List.mem_singleton.mp hv
-            subst this; exact hw_adj
-        have hnone' : ∀ (hne : vs' ≠ []), c.colorOf u (vs'.head hne) (hadj' _ (List.head_mem hne)) = none := by
+          · rw [List.mem_singleton.mp hv]; exact hw_adj
+        have hnone' : ∀ (hne : vs ++ [w] ≠ []), c.colorOf u ((vs ++ [w]).head hne) (hadj' _ (List.head_mem hne)) = none := by
           intro hne
-          have hne_vs : vs ≠ [] := List.ne_nil_of_length_pos (by rw [hlen_vs]; omega)
-          have hhead : vs'.head hne = vs.head hne_vs := list_concat_head vs w hne_vs hne
-          have h0 := hnone hne_vs
-          dsimp [colorOf] at h0 ⊢
-          have heq_edge : (⟨s(u, vs'.head hne), hadj' _ (List.head_mem hne)⟩ : G.edgeSet) = ⟨s(u, vs.head hne_vs), hadj _ (List.head_mem hne_vs)⟩ := by
-            ext; simp [hhead]
-          rw [heq_edge]
-          exact h0
-        have hstep' : ∀ (i : ℕ) (hi : i + 1 < vs'.length),
-            c.colorOf u vs'[i + 1] (hadj' _ (List.getElem_mem _)) = some cols'[i] := by
+          rcases vs with _ | ⟨v0, vs_tl⟩
+          · contradiction
+          · exact hnone (by simp)
+        have hstep' : ∀ (i : ℕ) (hi : i + 1 < (vs ++ [w]).length),
+            c.colorOf u (vs ++ [w])[i + 1] (hadj' _ (List.getElem_mem _)) = some (cols ++ [β_next])[i] := by
           intro i hi
-          have hi_lt_n' : i < n' := by rw [hlen_vs'] at hi; omega
           by_cases heq_in : i = n
-          · have h_get_vs : vs'[i + 1] = w := by
-              have h_eq : vs'[i + 1] = vs'[vs.length] := by congr 1; rw [heq_in, hlen_vs]
-              rw [h_eq, list_getElem_concat_last vs w]
-            have h_get_cols : cols'[i] = cols[n] := by
-              have h_eq : cols'[i] = cols'[n] := by congr 1
-              rw [h_eq, list_getElem_concat_left cols β_next n hn_lt_cols]
+          · have h_get_vs : (vs ++ [w])[i + 1] = w := by simp [heq_in, hlen_vs]
+            have h_get_cols : (cols ++ [β_next])[i] = cols[n] := by simp [heq_in, List.getElem_append_left hn_lt_cols]
             dsimp [colorOf] at hw_col ⊢
-            have heq_edge : (⟨s(u, vs'[i + 1]), hadj' _ (List.getElem_mem _)⟩ : G.edgeSet) = ⟨s(u, w), hw_adj⟩ := by
-              ext; simp [h_get_vs]
-            rw [heq_edge, h_get_cols]
-            exact hw_col
+            have heq_edge : (⟨s(u, (vs ++ [w])[i + 1]), hadj' _ (List.getElem_mem _)⟩ : G.edgeSet) = ⟨s(u, w), hw_adj⟩ := by ext; simp [h_get_vs]
+            rw [heq_edge, h_get_cols, hw_col]
           · have hi_lt_n : i < n := by omega
-            have h_get_vs : vs'[i + 1] = vs[i + 1] := list_getElem_concat_left vs w (i + 1) (by rw [hlen_vs]; omega)
-            have h_get_cols : cols'[i] = cols[i] := list_getElem_concat_left cols β_next i (by rw [hlen, hlen_vs]; omega)
-            have h_step_orig := hstep i (by rw [hlen_vs]; omega)
+            have h_get_vs : (vs ++ [w])[i + 1] = vs[i + 1] := List.getElem_append_left (by omega)
+            have h_get_cols : (cols ++ [β_next])[i] = cols[i] := List.getElem_append_left (by omega)
+            have h_step_orig := hstep i (by omega)
             dsimp [colorOf] at h_step_orig ⊢
-            have heq_edge : (⟨s(u, vs'[i + 1]), hadj' _ (List.getElem_mem _)⟩ : G.edgeSet) = ⟨s(u, vs[i + 1]), hadj _ (List.getElem_mem (by rw [hlen_vs]; omega))⟩ := by
+            have heq_edge : (⟨s(u, (vs ++ [w])[i + 1]), hadj' _ (List.getElem_mem _)⟩ : G.edgeSet) = ⟨s(u, vs[i + 1]), hadj _ (List.getElem_mem (by omega))⟩ := by
               ext; simp [h_get_vs]
-            rw [heq_edge, h_get_cols]
-            exact h_step_orig
-        have hmiss' : ∀ (i : ℕ) (hi : i < vs'.length), cols'[i] ∈ c.missingColors vs'[i] := by
+            rw [heq_edge, h_get_cols, h_step_orig]
+        have hmiss' : ∀ (i : ℕ) (hi : i < (vs ++ [w]).length), (cols ++ [β_next])[i] ∈ c.missingColors (vs ++ [w])[i] := by
           intro i hi
           by_cases heq_in : i = vs.length
-          · have h_get_vs : vs'[i] = w := by
-              have h_eq : vs'[i] = vs'[vs.length] := by congr 1
-              rw [h_eq, list_getElem_concat_last vs w]
-            have h_get_cols : cols'[i] = β_next := by
-              have h_eq : cols'[i] = cols'[cols.length] := by
-                have : i = cols.length := by rw [heq_in, hlen]
-                congr 1
-              rw [h_eq, list_getElem_concat_last cols β_next]
+          · have h_get_vs : (vs ++ [w])[i] = w := by simp [heq_in]
+            have h_get_cols : (cols ++ [β_next])[i] = β_next := by
+              have : i = cols.length := by rw [heq_in, hlen]
+              simp [this]
             rw [h_get_vs, h_get_cols]; exact hβ_next
-          · have hi_lt_vs : i < vs.length := by dsimp [vs'] at hi; rw [List.length_append, List.length_singleton] at hi; omega
-            rw [list_getElem_concat_left vs w i hi_lt_vs, list_getElem_concat_left cols β_next i (by rw [hlen]; exact hi_lt_vs)]
-            exact hmiss i hi_lt_vs
-        have h_diff' : ∀ (i : ℕ) (hi : i < n') (j : ℕ) (hj : j < i),
-            cols'[i]'(by rw [hlen_cols', hlen_vs']; omega) ≠ cols'[j]'(by rw [hlen_cols', hlen_vs']; omega) := by
+          · have hi_lt : i < vs.length := by omega
+            rw [List.getElem_append_left hi_lt, List.getElem_append_left (by rw [hlen]; exact hi_lt)]
+            exact hmiss i hi_lt
+        have h_diff' : ∀ (i : ℕ) (hi : i < n + 1) (j : ℕ) (hj : j < i),
+            (cols ++ [β_next])[i]'(by omega) ≠ (cols ++ [β_next])[j]'(by omega) := by
           intro i hi j hj
           by_cases heq_in : i = n
-          · have hj_lt_n : j < n := by omega
-            have h_get_i : cols'[i] = cols[n] := by
-              have h_eq : cols'[i] = cols'[n] := by congr 1
-              rw [h_eq, list_getElem_concat_left cols β_next n hn_lt_cols]
-            have h_get_j : cols'[j] = cols[j] := list_getElem_concat_left cols β_next j (by rw [hlen, hlen_vs]; omega)
+          · have h_get_i : (cols ++ [β_next])[i] = cols[n] := by
+              have : (cols ++ [β_next])[n] = cols[n] := List.getElem_append_left hn_lt_cols
+              rw [show (cols ++ [β_next])[i] = (cols ++ [β_next])[n] by congr 1, this]
+            have h_get_j : (cols ++ [β_next])[j] = cols[j] := List.getElem_append_left (by omega)
             rw [h_get_i, h_get_j]
             intro heq_cols
-            have h_step_j := hstep j (by rw [hlen_vs]; omega)
-            have h_step_j' : c.colorOf u vs[j + 1] (hadj _ (List.getElem_mem (by rw [hlen_vs]; omega))) = some (cols[n]) := by rw [h_step_j, heq_cols]
-            have heq_w := colorOf_inj_neighbor c u vs[j + 1] w (hadj _ (List.getElem_mem (by rw [hlen_vs]; omega))) hw_adj (cols[n]) h_step_j' hw_col
-            have : w ∈ vs := by
-              have : vs[j + 1] ∈ vs := List.getElem_mem (by rw [hlen_vs]; omega)
-              rwa [heq_w] at this
-            exact hw_in this
+            have h_step_j := hstep j (by omega)
+            have h_step_j' : c.colorOf u vs[j + 1] (hadj _ (List.getElem_mem (by omega))) = some (cols[n]) := by rw [h_step_j, heq_cols]
+            have heq_w := colorOf_inj_neighbor c u vs[j + 1] w (hadj _ (List.getElem_mem (by omega))) hw_adj (cols[n]) h_step_j' hw_col
+            exact hw_in (heq_w ▸ List.getElem_mem (by omega))
           · have hi_lt_n : i < n := by omega
-            rw [list_getElem_concat_left cols β_next i (by rw [hlen, hlen_vs]; omega),
-                list_getElem_concat_left cols β_next j (by rw [hlen, hlen_vs]; omega)]
+            rw [List.getElem_append_left (show i < cols.length by omega),
+                List.getElem_append_left (show j < cols.length by omega)]
             exact h_diff i hi_lt_n j hj
-        have hN' : Fintype.card V - vs'.length < N := by
-          rw [← hN, show vs'.length = vs.length + 1 by dsimp [vs']; rw [List.length_append, List.length_singleton]]
-          have : vs'.length ≤ Fintype.card V := by rw [← List.toFinset_card_of_nodup hnodup']; exact Finset.card_le_univ _
+        have hN' : Fintype.card V - (vs ++ [w]).length < N := by
+          rw [← hN, List.length_append, List.length_singleton]
+          have : (vs ++ [w]).length ≤ Fintype.card V := by rw [← List.toFinset_card_of_nodup hnodup']; exact Finset.card_le_univ _
           omega
-        exact ih (Fintype.card V - vs'.length) hN' n' vs' cols' rfl hlen_vs' hlen_cols' hnodup' hadj' hnone' hstep' hmiss' h_diff'
+        exact ih _ hN' (n + 1) (vs ++ [w]) (cols ++ [β_next]) rfl hlen_vs' hlen_cols' hnodup' hadj' hnone' hstep' hmiss' h_diff'
 
 /-- Any non-empty partial edge coloring with $k > \Delta(G)$ can be extended to strictly fewer uncolored edges. -/
 theorem exists_extended_coloring_vizing (h_max : G.maxDegree < k)
@@ -1295,31 +1203,33 @@ theorem exists_full_coloring_vizing (h_max : G.maxDegree < k)
     exact ⟨c'', h''⟩
 termination_by c.uncoloredEdges.card
 
+lemma color_isSome (h : c.uncoloredEdges = ∅) (e : G.edgeSet) : ∃ col, c.color e = some col := by
+  cases hc : c.color e with
+  | none => exact False.elim (Finset.notMem_empty e (h ▸ Finset.mem_filter.mpr ⟨Finset.mem_univ e, hc⟩))
+  | some col => exact ⟨col, rfl⟩
+
+/-- Convert a fully defined `PartialEdgeColoring` (no uncolored edges) into a total `EdgeColoring`. -/
+noncomputable def toEdgeColoring (h : c.uncoloredEdges = ∅) : EdgeColoring G k where
+  color e := (c.color_isSome h e).choose
+  proper e₁ e₂ hne hshare heq := by
+    have h1 := (c.color_isSome h e₁).choose_spec
+    have h2 := (c.color_isSome h e₂).choose_spec
+    dsimp at heq
+    exact c.proper hne hshare (heq ▸ h1) h2
+
 end PartialEdgeColoring
 
 /-- Every bipartite graph $G$ admits a proper edge coloring with $\Delta(G)$ colors. -/
 theorem edgeColorable_of_bipartite (h_bip : G.Colorable 2) :
     IsEdgeColorable G G.maxDegree := by
-  obtain ⟨c_full, hc_empty⟩ := PartialEdgeColoring.exists_full_coloring (le_refl G.maxDegree) h_bip (PartialEdgeColoring.empty (G := G) (k := G.maxDegree))
-  have h_all : ∀ e : G.edgeSet, ∃ col : Fin G.maxDegree, c_full.color e = some col := by
-    intro e
-    cases h : c_full.color e with
-    | none => exact False.elim (Finset.notMem_empty e (hc_empty ▸ (by simp [PartialEdgeColoring.uncoloredEdges, h])))
-    | some col => exact ⟨col, rfl⟩
-  choose col hcol using h_all
-  exact ⟨⟨col, fun e₁ e₂ hne hshare heq => c_full.proper hne hshare (heq ▸ hcol e₁) (hcol e₂)⟩⟩
+  obtain ⟨c, hc⟩ := PartialEdgeColoring.exists_full_coloring (le_refl G.maxDegree) h_bip .empty
+  exact ⟨c.toEdgeColoring hc⟩
 
 /-- Every graph $G$ admits a proper edge coloring with $\Delta(G) + 1$ colors. -/
 theorem edgeColorable_of_maxDegree_succ :
     IsEdgeColorable G (G.maxDegree + 1) := by
-  obtain ⟨c_full, hc_empty⟩ := PartialEdgeColoring.exists_full_coloring_vizing (Nat.lt_succ_self G.maxDegree) (PartialEdgeColoring.empty (G := G) (k := G.maxDegree + 1))
-  have h_all : ∀ e : G.edgeSet, ∃ col : Fin (G.maxDegree + 1), c_full.color e = some col := by
-    intro e
-    cases h : c_full.color e with
-    | none => exact False.elim (Finset.notMem_empty e (hc_empty ▸ (by simp [PartialEdgeColoring.uncoloredEdges, h])))
-    | some col => exact ⟨col, rfl⟩
-  choose col hcol using h_all
-  exact ⟨⟨col, fun e₁ e₂ hne hshare heq => c_full.proper hne hshare (heq ▸ hcol e₁) (hcol e₂)⟩⟩
+  obtain ⟨c, hc⟩ := PartialEdgeColoring.exists_full_coloring_vizing (Nat.lt_succ_self G.maxDegree) .empty
+  exact ⟨c.toEdgeColoring hc⟩
 
 /--
 Vizing's Theorem (1964):
