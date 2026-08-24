@@ -19,3 +19,4 @@ import Formalization.MengersTheorem
 import Formalization.MacMahonsMasterTheorem
 import Formalization.ColorfulCaratheodory
 import Formalization.BlichfeldtsTheorem
+import Formalization.HoffmanSingleton
