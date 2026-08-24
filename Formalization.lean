@@ -21,3 +21,5 @@ import Formalization.ColorfulCaratheodory
 import Formalization.BlichfeldtsTheorem
 import Formalization.HoffmanSingleton
 import Formalization.RSKBijection
+import Formalization.BirkhoffVonNeumann
+import Formalization.StanleySL2
