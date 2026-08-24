@@ -187,77 +187,48 @@ theorem insertRow_length (r : List ℕ) (x : ℕ) :
   | nil => rfl
   | cons y ys ih =>
     by_cases h : x < y
-    · rw [insertRow_cons_lt h]
-      rfl
-    · rw [insertRow_cons_ge h]
-      simp only [List.length_cons]
-      rw [ih]
+    · rw [insertRow_cons_lt h]; rfl
+    · rw [insertRow_cons_ge h, List.length_cons, ih]
       cases (insertRow ys x).2 <;> rfl
 
 theorem insertRow_bumped_lt (r : List ℕ) (x y : ℕ) (h : (insertRow r x).2 = some y) :
     x < y := by
   induction r with
-  | nil => simp [insertRow] at h
+  | nil => cases h
   | cons z zs ih =>
-    unfold insertRow at h
-    split_ifs at h with hxz
-    · injection h with h1
-      rw [← h1]
-      exact hxz
-    · dsimp at h
-      exact ih h
+    rw [insertRow] at h; split_ifs at h with hxz
+    · cases h; exact hxz
+    · exact ih h
 
 theorem insertRow_none_ge (r : List ℕ) (x : ℕ) :
     (insertRow r x).2 = none → ∀ z ∈ r, z ≤ x := by
   induction r with
-  | nil => intros _ z hz; cases hz
+  | nil => simp
   | cons y ys ih =>
-    intro h z hz
-    by_cases hxy : x < y
-    · rw [show insertRow (y :: ys) x = (x :: ys, some y) by simp [insertRow, hxy]] at h
-      cases h
-    · rw [show insertRow (y :: ys) x = (y :: (insertRow ys x).1, (insertRow ys x).2) by simp [insertRow, hxy]] at h
+    by_cases h : x < y
+    · rw [insertRow_cons_lt h]; rintro ⟨⟩
+    · rw [insertRow_cons_ge h]; intro h' z hz
       cases hz with
       | head => omega
-      | tail _ h_in => exact ih h z h_in
+      | tail _ hz => exact ih h' z hz
 
 theorem insertTableau_size (P : List (List ℕ)) (x : ℕ) :
     tableauSize (insertTableau P x).1 = tableauSize P + 1 := by
   induction P generalizing x with
   | nil => rfl
   | cons r rs ih =>
-    unfold insertTableau
-    dsimp
-    rcases h_res : insertRow r x with ⟨r', bumped⟩
-    cases bumped with
-    | none =>
-      dsimp
-      unfold tableauSize
-      simp only [List.map_cons, List.sum_cons]
-      have h_len := insertRow_length r x
-      rw [h_res] at h_len
-      dsimp at h_len
-      rw [h_len]
-      omega
-    | some y =>
-      dsimp
-      unfold tableauSize
-      simp only [List.map_cons, List.sum_cons]
-      have h_len := insertRow_length r x
-      rw [h_res] at h_len
-      dsimp at h_len
-      rw [h_len]
-      have ih_y := ih y
-      unfold tableauSize at ih_y
-      omega
+    dsimp [insertTableau, tableauSize]
+    have hlen := insertRow_length r x
+    cases hb : (insertRow r x).2 with
+    | none => dsimp; simp only [List.map_cons, List.sum_cons]; rw [hb] at hlen; dsimp at hlen; omega
+    | some y => dsimp; simp only [List.map_cons, List.sum_cons]; have ih_y := ih y; unfold tableauSize at ih_y; rw [hb] at hlen; dsimp at hlen; omega
 
 theorem insertTableau_cons_fst (r : List ℕ) (rs : List (List ℕ)) (x : ℕ) :
     (insertTableau (r :: rs) x).1 =
     (insertRow r x).1 :: (match (insertRow r x).2 with
       | none => rs
       | some y => (insertTableau rs y).1) := by
-  dsimp [insertTableau]
-  cases (insertRow r x).2 <;> rfl
+  dsimp [insertTableau]; cases (insertRow r x).2 <;> rfl
 
 theorem foldl_insertTableau_head (xs : List ℕ) (r : List ℕ) (rs : List (List ℕ)) :
     (xs.foldl (fun P x => (insertTableau P x).1) (r :: rs)).headD [] =
@@ -265,15 +236,8 @@ theorem foldl_insertTableau_head (xs : List ℕ) (r : List ℕ) (rs : List (List
   induction xs generalizing r rs with
   | nil => rfl
   | cons x xs ih =>
-    simp only [List.foldl_cons]
-    rw [insertTableau_cons_fst]
-    cases (insertRow r x).2 with
-    | none =>
-      dsimp
-      exact ih (insertRow r x).1 rs
-    | some y =>
-      dsimp
-      exact ih (insertRow r x).1 (insertTableau rs y).1
+    simp only [List.foldl_cons, insertTableau_cons_fst]
+    cases (insertRow r x).2 <;> exact ih _ _
 
 /-! ### 4. The Robinson–Schensted (RSK) Mapping -/
 
@@ -310,32 +274,20 @@ def row1Fold (xs : List ℕ) : List ℕ :=
 theorem foldl_insertTableau_size (xs : List ℕ) (P : List (List ℕ)) :
     tableauSize (xs.foldl (fun P x => (insertTableau P x).1) P) = tableauSize P + xs.length := by
   induction xs generalizing P with
-  | nil => simp
-  | cons x xs ih =>
-    simp only [List.foldl_cons, List.length_cons]
-    rw [ih]
-    rw [insertTableau_size]
-    omega
+  | nil => rfl
+  | cons x xs ih => simp [ih, insertTableau_size]; omega
 
 theorem tableauSize_nil : tableauSize [] = 0 := rfl
 
 theorem rskInsertList_size (xs : List ℕ) :
     tableauSize (rskInsertList xs) = xs.length := by
-  unfold rskInsertList
-  have h := foldl_insertTableau_size xs []
-  rw [tableauSize_nil] at h
-  omega
+  simpa [rskInsertList, tableauSize_nil] using foldl_insertTableau_size xs []
 
 theorem rskInsertList_head (xs : List ℕ) :
     (rskInsertList xs).headD [] = row1Fold xs := by
   cases xs with
   | nil => rfl
-  | cons x xs =>
-    unfold rskInsertList row1Fold
-    simp only [List.foldl_cons]
-    change (xs.foldl (fun P x => (insertTableau P x).1) [[x]]).headD [] =
-           xs.foldl (fun r x => (insertRow r x).1) [x]
-    exact foldl_insertTableau_head xs [x] []
+  | cons x xs => exact foldl_insertTableau_head xs [x] []
 
 /-! ### 5. Schensted's LIS Theorem and Greene's LDS Theorem -/
 
@@ -397,19 +349,9 @@ theorem rsk_sum_squares_eq_factorial (n : ℕ)
     [Fintype (Partition n)]
     [∀ lam : Partition n, Fintype (SYT lam)] :
     ∑ lam : Partition n, (fLambda lam) ^ 2 = Nat.factorial n := by
-  have h_card : Fintype.card (Equiv.Perm (Fin n)) =
-      Fintype.card (Σ lam : Partition n, SYT lam × SYT lam) :=
-    Fintype.card_congr rskEquiv
-  rw [Fintype.card_perm, Fintype.card_fin] at h_card
-  rw [Fintype.card_sigma] at h_card
-  have h_sum : ∑ lam : Partition n, Fintype.card (SYT lam × SYT lam) =
-      ∑ lam : Partition n, (fLambda lam) ^ 2 := by
-    apply Finset.sum_congr rfl
-    intro lam _
-    unfold fLambda
-    rw [Fintype.card_prod, sq]
-  rw [h_sum] at h_card
-  exact h_card.symm
+  have h := Fintype.card_congr rskEquiv
+  simp only [Fintype.card_perm, Fintype.card_fin, Fintype.card_sigma, Fintype.card_prod] at h
+  simpa [fLambda, sq] using h.symm
 
 /-! ### 7. Involution Theorem -/
 
@@ -429,23 +371,7 @@ theorem rsk_involution_fixed_points (n : ℕ) (π : Equiv.Perm (Fin n))
     (h_symm : (rskPerm n π⁻¹).1 = (rskPerm n π).2 ∧ (rskPerm n π⁻¹).2 = (rskPerm n π).1)
     (h_inj : Function.Injective (rskPerm n)) :
     π * π = 1 ↔ (rskPerm n π).1 = (rskPerm n π).2 := by
-  constructor
-  · intro h_inv
-    have h_eq : π = π⁻¹ := by
-      calc π = π * 1 := (mul_one π).symm
-      _ = π * (π * π⁻¹) := by rw [mul_inv_cancel]
-      _ = (π * π) * π⁻¹ := by rw [mul_assoc]
-      _ = 1 * π⁻¹ := by rw [h_inv]
-      _ = π⁻¹ := one_mul π⁻¹
-    have h_rsk : rskPerm n π⁻¹ = rskPerm n π := by rw [← h_eq]
-    have h1 := h_symm.1
-    rw [h_rsk] at h1
-    exact h1
-  · intro h_pq
-    have h_inv_rsk : rskPerm n π⁻¹ = rskPerm n π := by
-      apply Prod.ext
-      · exact h_symm.1.trans h_pq.symm
-      · exact h_symm.2.trans h_pq
-    have h_pi_eq : π⁻¹ = π := h_inj h_inv_rsk
-    have : π * π = π * π⁻¹ := by rw [h_pi_eq]
-    rw [this, mul_inv_cancel]
+  have : π * π = 1 ↔ π⁻¹ = π := by
+    rw [← mul_inv_cancel π, mul_right_inj, eq_comm]
+  rw [this, ← h_inj.eq_iff, Prod.ext_iff]
+  exact ⟨fun h => h.1.symm.trans h_symm.1, fun h => ⟨h_symm.1.trans h.symm, h_symm.2.trans h⟩⟩
