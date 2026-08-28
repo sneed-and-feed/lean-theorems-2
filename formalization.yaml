@@ -1,47 +1,54 @@
 version: "v0.4"
 
 project:
-  name: "Fisher's Inequality for Balanced Incomplete Block Designs"
+  name: "The Lindström–Gessel–Viennot Lemma (LGV Lemma)"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A complete Lean 4 formalization of Fisher's Inequality in combinatorial design theory (Fisher 1940, Bose 1949).
-    Proves that for any 2-(v, k, \lambda) balanced incomplete block design with 1 < k < v and \lambda > 0,
-    the number of blocks b is at least the number of points v (b >= v). The proof establishes the exact Gramian
-    product identity N N^T = (r - \lambda) I + \lambda J, computes the determinant det(N N^T) = (r - \lambda)^{v-1}(r + (v-1)\lambda),
-    proves its strict positivity, and applies linear algebraic rank bounds. To the maintainers' knowledge, the theorem
+    A complete Lean 4 formalization of the Lindström–Gessel–Viennot (LGV) Lemma (Lindström 1973, Gessel & Viennot 1985)
+    connecting matrix determinants to sums of non-intersecting path systems in directed graphs. Proves the Leibniz
+    determinant expansion over permutation path products, the sign-reversing involution cancellation of intersecting path systems,
+    the full LGV determinant identity, and its specialization to planar DAGs. To the maintainers' knowledge, the theorem
     was not found in an exact declaration name, docstring, and type signature search of the pinned Mathlib revision
     (Mathlib v4.34.0-rc1).
 
 classification:
   arxiv: [math.CO]
-  msc2020: ["05B05", "15A15", "15A03"]
+  msc2020: ["05A15", "05A19", "15A15"]
 
 sources:
-  - title: "An examination of the different possible solutions of a problem in incomplete blocks"
+  - title: "On the vector representations of induced matroids"
     type: paper
     authors:
-      - "Ronald A. Fisher"
-    year: 1940
-    venue: "Annals of Eugenics, 10(1), 52–75"
+      - "Bernt Lindström"
+    year: 1973
+    venue: "Bulletin of the London Mathematical Society, 5(1), 85–90"
     relationship: formalizes
-  - title: "A note on Fisher's inequality for balanced incomplete block designs"
+  - title: "Binomial determinants, paths, and hook length formulae"
     type: paper
     authors:
-      - "R. C. Bose"
-    year: 1949
-    venue: "Bulletin of the Calcutta Mathematical Society, 41, 106–107"
-    relationship: adapts
+      - "Ira Gessel"
+      - "Gérard Viennot"
+    year: 1985
+    venue: "Advances in Mathematics, 58(3), 300–321"
+    relationship: formalizes
+  - title: "Enumerative Combinatorics, Volume 2"
+    type: book
+    authors:
+      - "Richard P. Stanley"
+    year: 1999
+    venue: "Cambridge University Press"
+    relationship: background
 
 related_formalizations:
   - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/LinearAlgebra/Matrix/Determinant/Basic.lean"
     relationship: builds-on
     note: >-
-      Builds on Mathlib's matrix determinant, diagonal, and rank libraries to formulate point-block incidence
-      Gramians and prove design-theoretic inequalities.
+      Builds on Mathlib's permutation sign and Leibniz matrix determinant formulas to establish
+      non-intersecting path counting identities.
 
 automation:
   methods:

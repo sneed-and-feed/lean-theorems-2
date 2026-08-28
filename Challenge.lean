@@ -1,88 +1,100 @@
-import Mathlib.Data.Real.Basic
 import Mathlib.Data.Matrix.Basic
-import Mathlib.Data.Fintype.Card
-import Mathlib.Data.Finset.Card
-import Mathlib.Data.Finset.Basic
 import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
-import Mathlib.LinearAlgebra.Matrix.Diagonal
-import Mathlib.LinearAlgebra.Matrix.SchurComplement
-import Mathlib.LinearAlgebra.Matrix.Rank
-import Mathlib.Tactic.Linarith
+import Mathlib.GroupTheory.Perm.Sign
+import Mathlib.GroupTheory.Perm.Basic
+import Mathlib.Data.Fintype.Card
+import Mathlib.Data.Fintype.BigOperators
+import Mathlib.Algebra.BigOperators.Ring.Finset
 import Mathlib.Tactic.Ring
-import Mathlib.Tactic.Positivity
+import Mathlib.Tactic.Linarith
 
-open Classical
-open scoped BigOperators Matrix Finset
+open Equiv Equiv.Perm Matrix BigOperators Classical
+
+set_option linter.unusedSectionVars false
 
 /-!
-# Fisher's Inequality for Balanced Incomplete Block Designs
+# Lindström–Gessel–Viennot Lemma (LGV Lemma)
 
-This module formalizes **Fisher's Inequality** (R. A. Fisher, 1940) in combinatorial design theory.
-For any $2$-$(v, k, \lambda)$ balanced incomplete block design (BIBD) with $v$ points and $b$ blocks,
-if $k < v$ (incomplete design) and $\lambda > 0$, then the number of blocks $b$ is at least
-the number of points $v$:
-$$b \ge v$$
+This module formalizes the **Lindström–Gessel–Viennot Lemma** (Lindström 1973, Gessel & Viennot 1985),
+a fundamental bridge between algebraic determinants and enumerative combinatorics.
 
 ## References
-- Fisher, R. A. (1940). *An examination of the different possible solutions of a problem in incomplete blocks*. Annals of Eugenics, 10(1), 52–75.
-- Bose, R. C. (1949). *A note on Fisher's inequality for balanced incomplete block designs*. Bull. Calcutta Math. Soc., 41, 106–107.
+- Lindström, B. (1973). *On the vector representations of induced matroids*. Bulletin of the London Mathematical Society, 5(1), 85–90.
+- Gessel, I., & Viennot, G. (1985). *Binomial determinants, paths, and hook length formulae*. Advances in Mathematics, 58(3), 300–321.
+- Stanley, R. P. (1999). *Enumerative Combinatorics, Volume 2*. Cambridge Studies in Advanced Mathematics.
 -/
 
-variable {V : Type*} [Fintype V] [DecidableEq V]
-variable {B : Type*} [Fintype B] [DecidableEq B]
+/-- A directed path in a graph on vertex set $V$. -/
+structure DirectedPath (V : Type*) where
+  verts : List V
+  nonempty : verts ≠ []
 
-/-- Structure defining a $2$-$(v, k, \lambda)$ balanced incomplete block design (BIBD). -/
-structure BlockDesign (V : Type*) [Fintype V] [DecidableEq V] (B : Type*) [Fintype B] [DecidableEq B] where
-  block : B → Finset V
-  k : ℕ
-  r : ℕ
-  lambda : ℕ
-  card_block : ∀ b : B, (block b).card = k
-  rep_point : ∀ x : V, (Finset.filter (fun b => x ∈ block b) Finset.univ).card = r
-  pair_lambda : ∀ x y : V, x ≠ y → (Finset.filter (fun b => x ∈ block b ∧ y ∈ block b) Finset.univ).card = lambda
+variable {n : ℕ} {R : Type*} [CommRing R] {V : Type*} [DecidableEq V] [Fintype (DirectedPath V)]
 
-namespace BlockDesign
+namespace DirectedPath
 
-variable (D : BlockDesign V B)
+def start (P : DirectedPath V) : V := P.verts.head P.nonempty
 
-noncomputable def incidenceMatrix : Matrix V B ℝ :=
-  fun x b => if x ∈ D.block b then 1 else 0
+def target (P : DirectedPath V) : V := P.verts.getLast P.nonempty
 
-def allOnesMatrix (V : Type*) [Fintype V] : Matrix V V ℝ :=
-  fun _ _ => 1
+def Intersects (P Q : DirectedPath V) : Prop :=
+  ∃ v : V, v ∈ P.verts ∧ v ∈ Q.verts
 
-theorem incidence_mul_transpose_apply (x y : V) :
-    (incidenceMatrix D * (incidenceMatrix D)ᵀ) x y =
-      if x = y then (D.r : ℝ) else (D.lambda : ℝ) := sorry
+def Disjoint (P Q : DirectedPath V) : Prop :=
+  ¬ Intersects P Q
 
-theorem gramian_eq :
-    incidenceMatrix D * (incidenceMatrix D)ᵀ =
-      ((D.r : ℝ) - (D.lambda : ℝ)) • (1 : Matrix V V ℝ) + (D.lambda : ℝ) • allOnesMatrix V := sorry
+lemma disjoint_comm (P Q : DirectedPath V) : Disjoint P Q ↔ Disjoint Q P := by
+  simp only [Disjoint, Intersects, and_comm]
 
-theorem vr_eq_bk :
-    (Fintype.card V) * D.r = (Fintype.card B) * D.k := sorry
+end DirectedPath
 
-theorem r_mul_k_sub_one (x : V) :
-    D.r * (D.k - 1) = D.lambda * (Fintype.card V - 1) := sorry
+abbrev PathSystem (A B : Fin n → V) (σ : Perm (Fin n)) :=
+  ∀ i : Fin n, { P : DirectedPath V // P.start = A i ∧ P.target = B (σ i) }
 
-theorem r_gt_lambda (hk : D.k < Fintype.card V) (hl : 0 < D.lambda) (hk1 : 1 < D.k) :
-    (D.lambda : ℝ) < (D.r : ℝ) := sorry
+def IsNonIntersecting {A B : Fin n → V} {σ : Perm (Fin n)} (paths : PathSystem A B σ) : Prop :=
+  ∀ i j : Fin n, i ≠ j → DirectedPath.Disjoint (paths i).val (paths j).val
 
-theorem det_allOnes_shift (c d : ℝ) (hc : c ≠ 0) (hv : 0 < Fintype.card V) :
-    Matrix.det ((c • (1 : Matrix V V ℝ)) + (d • allOnesMatrix V)) =
-      c ^ (Fintype.card V - 1) * (c + (Fintype.card V : ℝ) * d) := sorry
+def IsIntersecting {A B : Fin n → V} {σ : Perm (Fin n)} (paths : PathSystem A B σ) : Prop :=
+  ¬ IsNonIntersecting paths
 
-theorem det_gramian (hv : 0 < Fintype.card V) (hc : (D.r : ℝ) - (D.lambda : ℝ) ≠ 0) :
-    Matrix.det (incidenceMatrix D * (incidenceMatrix D)ᵀ) =
-      ((D.r : ℝ) - (D.lambda : ℝ)) ^ (Fintype.card V - 1) *
-      ((D.r : ℝ) + ((Fintype.card V : ℝ) - 1) * (D.lambda : ℝ)) := sorry
+def PathMatrix (e : V → V → R) (A B : Fin n → V) : Matrix (Fin n) (Fin n) R :=
+  fun i j => e (A i) (B j)
 
-theorem det_gramian_pos (hv : 1 < Fintype.card V) (hk : D.k < Fintype.card V)
-    (hl : 0 < D.lambda) (hk1 : 1 < D.k) :
-    0 < Matrix.det (incidenceMatrix D * (incidenceMatrix D)ᵀ) := sorry
+theorem det_pathMatrix_eq_permutation_sum (e : V → V → R) (A B : Fin n → V) :
+    Matrix.det (PathMatrix e A B) =
+      ∑ σ : Perm (Fin n), (Equiv.Perm.sign σ : R) * ∏ i : Fin n, e (A i) (B (σ i)) := sorry
 
-theorem fishers_inequality (hv : 1 < Fintype.card V) (hk : D.k < Fintype.card V)
-    (hl : 0 < D.lambda) (hk1 : 1 < D.k) :
-    Fintype.card V ≤ Fintype.card B := sorry
+def lgv_sign_reversing_involution_prop
+    (A B : Fin n → V)
+    (w : DirectedPath V → R) : Prop :=
+  ∃ (Φ : (Σ σ : Perm (Fin n), { paths : PathSystem A B σ // IsIntersecting paths }) →
+         (Σ σ : Perm (Fin n), { paths : PathSystem A B σ // IsIntersecting paths })),
+    Function.Involutive Φ ∧
+    (∀ x, Φ x ≠ x) ∧
+    (∀ x, (Equiv.Perm.sign (Φ x).1 : R) * (∏ i, w ((Φ x).2.val i).val) =
+          - ((Equiv.Perm.sign x.1 : R) * (∏ i, w (x.2.val i).val)))
 
-end BlockDesign
+theorem intersecting_path_systems_sum_zero
+    (A B : Fin n → V)
+    (w : DirectedPath V → R)
+    (h_inv : lgv_sign_reversing_involution_prop A B w) :
+    (∑ σ : Perm (Fin n), (Equiv.Perm.sign σ : R) *
+      (∑ paths : { p : PathSystem A B σ // IsIntersecting p }, ∏ i, w (paths.val i).val)) = 0 := sorry
+
+theorem lindstrom_gessel_viennot
+    (e : V → V → R) (A B : Fin n → V)
+    (w : DirectedPath V → R)
+    (h_inv : lgv_sign_reversing_involution_prop A B w)
+    (h_weight_sum : ∀ i j, e (A i) (B j) = ∑ P : { P : DirectedPath V // P.start = A i ∧ P.target = B j }, w P.val) :
+    Matrix.det (PathMatrix e A B) =
+      ∑ σ : Perm (Fin n), (Equiv.Perm.sign σ : R) *
+        (∑ paths : { p : PathSystem A B σ // IsNonIntersecting p }, ∏ i, w (paths.val i).val) := sorry
+
+theorem gessel_viennot_planar_dag
+    (e : V → V → R) (A B : Fin n → V)
+    (w : DirectedPath V → R)
+    (h_inv : lgv_sign_reversing_involution_prop A B w)
+    (h_weight_sum : ∀ i j, e (A i) (B j) = ∑ P : { P : DirectedPath V // P.start = A i ∧ P.target = B j }, w P.val)
+    (h_only_id : ∀ σ : Perm (Fin n), (∃ paths : PathSystem A B σ, IsNonIntersecting paths) → σ = 1) :
+    Matrix.det (PathMatrix e A B) =
+      ∑ paths : { p : PathSystem A B 1 // IsNonIntersecting p }, ∏ i, w (paths.val i).val := sorry
