@@ -1,51 +1,58 @@
 version: "v0.4"
 
 project:
-  name: "The Hoffman–Singleton Moore Graph Classification Theorem"
+  name: "The Ihara–Bass Determinantal Formula for Graphs"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A complete machine-checked Lean 4 formalization of the Hoffman–Singleton Theorem (1960).
-    Classifies all possible degrees of regular Moore graphs with diameter 2 and girth 5, proving that the degree
-    must belong to {2, 3, 7, 57}. Formalizes the spectral quadratic eigenvalue equation, trace nullity identity,
-    and integrality divisibility condition s | 15 with explicit certificate instances for C5, Petersen,
-    Hoffman-Singleton, and degree 57. To the maintainers' knowledge, the theorem was not found in an exact
-    declaration name, docstring, and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+    A complete Lean 4 formalization of the Ihara–Bass Determinantal Formula (Bass 1992, Ihara 1966)
+    connecting the Hashimoto edge-adjacency operator determinant with the vertex Laplacian-type determinant
+    via block matrix Schur complement factorizations. Proves the exact matrix block factorizations M N = K,
+    K L = KL, and deduces the Ihara–Bass polynomial identity. To the maintainers' knowledge, the theorem
+    was not found in an exact declaration name, docstring, and type signature search of the pinned Mathlib revision
+    (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.CO, math.SP]
-  msc2020: ["05C50", "05C75", "05E30"]
+  arxiv: [math.CO]
+  msc2020: ["05C50", "11M36", "15A15"]
 
 sources:
-  - title: "On Moore graphs with diameters 2 and 3"
+  - title: "The Ihara-Selberg zeta function of a tree lattice"
     type: paper
     authors:
-      - "Alan J. Hoffman"
-      - "Robert R. Singleton"
+      - "Hyman Bass"
+    year: 1992
+    venue: "International Journal of Mathematics, 3(6), 717–797"
     relationship: formalizes
+  - title: "On discrete subgroups of the two by two projective linear group over p-adic fields"
+    type: paper
+    authors:
+      - "Yasutaka Ihara"
+    year: 1966
+    venue: "Journal of the Mathematical Society of Japan, 18(3), 219–235"
+    relationship: background
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Real/Sqrt.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/LinearAlgebra/Matrix/SchurComplement.lean"
     relationship: builds-on
     note: >-
-      Formalization builds on Mathlib's real square root and ring arithmetic tactics (linarith, linear_combination).
+      Builds on Mathlib's Schur complement determinant identities for 2x2 block matrices and applies
+      them to Hashimoto edge adjacency operators and vertex Laplacians.
 
 automation:
   methods:
     - method: agent
       tool_setup: >-
-        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
-        Lean LSP checking under maintainer direction and human verification.
-        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
+        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
+        and verified with zero custom axioms under standard Lean 4 kernel axioms.
 
 review:
   status: self-assessed
   reviewers:
     - "sneed-and-feed maintainers"
   notes: >-
-    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
-    while all definitions and theorem statements are completely specified. Solution verified through
-    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.
+    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
+    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.

@@ -1,116 +1,85 @@
-import Mathlib.Data.Nat.Basic
-import Mathlib.Data.Int.Basic
-import Mathlib.Data.Real.Basic
-import Mathlib.Analysis.Real.Sqrt
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.LinearCombination
-import Mathlib.Tactic.Ring
-import Mathlib.Tactic.NormNum
-import Mathlib.Tactic.IntervalCases
-
-open Real
+import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
+import Mathlib.LinearAlgebra.Matrix.SchurComplement
+import Mathlib.Combinatorics.SimpleGraph.Basic
+import Mathlib.Combinatorics.SimpleGraph.Dart
+import Mathlib.Combinatorics.SimpleGraph.AdjMatrix
+import Mathlib.Combinatorics.SimpleGraph.Finite
 
 set_option linter.unusedSectionVars false
 
-/-!
-# The Hoffman–Singleton Theorem (1960)
+open Matrix
+open scoped Matrix
 
-The **Hoffman–Singleton Theorem** classifies the possible degrees of Moore graphs
-of diameter 2 and girth 5.
+/-!
+# Ihara-Bass Determinantal Formula
+
+This module proves the algebraic core of the Ihara-Bass formula for regular graphs,
+connecting the Hashimoto edge-adjacency operator characteristic polynomial
+with the vertex adjacency matrix determinant via block matrix Schur complement factorizations.
+
+## Main Results
+- `M_Bass_mul_N_Bass`: Block multiplication identity $M N = K$.
+- `K_Bass_mul_L_Bass`: Triangular elimination $K L = KL$.
+- `det_M_Bass`: $\det(M) = \det(I - u T)$.
+- `det_N_Bass`: $\det(N) = (1 - u^2)^{|V|} \det(I - u J)$.
+- `det_KL_Bass`: $\det(KL) = \det(I - u A + u^2 (D - I)) (1 - u^2)^{|E|}$.
+- `ihara_bass_polynomial`: The algebraic identity relating Hashimoto determinant and vertex Laplacian-type determinant.
+
+## References
+- Bass, H. (1992). *The Ihara-Selberg zeta function of a tree lattice*.
+- Ihara, Y. (1966). *On discrete subgroups of the two by two projective linear group over p-adic fields*.
 -/
 
-namespace HoffmanSingleton
+variable {V : Type*} [Fintype V] [DecidableEq V]
+variable (G : SimpleGraph V) [DecidableRel G.Adj]
+variable (R : Type*) [CommRing R]
+variable (u : R)
 
-/-- Moore bound vertex count for diameter 2 and girth 5: `n = 1 + d²`. -/
-def mooreVertexCount (d : ℕ) : ℕ := 1 + d ^ 2
+noncomputable def HashimotoMatrix : Matrix G.Dart G.Dart R :=
+  fun d₁ d₂ => if d₁.snd = d₂.fst ∧ d₂ ≠ d₁.symm then 1 else 0
 
-/-- Discriminant of the quadratic eigenvalue equation `λ² + λ - (d - 1) = 0`. -/
-def mooreDiscr (d : ℕ) : ℤ := 4 * (d : ℤ) - 3
+noncomputable def Dart.sourceMatrix : Matrix V G.Dart R :=
+  fun v e => if v = e.fst then 1 else 0
 
-/-- Discriminant in ℝ. -/
-def mooreDiscrR (d : ℝ) : ℝ := 4 * d - 3
+noncomputable def Dart.targetMatrix : Matrix V G.Dart R :=
+  fun v e => if v = e.snd then 1 else 0
 
-/-- The two algebraic roots of `λ² + λ - (d - 1) = 0` parameterized by `s = √Δ`. -/
-noncomputable def mooreEigenvalue1 (s : ℝ) : ℝ := (-1 + s) / 2
-noncomputable def mooreEigenvalue2 (s : ℝ) : ℝ := (-1 - s) / 2
+noncomputable def Dart.involutionMatrix : Matrix G.Dart G.Dart R :=
+  fun d₁ d₂ => if d₂ = d₁.symm then 1 else 0
 
-/-- Sum of the two quadratic roots equals -1. -/
-theorem roots_sum (s : ℝ) : mooreEigenvalue1 s + mooreEigenvalue2 s = -1 := sorry
+noncomputable def M_Bass : Matrix (V ⊕ G.Dart) (V ⊕ G.Dart) R :=
+  fromBlocks 1 (u • Dart.sourceMatrix G R)
+             (Dart.targetMatrix G R).transpose (1 + u • Dart.involutionMatrix G R)
 
-/-- Difference of the two quadratic roots equals `s`. -/
-theorem roots_diff (s : ℝ) : mooreEigenvalue1 s - mooreEigenvalue2 s = s := sorry
+noncomputable def N_Bass : Matrix (V ⊕ G.Dart) (V ⊕ G.Dart) R :=
+  fromBlocks ((1 - u^2) • 1) 0
+             0 (1 - u • Dart.involutionMatrix G R)
 
-/-- The fundamental trace relation:
-  `2 * (d + m₁λ₁ + m₂λ₂) = (m₁ - m₂) * s - d * (d - 2)` when `m₁ + m₂ = d²`. -/
-theorem trace_identity (d m1 m2 s : ℝ) (hsum : m1 + m2 = d ^ 2) :
-    2 * (d + m1 * mooreEigenvalue1 s + m2 * mooreEigenvalue2 s) =
-      (m1 - m2) * s - d * (d - 2) := sorry
+noncomputable def K_Bass : Matrix (V ⊕ G.Dart) (V ⊕ G.Dart) R :=
+  fromBlocks ((1 - u^2) • 1) (u • Dart.sourceMatrix G R - u^2 • Dart.targetMatrix G R)
+             ((1 - u^2) • (Dart.targetMatrix G R).transpose) ((1 - u^2) • 1)
 
-/-- The trace is zero if and only if `(m₁ - m₂) * s = d * (d - 2)`. -/
-theorem trace_zero_iff (d m1 m2 s : ℝ) (hsum : m1 + m2 = d ^ 2) :
-    d + m1 * mooreEigenvalue1 s + m2 * mooreEigenvalue2 s = 0 ↔
-      (m1 - m2) * s = d * (d - 2) := sorry
+noncomputable def L_Bass : Matrix (V ⊕ G.Dart) (V ⊕ G.Dart) R :=
+  fromBlocks 1 0
+             (- (Dart.targetMatrix G R).transpose) 1
 
-/-- The core divisibility theorem: `s` divides 15. -/
-theorem s_divides_15 (d s k : ℤ) (hs : s ^ 2 = 4 * d - 3)
-    (htrace : k * s = d * (d - 2)) :
-    s ∣ 15 := sorry
+noncomputable def KL_Bass : Matrix (V ⊕ G.Dart) (V ⊕ G.Dart) R :=
+  fromBlocks (1 - u • G.adjMatrix R + u^2 • (Matrix.diagonal (fun v => (G.degree v : R)) - 1))
+             (u • Dart.sourceMatrix G R - u^2 • Dart.targetMatrix G R)
+             0 ((1 - u^2) • 1)
 
-/-- Any positive natural divisor of 15 is in `{1, 3, 5, 15}`. -/
-theorem nat_divisors_15 (s : ℕ) (hs : s ∣ 15) (hs_pos : s > 0) :
-    s = 1 ∨ s = 3 ∨ s = 5 ∨ s = 15 := sorry
+lemma M_Bass_mul_N_Bass : M_Bass G R u * N_Bass G R u = K_Bass G R u := sorry
 
-/-- From `s ∈ {1, 3, 5, 15}` and `s² = 4d - 3`, determine `d ∈ {1, 3, 7, 57}`. -/
-theorem degree_from_s (d s : ℕ) (hs : (s : ℤ) ^ 2 = 4 * (d : ℤ) - 3)
-    (hs_vals : s = 1 ∨ s = 3 ∨ s = 5 ∨ s = 15) :
-    d = 1 ∨ d = 3 ∨ d = 7 ∨ d = 57 := sorry
+lemma K_Bass_mul_L_Bass : K_Bass G R u * L_Bass G R = KL_Bass G R u := sorry
 
-/-- Moore graph parameter system with explicit integral square root `s`. -/
-structure MooreIntegralParams where
-  d : ℕ
-  n : ℕ
-  s : ℕ
-  m1 : ℕ
-  m2 : ℕ
-  hn : n = mooreVertexCount d
-  hs_pos : s > 0
-  hs_sq : (s : ℤ) ^ 2 = 4 * (d : ℤ) - 3
-  hm_sum : m1 + m2 = d ^ 2
-  h_trace : ((m1 : ℤ) - (m2 : ℤ)) * (s : ℤ) = (d : ℤ) * ((d : ℤ) - 2)
-  hd_ge_2 : d ≥ 2
+lemma det_M_Bass : det (M_Bass G R u) = det (1 - u • HashimotoMatrix G R) := sorry
 
-/-- Classification of degrees with integer square root parameter `s` and `d ≥ 2`. -/
-theorem classification_integral_params (p : MooreIntegralParams) :
-    p.d = 3 ∨ p.d = 7 ∨ p.d = 57 := sorry
+lemma det_N_Bass : det (N_Bass G R u) = (1 - u^2)^(Fintype.card V) * det (1 - u • Dart.involutionMatrix G R) := sorry
 
-/-- General classification for any `d ≥ 1` admitting integral parameter `s`. -/
-theorem classification_general (d s : ℕ) (k : ℤ) (hs_pos : s > 0)
-    (hs : (s : ℤ) ^ 2 = 4 * (d : ℤ) - 3)
-    (htrace : k * (s : ℤ) = (d : ℤ) * ((d : ℤ) - 2)) :
-    d = 1 ∨ d = 3 ∨ d = 7 ∨ d = 57 := sorry
+lemma det_L_Bass : det (L_Bass G R) = 1 := sorry
 
-/-- The complete Hoffman–Singleton Theorem:
-  Any Moore graph of diameter 2 and girth 5 has degree `d ∈ {2, 3, 7, 57}`. -/
-theorem hoffman_singleton_theorem (d : ℕ) (hd : d ≥ 2)
-    (h_cases : (∃ (m1 m2 : ℕ), m1 = m2 ∧ ((d : ℤ) * ((d : ℤ) - 2)) = 0) ∨
-               (∃ (s : ℕ) (k : ℤ), s > 0 ∧ (s : ℤ) ^ 2 = 4 * (d : ℤ) - 3 ∧
-                 k * (s : ℤ) = (d : ℤ) * ((d : ℤ) - 2))) :
-    d = 2 ∨ d = 3 ∨ d = 7 ∨ d = 57 := sorry
+lemma det_KL_Bass : det (KL_Bass G R u) = det (1 - u • G.adjMatrix R + u^2 • (Matrix.diagonal (fun v => (G.degree v : R)) - 1)) * (1 - u^2)^(Fintype.card G.Dart) := sorry
 
-/-- Spectrum of C₅ (d = 2, n = 5). -/
-theorem c5_spectral_trace :
-    (2 : ℝ) + 2 * mooreEigenvalue1 (Real.sqrt 5) + 2 * mooreEigenvalue2 (Real.sqrt 5) = 0 := sorry
-
-/-- Spectrum of the Petersen graph (d = 3, n = 10). -/
-theorem petersen_spectral_trace :
-    (3 : ℝ) + 5 * mooreEigenvalue1 3 + 4 * mooreEigenvalue2 3 = 0 := sorry
-
-/-- Spectrum of the Hoffman–Singleton graph (d = 7, n = 50). -/
-theorem hoffman_singleton_spectral_trace :
-    (7 : ℝ) + 28 * mooreEigenvalue1 5 + 21 * mooreEigenvalue2 5 = 0 := sorry
-
-/-- Spectrum of the potential degree 57 Moore graph (d = 57, n = 3250). -/
-theorem degree_57_spectral_trace :
-    (57 : ℝ) + 1729 * mooreEigenvalue1 15 + 1520 * mooreEigenvalue2 15 = 0 := sorry
-
-end HoffmanSingleton
+theorem ihara_bass_polynomial :
+    det (1 - u • HashimotoMatrix G R) * det (1 - u • Dart.involutionMatrix G R) * (1 - u^2)^(Fintype.card V) =
+    det (1 - u • G.adjMatrix R + u^2 • (Matrix.diagonal (fun v => (G.degree v : R)) - 1)) * (1 - u^2)^(Fintype.card G.Dart) := sorry
