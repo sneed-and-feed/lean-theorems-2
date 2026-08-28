@@ -1,98 +1,90 @@
 import Mathlib.Data.Real.Basic
-import Mathlib.Data.Matrix.Basic
+import Mathlib.Data.ENNReal.Basic
 import Mathlib.Data.Fintype.Card
-import Mathlib.Data.Fintype.Perm
-import Mathlib.Data.Finset.Card
 import Mathlib.Data.Finset.Basic
+import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Analysis.Normed.Lp.MeasurableSpace
+import Mathlib.Analysis.Convex.Basic
 import Mathlib.Analysis.Convex.Hull
-import Mathlib.Analysis.Convex.Combination
-import Mathlib.Analysis.Convex.Extreme
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Ring
+import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
+import Mathlib.MeasureTheory.Measure.Haar.InnerProductSpace
+import Mathlib.MeasureTheory.Measure.MeasureSpace
 import Mathlib.Tactic.Positivity
+import Mathlib.Tactic.Linarith
 
-open scoped BigOperators Matrix
+open scoped BigOperators ENNReal
 open Classical
 
-namespace BirkhoffVonNeumann
+set_option linter.unusedSectionVars false
 
-variable {n : ℕ}
+/-!
+# Blichfeldt's Theorem in the Geometry of Numbers
 
-/-- A square real matrix $M$ of size $n 	imes n$ is **doubly stochastic** if all its entries
-are non-negative and all its row sums and column sums equal $1$. -/
-def IsDoublyStochastic (M : Matrix (Fin n) (Fin n) ℝ) : Prop :=
-  (∀ i j, 0 ≤ M i j) ∧ (∀ i, ∑ j, M i j = 1) ∧ (∀ j, ∑ i, M i j = 1)
+This module formalizes **Blichfeldt's Theorem** (Hans Frederick Blichfeldt, 1914),
+a fundamental principle in the geometry of numbers that generalizes Minkowski's Convex Body Theorem
+to arbitrary measurable sets and higher multiplicities.
+-/
 
-/-- The permutation matrix $P_\sigma$ associated to a permutation $\sigma \in S_n$.
-$(P_\sigma)_{i,j} = 1$ if $j = \sigma(i)$ and $0$ otherwise. -/
-def permutationMatrix (σ : Equiv.Perm (Fin n)) : Matrix (Fin n) (Fin n) ℝ :=
-  fun i j => if j = σ i then 1 else 0
+variable {d : ℕ}
 
-/-- The set of all $n 	imes n$ doubly stochastic matrices. -/
-def doublyStochasticSet (n : ℕ) : Set (Matrix (Fin n) (Fin n) ℝ) :=
-  { M | IsDoublyStochastic M }
+namespace Blichfeldt
 
-/-- The set of all $n 	imes n$ permutation matrices. -/
-def permutationMatrices (n : ℕ) : Set (Matrix (Fin n) (Fin n) ℝ) :=
-  { permutationMatrix σ | σ : Equiv.Perm (Fin n) }
+/-- The $d$-dimensional Euclidean space $\mathbb{R}^d$. -/
+abbrev Space (d : ℕ) := EuclideanSpace ℝ (Fin d)
 
-/-- Every permutation matrix is doubly stochastic. -/
-theorem permutationMatrix_isDoublyStochastic (σ : Equiv.Perm (Fin n)) :
-    IsDoublyStochastic (permutationMatrix σ) := sorry
+/-- Predicate asserting that a vector in $\mathbb{R}^d$ has integer coordinates. -/
+def IsIntegerVector (v : Space d) : Prop :=
+  ∀ i : Fin d, ∃ z : ℤ, v i = (z : ℝ)
 
-/-- The set of doubly stochastic matrices is convex. -/
-theorem convex_doublyStochastic (n : ℕ) : Convex ℝ (doublyStochasticSet n) := sorry
+/-- The standard fundamental domain (unit half-open cube) $[0, 1)^d \subset \mathbb{R}^d$. -/
+def unitCube (d : ℕ) : Set (Space d) :=
+  { x : Space d | ∀ i : Fin d, 0 ≤ x i ∧ x i < 1 }
 
-/-- Hall's marriage condition holds for the row supports of any doubly stochastic matrix. -/
-theorem hall_condition_doublyStochastic (M : Matrix (Fin n) (Fin n) ℝ) (hM : IsDoublyStochastic M)
-    (S : Finset (Fin n)) :
-    S.card ≤ (S.biUnion (fun i => Finset.filter (fun j => 0 < M i j) Finset.univ)).card := sorry
+/-- Lattice translate of a set by an integer vector $z$. -/
+def latticeShift (S : Set (Space d)) (z : Fin d → ℤ) : Set (Space d) :=
+  { x : Space d | ∃ s ∈ S, ∀ i : Fin d, x i = s i + (z i : ℝ) }
 
-/-- Every doubly stochastic matrix admits a permutation $\sigma \in S_n$ such that
-$M_{i, \sigma(i)} > 0$ for all $i$ (positive diagonal / Hall-König support matching). -/
-theorem exists_perm_positive_entries (M : Matrix (Fin n) (Fin n) ℝ) (hM : IsDoublyStochastic M) :
-    ∃ σ : Equiv.Perm (Fin n), ∀ i, 0 < M i (σ i) := sorry
+/-- Centrally symmetric set: $S = -S$. -/
+def IsCentrallySymmetric (S : Set (Space d)) : Prop :=
+  ∀ x ∈ S, -x ∈ S
 
 /--
-**Birkhoff–von Neumann Theorem (1946/1953)**:
-Every doubly stochastic matrix is in the convex hull of permutation matrices.
-$$\mathcal{D}_n = \operatorname{Conv}(\mathcal{P}_n)$$
+**Blichfeldt's Theorem (1914)**:
+Let $S \subset \mathbb{R}^d$ be a Lebesgue measurable set with volume strictly greater
+than an integer $k \ge 1$:
+$$\operatorname{vol}(S) > k$$
+Then there exist $k + 1$ distinct points $x_0, x_1, \dots, x_k \in S$ such that
+every pairwise difference $x_i - x_j$ is an integer lattice vector in $\mathbb{Z}^d$:
+$$x_i - x_j \in \mathbb{Z}^d \quad (orall i, j)$$
 -/
-theorem birkhoff_von_neumann_convex_hull (M : Matrix (Fin n) (Fin n) ℝ) (hM : IsDoublyStochastic M) :
-    M ∈ convexHull ℝ (permutationMatrices n) := sorry
-
-/-- A matrix is doubly stochastic if and only if it belongs to the convex hull of permutation matrices. -/
-theorem birkhoff_von_neumann_iff (M : Matrix (Fin n) (Fin n) ℝ) :
-    M ∈ convexHull ℝ (permutationMatrices n) ↔ IsDoublyStochastic M := sorry
+theorem blichfeldts_theorem (d : ℕ) (k : ℕ) (hk : 1 ≤ k) (S : Set (Space d))
+    (hS_meas : MeasurableSet S)
+    (hS_vol : (k : ℝ≥0∞) < MeasureTheory.volume S) :
+    ∃ (pts : Fin (k + 1) → Space d),
+      Function.Injective pts ∧
+      (∀ i : Fin (k + 1), pts i ∈ S) ∧
+      (∀ i j : Fin (k + 1), IsIntegerVector (pts i - pts j)) := sorry
 
 /--
-**Birkhoff–von Neumann Theorem (Explicit Convex Combination Form)**:
-Every doubly stochastic matrix is an explicit convex combination of permutation matrices:
-$$M = \sum_{\sigma \in S_n} c_\sigma P_\sigma, \quad c_\sigma \ge 0, \quad \sum_\sigma c_\sigma = 1$$
+**Minkowski's First Convex Body Theorem (as a Corollary to Blichfeldt)**:
+Let $K \subset \mathbb{R}^d$ be a convex, centrally symmetric, measurable set with
+volume $\operatorname{vol}(K) > 2^d$. Then $K$ contains at least one non-zero
+integer lattice point $z \in \mathbb{Z}^d \setminus \{0\}$:
+$$K \cap (\mathbb{Z}^d \setminus \{0\}) 
+e \emptyset$$
 -/
-theorem birkhoff_von_neumann_convex_combination (M : Matrix (Fin n) (Fin n) ℝ)
-    (hM : IsDoublyStochastic M) :
-    ∃ (c : Equiv.Perm (Fin n) → ℝ), (∀ σ, 0 ≤ c σ) ∧ (∑ σ, c σ = 1) ∧
-      M = ∑ σ, c σ • permutationMatrix σ := sorry
+theorem minkowski_convex_body_theorem (d : ℕ) (K : Set (Space d))
+    (hK_conv : Convex ℝ K)
+    (hK_symm : IsCentrallySymmetric K)
+    (hK_meas : MeasurableSet K)
+    (hK_vol : (2 : ℝ≥0∞) ^ d < MeasureTheory.volume K) :
+    ∃ z : Space d, z ∈ K ∧ z ≠ 0 ∧ IsIntegerVector z := sorry
 
-/-- The extreme points of the doubly stochastic polytope $\mathcal{D}_n$ are exactly the permutation matrices. -/
-theorem extremePoints_doublyStochasticSet (n : ℕ) :
-    Set.extremePoints ℝ (doublyStochasticSet n) = permutationMatrices n := sorry
+/-- Specialization to dimension $d = 1$: Any measurable set of length $> 1$ on $\mathbb{R}$
+contains two points with integer distance. -/
+theorem blichfeldt_dim1 (S : Set (Space 1)) (hS_meas : MeasurableSet S)
+    (hS_vol : (1 : ℝ≥0∞) < MeasureTheory.volume S) :
+    ∃ x y : Space 1, x ∈ S ∧ y ∈ S ∧ x ≠ y ∧ IsIntegerVector (x - y) := sorry
 
-/-- The support of a permutation matrix has cardinality exactly $n$. -/
-theorem permutationMatrix_card_matrixSupp (σ : Equiv.Perm (Fin n)) :
-    (Finset.filter (fun p : Fin n × Fin n => 0 < permutationMatrix σ p.1 p.2) Finset.univ).card = n := sorry
-
-/-- Any $n 	imes n$ doubly stochastic matrix has at least $n$ positive entries. -/
-theorem card_matrixSupp_ge_n (M : Matrix (Fin n) (Fin n) ℝ) (hM : IsDoublyStochastic M) :
-    n ≤ (Finset.filter (fun p : Fin n × Fin n => 0 < M p.1 p.2) Finset.univ).card := sorry
-
-/-- The support of any $n 	imes n$ matrix is bounded above by $n^2$. -/
-theorem matrixSupp_card_le_sq (M : Matrix (Fin n) (Fin n) ℝ) :
-    (Finset.filter (fun p : Fin n × Fin n => 0 < M p.1 p.2) Finset.univ).card ≤ n * n := sorry
-
-/-- A doubly stochastic matrix has all entries in $\{0, 1\}$ if and only if it is a permutation matrix. -/
-theorem isDoublyStochastic_and_entries_zero_one_iff (M : Matrix (Fin n) (Fin n) ℝ) :
-    (IsDoublyStochastic M ∧ ∀ i j, M i j = 0 ∨ M i j = 1) ↔ M ∈ permutationMatrices n := sorry
-
-end BirkhoffVonNeumann
+end Blichfeldt

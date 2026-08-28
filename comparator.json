@@ -2,18 +2,9 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "BirkhoffVonNeumann.permutationMatrix_isDoublyStochastic",
-    "BirkhoffVonNeumann.convex_doublyStochastic",
-    "BirkhoffVonNeumann.hall_condition_doublyStochastic",
-    "BirkhoffVonNeumann.exists_perm_positive_entries",
-    "BirkhoffVonNeumann.birkhoff_von_neumann_convex_hull",
-    "BirkhoffVonNeumann.birkhoff_von_neumann_iff",
-    "BirkhoffVonNeumann.birkhoff_von_neumann_convex_combination",
-    "BirkhoffVonNeumann.extremePoints_doublyStochasticSet",
-    "BirkhoffVonNeumann.permutationMatrix_card_matrixSupp",
-    "BirkhoffVonNeumann.card_matrixSupp_ge_n",
-    "BirkhoffVonNeumann.matrixSupp_card_le_sq",
-    "BirkhoffVonNeumann.isDoublyStochastic_and_entries_zero_one_iff"
+    "Blichfeldt.blichfeldts_theorem",
+    "Blichfeldt.minkowski_convex_body_theorem",
+    "Blichfeldt.blichfeldt_dim1"
   ],
   "permitted_axioms": [
     "propext",
