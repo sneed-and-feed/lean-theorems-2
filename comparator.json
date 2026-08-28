@@ -2,9 +2,11 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "BrooksTheorem.brooks_theorem_of_card_le_succ",
-    "BrooksTheorem.odd_cycle_not_two_colorable",
-    "BrooksTheorem.colorable_of_lovasz_ordering"
+    "cayleys_tree_formula",
+    "cayley_n2",
+    "cayley_n3",
+    "cayley_n4",
+    "rooted_trees_count"
   ],
   "permitted_axioms": [
     "propext",

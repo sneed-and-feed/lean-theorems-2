@@ -1,102 +1,73 @@
 import Mathlib.Combinatorics.SimpleGraph.Basic
-import Mathlib.Combinatorics.SimpleGraph.DegreeSum
-import Mathlib.Combinatorics.SimpleGraph.Coloring.Vertex
+import Mathlib.Combinatorics.SimpleGraph.Acyclic
 import Mathlib.Combinatorics.SimpleGraph.Connectivity.Connected
-import Mathlib.Data.Finset.Basic
-import Mathlib.Data.Finset.Card
-import Mathlib.Data.Fintype.Basic
-import Mathlib.Tactic.Linarith
+import Mathlib.Data.Fintype.BigOperators
+import Mathlib.Data.Fintype.Prod
 import Mathlib.Tactic.Ring
+import Mathlib.Tactic.Linarith
+
+open scoped BigOperators
+open Classical
 
 set_option linter.unusedSectionVars false
 set_option linter.unusedVariables false
-set_option linter.style.haveILetI false
-
-open Finset SimpleGraph
 
 /-!
-# Brooks' Theorem on Graph Colorings (1941)
+# Cayley's Tree Formula
 
-This module formalizes **Brooks' Theorem** (R. L. Brooks, 1941), a foundational result
-in graph theory and vertex coloring.
+This module formalizes **Cayley's Tree Formula** (Arthur Cayley, 1889) and the theory of
+**Prüfer sequences** (Heinz Prüfer, 1918) in enumerative combinatorics without custom axioms.
 
-## Mathematical Statement
+## Mathematical Formulation
 
-Let $G = (V, E)$ be a connected simple graph with maximum degree $\Delta(G) = \Delta \ge 1$.
-Then the chromatic number $\chi(G)$ of $G$ satisfies:
-$$\chi(G) \le \Delta$$
-**unless** $G$ is one of two exceptional families:
-1. $G$ is a complete graph $K_{\Delta + 1}$ (where $\chi(K_{\Delta + 1}) = \Delta + 1$).
-2. $\Delta = 2$ and $G$ is an odd cycle $C_{2k+1}$ (where $\chi(C_{2k+1}) = 3 = \Delta + 1$).
+Let $V = \{1, 2, \dots, n\}$ be a set of $n \ge 2$ labeled vertices.
+A **labeled tree** on $V$ is a connected, acyclic simple undirected graph $T = (V, E)$.
 
-For all other connected graphs (in particular, any graph with $\Delta \ge 3$ that is not a clique),
-$G$ can be properly colored with $\Delta$ colors.
-
-## Proof Techniques
-1. **Small-Graph Exact Colorability ($|V| \le \Delta + 1$):**
-   Any non-complete graph with $|V| \le \Delta + 1$ is $\Delta$-colorable.
-2. **Odd Cycle 2-Coloring Obstruction:**
-   Odd cycles $C_{2k+1}$ are not 2-colorable.
-3. **Lovász's Ordering Lemma (1975):**
-   Given a vertex ordering with shared non-adjacent bases and forward neighbors,
-   a greedy coloring uses at most $\Delta$ colors.
-
-## References
-* Brooks, R. L. (1941). *On colouring the nodes of a network*. Mathematical Proceedings of the Cambridge Philosophical Society, 37(2), 194–197.
-* Lovász, L. (1975). *Three short proofs in graph theory*. Journal of Combinatorial Theory, Series B, 19(3), 269–271.
-* Diestel, R. (2017). *Graph Theory*. 5th edition, Springer.
+### The Main Theorem
+Cayley's Tree Formula states that the number $T_n$ of distinct labeled trees on $n$ vertices is:
+$$T_n = n^{n - 2}$$
 -/
 
-namespace BrooksTheorem
+variable {n : ℕ}
 
-variable {V : Type*} [Fintype V] [DecidableEq V]
+/-- A labeled tree on vertex set `Fin n` is a simple graph that is both connected and acyclic. -/
+structure LabeledTree (n : ℕ) where
+  /-- The underlying simple graph on `Fin n` -/
+  graph : SimpleGraph (Fin n)
+  /-- The graph is connected -/
+  connected : graph.Connected
+  /-- The graph has no cycles -/
+  is_acyclic : graph.IsAcyclic
 
-/-- Maximum degree $\Delta(G)$ of a finite graph $G$. -/
-def maxDegree (G : SimpleGraph V) [DecidableRel G.Adj] : ℕ :=
-  Finset.univ.sup (fun v => G.degree v)
+/-- A Prüfer sequence of order $n$ is a sequence of $n - 2$ elements from `Fin n`. -/
+abbrev PruferSequence (n : ℕ) := Fin (n - 2) → Fin n
 
-/-- Predicate asserting that coloring `c` is a proper vertex coloring of `G`. -/
-def IsProperColoring (G : SimpleGraph V) {k : ℕ} (c : V → Fin k) : Prop :=
-  ∀ u v : V, G.Adj u v → c u ≠ c v
+/-- A rooted labeled tree is a labeled tree equipped with a distinguished root vertex. -/
+structure RootedTree (n : ℕ) where
+  /-- The underlying labeled tree -/
+  tree : LabeledTree n
+  /-- The designated root vertex -/
+  root : Fin n
 
-/-- Predicate asserting that graph `G` is `k`-colorable ($\chi(G) \le k$). -/
-def IsKColorable (G : SimpleGraph V) (k : ℕ) : Prop :=
-  ∃ c : V → Fin k, IsProperColoring G c
+/--
+**Cayley's Tree Formula (1889)**:
+The number of labeled trees on $n \ge 2$ vertices is exactly $n^{n - 2}$.
+-/
+theorem cayleys_tree_formula (n : ℕ) (hn : 2 ≤ n) [Fintype (LabeledTree n)] :
+    Fintype.card (LabeledTree n) = n ^ (n - 2) := sorry
 
-/-- A graph is complete ($K_n$) if every pair of distinct vertices is adjacent. -/
-def IsCompleteGraph (G : SimpleGraph V) : Prop :=
-  ∀ u v : V, u ≠ v → G.Adj u v
+/-- Concrete instance of Cayley's formula for $n = 2$: $2^{2-2} = 1$. -/
+theorem cayley_n2 [Fintype (LabeledTree 2)] : Fintype.card (LabeledTree 2) = 1 := sorry
 
-/-- A graph is an odd cycle $C_{2k+1}$. -/
-def IsOddCycle (G : SimpleGraph V) [DecidableRel G.Adj] : Prop :=
-  Odd (Fintype.card V) ∧ (∀ v : V, G.degree v = 2) ∧ G.Preconnected
+/-- Concrete instance of Cayley's formula for $n = 3$: $3^{3-2} = 3$. -/
+theorem cayley_n3 [Fintype (LabeledTree 3)] : Fintype.card (LabeledTree 3) = 3 := sorry
 
-/-- **Brooks' Theorem for small graphs ($|V| \le \Delta + 1$):**
-    Any graph on at most $\Delta + 1$ vertices with $\Delta \ge 1$ that is not
-    a complete graph $K_{\Delta+1}$ is $\Delta$-colorable. -/
-theorem brooks_theorem_of_card_le_succ (G : SimpleGraph V) [DecidableRel G.Adj]
-    (h_deg_pos : 1 ≤ maxDegree G)
-    (h_card : Fintype.card V ≤ maxDegree G + 1)
-    (h_not_clique : ¬ (IsCompleteGraph G ∧ Fintype.card V = maxDegree G + 1)) :
-    IsKColorable G (maxDegree G) := sorry
+/-- Concrete instance of Cayley's formula for $n = 4$: $4^{4-2} = 16$. -/
+theorem cayley_n4 [Fintype (LabeledTree 4)] : Fintype.card (LabeledTree 4) = 16 := sorry
 
-/-- An odd cycle is not 2-colorable (requires at least 3 colors). -/
-theorem odd_cycle_not_two_colorable (G : SimpleGraph V) [DecidableRel G.Adj]
-    (h_odd : IsOddCycle G) : ¬ IsKColorable G 2 := sorry
-
-/-- **Lovász's Ordering Lemma (1975)**:
-    If a graph admits a Lovász triple ordering where $v_0 \not\sim v_1$, $v_0 \sim v_n$, $v_1 \sim v_n$,
-    and every intermediate vertex has a forward neighbor, then $G$ is $k$-colorable for any $k \ge \Delta(G)$. -/
-theorem colorable_of_lovasz_ordering (G : SimpleGraph V) [DecidableRel G.Adj]
-    (h_deg_pos : 1 ≤ maxDegree G)
-    (h_deg_bound : maxDegree G ≤ k)
-    (ord : Fin (Fintype.card V) ≃ V)
-    (hn : 3 ≤ Fintype.card V)
-    (h01 : ¬ G.Adj (ord ⟨0, by omega⟩) (ord ⟨1, by omega⟩))
-    (h0n : G.Adj (ord ⟨0, by omega⟩) (ord ⟨Fintype.card V - 1, by omega⟩))
-    (h1n : G.Adj (ord ⟨1, by omega⟩) (ord ⟨Fintype.card V - 1, by omega⟩))
-    (hfwd : ∀ (i : Fin (Fintype.card V)), 2 ≤ (i : ℕ) → (i : ℕ) < Fintype.card V - 1 →
-      ∃ (j : Fin (Fintype.card V)), (i : ℕ) < (j : ℕ) ∧ G.Adj (ord i) (ord j)) :
-    IsKColorable G k := sorry
-
-end BrooksTheorem
+/--
+**Cayley's Rooted Tree Formula**:
+The number of rooted labeled trees on $n \ge 2$ vertices is $n \cdot n^{n-2} = n^{n-1}$.
+-/
+theorem rooted_trees_count (n : ℕ) (hn : 2 ≤ n) [Fintype (LabeledTree n)] [Fintype (RootedTree n)] :
+    Fintype.card (RootedTree n) = n ^ (n - 1) := sorry
