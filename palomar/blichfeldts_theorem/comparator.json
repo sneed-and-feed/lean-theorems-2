@@ -1,0 +1,14 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "Blichfeldt.blichfeldts_theorem",
+    "Blichfeldt.minkowski_convex_body_theorem",
+    "Blichfeldt.blichfeldt_dim1"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

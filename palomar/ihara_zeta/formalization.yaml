@@ -1,0 +1,58 @@
+version: "v0.4"
+
+project:
+  name: "The Ihara Zeta Function and Hashimoto Edge Adjacency Matrix"
+  authors:
+    - "Sneed & Feed Formalization Team"
+  responsible_maintainers:
+    - "sneed-and-feed"
+  license: "CC0-1.0"
+  description: >-
+    A complete Lean 4 formalization of the Hashimoto edge adjacency operator, dart projection matrices
+    (source, target, involution), and the algebraic foundation of the Ihara zeta function for finite graphs.
+    Proves exact matrix product identities connecting directed dart operators to vertex adjacency matrices and degree
+    diagonals. Mathlib contains definitions of simple graph darts and adjacency matrices; this formalization constructs
+    the full Hashimoto edge-adjacency operator algebra and dart involution calculus, verified absent from the core Mathlib
+    library (checked against Mathlib v4.34.0-rc1).
+
+classification:
+  arxiv: [math.CO]
+  msc2020: ["05C50", "11M36", "15A15"]
+
+sources:
+  - title: "On discrete subgroups of the two by two projective linear group over p-adic fields"
+    type: paper
+    authors:
+      - "Yasutaka Ihara"
+    year: 1966
+    venue: "Journal of the Mathematical Society of Japan, 18(3), 219–235"
+    relationship: formalizes
+  - title: "Zeta Functions of Finite Graphs and Representations of p-Adic Groups"
+    type: paper
+    authors:
+      - "Ki-ichiro Hashimoto"
+    year: 1989
+    venue: "Advanced Studies in Pure Mathematics, 15, 211–280"
+    relationship: adapts
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Dart.lean"
+    relationship: builds-on
+    note: >-
+      Builds on Mathlib's simple graph dart definitions and develops the full matrix operator algebra
+      for directed edge adjacencies and Hashimoto operators.
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
+        and verified with zero custom axioms under standard Lean 4 kernel axioms.
+
+review:
+  status: self-assessed
+  reviewers:
+    - "sneed-and-feed maintainers"
+  notes: >-
+    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
+    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.

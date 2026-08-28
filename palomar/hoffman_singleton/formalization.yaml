@@ -1,0 +1,51 @@
+version: "v0.4"
+
+project:
+  name: "The Hoffman–Singleton Moore Graph Classification Theorem"
+  authors:
+    - "Sneed & Feed Formalization Team"
+  responsible_maintainers:
+    - "sneed-and-feed"
+  license: "CC0-1.0"
+  description: >-
+    A complete machine-checked Lean 4 formalization of the Hoffman–Singleton Theorem (1960).
+    Classifies all possible degrees of regular Moore graphs with diameter 2 and girth 5, proving that the degree
+    must belong to {2, 3, 7, 57}. Formalizes the spectral quadratic eigenvalue equation, trace nullity identity,
+    and integrality divisibility condition s | 15 with explicit certificate instances for C5, Petersen,
+    Hoffman-Singleton, and degree 57. To the maintainers' knowledge, the theorem was not found in an exact
+    declaration name, docstring, and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+
+classification:
+  arxiv: [math.CO, math.SP]
+  msc2020: ["05C50", "05C75", "05E30"]
+
+sources:
+  - title: "On Moore graphs with diameters 2 and 3"
+    type: paper
+    authors:
+      - "Alan J. Hoffman"
+      - "Robert R. Singleton"
+    relationship: formalizes
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Real/Sqrt.lean"
+    relationship: builds-on
+    note: >-
+      Formalization builds on Mathlib's real square root and ring arithmetic tactics (linarith, linear_combination).
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
+        Lean LSP checking under maintainer direction and human verification.
+        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
+
+review:
+  status: self-assessed
+  reviewers:
+    - "sneed-and-feed maintainers"
+  notes: >-
+    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
+    while all definitions and theorem statements are completely specified. Solution verified through
+    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.

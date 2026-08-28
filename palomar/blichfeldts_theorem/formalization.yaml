@@ -1,0 +1,55 @@
+version: "v0.4"
+
+project:
+  name: "Blichfeldt's Theorem and Minkowski Convex Body Bounds in Geometry of Numbers"
+  authors:
+    - "Sneed & Feed Formalization Team"
+  responsible_maintainers:
+    - "sneed-and-feed"
+  license: "CC0-1.0"
+  description: >-
+    A machine-checked Lean 4 formalization of Blichfeldt's Theorem (1914) in the geometry of numbers.
+    Proves that any measurable set in R^d of volume > k contains k + 1 distinct points whose pairwise
+    differences are integer lattice vectors. Deduces Minkowski's Convex Body Theorem as a corollary for
+    centrally symmetric convex sets of volume > 2^d, and evaluates the 1D specialization.
+    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring,
+    and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+
+classification:
+  arxiv: [math.NT, math.MG]
+  msc2020: ["11H06", "52C07", "11P21"]
+
+sources:
+  - title: "A new principle in the geometry of numbers, with some applications"
+    type: paper
+    authors:
+      - "Hans Frederick Blichfeldt"
+    relationship: formalizes
+  - title: "Geometrie der Zahlen"
+    type: book
+    authors:
+      - "Hermann Minkowski"
+    relationship: adapts
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/MeasureTheory/Measure/Lebesgue/Basic.lean"
+    relationship: builds-on
+    note: >-
+      Formalization builds on Mathlib's Lebesgue measure theory and Euclidean space Lp infrastructure.
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
+        Lean LSP checking under maintainer direction and human verification.
+        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
+
+review:
+  status: self-assessed
+  reviewers:
+    - "sneed-and-feed maintainers"
+  notes: >-
+    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
+    while all definitions and theorem statements are completely specified. Solution verified through
+    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.

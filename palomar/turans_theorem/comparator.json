@@ -1,0 +1,15 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "TuransTheorem.mantels_theorem",
+    "TuransTheorem.turans_theorem_exact",
+    "TuransTheorem.turans_theorem",
+    "TuransTheorem.turans_uniqueness"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "schensted_lis_theorem",
+    "greene_lds_theorem",
+    "rsk_sum_squares_eq_factorial",
+    "rsk_involution_symmetry",
+    "rsk_involution_fixed_points"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

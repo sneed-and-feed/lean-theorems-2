@@ -1,0 +1,58 @@
+version: "v0.4"
+
+project:
+  name: "Characteristic Polynomial of Weighted Cyclic Shift Matrices"
+  authors:
+    - "Sneed & Feed Formalization Team"
+  responsible_maintainers:
+    - "sneed-and-feed"
+  license: "CC0-1.0"
+  description: >-
+    A complete Lean 4 formalization proving the characteristic polynomial of a general weighted cyclic shift
+    matrix over an arbitrary commutative ring R. Proves that charpoly(shiftMatrix n W) = X^n for nilpotent
+    subdiagonal shift matrices, det(upperBidiagonal n W) = \prod (-C(W i)), and establishes that for any
+    L-dimensional cyclic matrix with weights W, charpoly(cyclicWeightMatrix W) = X^L - C(\prod W).
+    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring,
+    and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+
+classification:
+  arxiv: [math.RA, math.CO]
+  msc2020: ["15A15", "15A18", "15B05"]
+
+sources:
+  - title: "Matrix Analysis"
+    type: book
+    authors:
+      - "Roger A. Horn"
+      - "Charles R. Johnson"
+    year: 2012
+    venue: "Cambridge University Press"
+    relationship: background
+  - title: "Circulant Matrices"
+    type: book
+    authors:
+      - "Philip J. Davis"
+    year: 1979
+    venue: "John Wiley & Sons"
+    relationship: background
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/LinearAlgebra/Matrix/Charpoly/Basic.lean"
+    relationship: builds-on
+    note: >-
+      Builds on Mathlib's characteristic polynomial and cofactor expansion theories for square matrices.
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
+        and verified with zero custom axioms under standard Lean 4 kernel axioms.
+
+review:
+  status: self-assessed
+  reviewers:
+    - "sneed-and-feed maintainers"
+  notes: >-
+    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
+    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.

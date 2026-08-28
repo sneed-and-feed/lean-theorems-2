@@ -1,0 +1,18 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "M_Bass_mul_N_Bass",
+    "K_Bass_mul_L_Bass",
+    "det_M_Bass",
+    "det_N_Bass",
+    "det_L_Bass",
+    "det_KL_Bass",
+    "ihara_bass_polynomial"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

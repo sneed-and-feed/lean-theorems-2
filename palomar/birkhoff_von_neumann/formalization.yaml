@@ -1,0 +1,60 @@
+version: "v0.4"
+
+project:
+  name: "The Birkhoff–von Neumann Theorem on Doubly Stochastic Matrices"
+  authors:
+    - "Sneed & Feed Formalization Team"
+  responsible_maintainers:
+    - "sneed-and-feed"
+  license: "CC0-1.0"
+  description: >-
+    A complete machine-checked Lean 4 formalization of the Birkhoff–von Neumann Theorem (1946/1953) on doubly stochastic matrices.
+    Proves that the Birkhoff polytope D_n of n x n doubly stochastic matrices is the convex hull of the set P_n of permutation matrices
+    (D_n = Conv(P_n)), and that the extreme points of D_n are precisely P_n. Formulates Hall's support condition, positive diagonal extraction,
+    and inductive support reduction without custom axioms. To the maintainers' knowledge, the theorem was not found in an exact declaration
+    name, docstring, and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+
+classification:
+  arxiv: [math.CO, math.FA]
+  msc2020: ["52B12", "15B51", "52A07"]
+
+sources:
+  - title: "Tres observaciones sobre el algebra lineal"
+    type: paper
+    authors:
+      - "Garrett Birkhoff"
+    relationship: formalizes
+  - title: "A certain zero-sum two-person game equivalent to the optimal assignment problem"
+    type: paper
+    authors:
+      - "John von Neumann"
+    relationship: formalizes
+  - title: "On Representatives of Subsets"
+    type: paper
+    authors:
+      - "Philip Hall"
+    relationship: adapts
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Convex/Extreme.lean"
+    relationship: builds-on
+    note: >-
+      Formalization builds on Mathlib's convex analysis and extreme points infrastructure (Set.extremePoints)
+      to establish the extreme point characterization of permutation matrices.
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
+        Lean LSP checking under maintainer direction and human verification.
+        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
+
+review:
+  status: self-assessed
+  reviewers:
+    - "sneed-and-feed maintainers"
+  notes: >-
+    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
+    while all definitions and theorem statements are completely specified. Solution verified through
+    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.

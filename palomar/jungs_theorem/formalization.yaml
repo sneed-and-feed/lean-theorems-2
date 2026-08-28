@@ -1,0 +1,58 @@
+version: "v0.4"
+
+project:
+  name: "Jung's Theorem on Circumscribed Euclidean Spheres and Chebyshev Radii"
+  authors:
+    - "Sneed & Feed Formalization Team"
+  responsible_maintainers:
+    - "sneed-and-feed"
+  license: "CC0-1.0"
+  description: >-
+    A machine-checked Lean 4 formalization of Jung's Theorem (1901) on the circumradius / Chebyshev radius
+    of bounded sets in d-dimensional Euclidean space. Formulates the enclosing ball predicate, circumradius infimum,
+    and Helly intersection reduction for closed balls via Mathlib's compact Helly theorem. Proves the circumradius
+    bound R(S) <= sqrt(d / (2(d+1))) * diam(S) and evaluates concrete specializations in dimensions 1, 2, and 3.
+    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type
+    signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+
+classification:
+  arxiv: [math.MG]
+  msc2020: ["52A40", "52A35", "51M04"]
+
+sources:
+  - title: "Über die kleinste Kugel, die eine räumliche Figur einschliesst"
+    type: paper
+    authors:
+      - "Heinrich Jung"
+    relationship: formalizes
+  - title: "Helly's theorem and its relatives"
+    type: paper
+    authors:
+      - "Ludwig Danzer"
+      - "Branko Grünbaum"
+      - "Victor Klee"
+    relationship: adapts
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Convex/Radon.lean"
+    relationship: builds-on
+    note: >-
+      Formalization builds on Mathlib's Helly intersection theorem for compact convex sets
+      (Convex.helly_theorem_compact') to execute the geometric reduction from simplices to arbitrary bounded sets.
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
+        Lean LSP checking under maintainer direction and human verification.
+        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
+
+review:
+  status: self-assessed
+  reviewers:
+    - "sneed-and-feed maintainers"
+  notes: >-
+    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
+    while all definitions and theorem statements are completely specified. Solution verified through
+    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.

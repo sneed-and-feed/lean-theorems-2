@@ -1,0 +1,14 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "SimpleGraph.laplacian_transpose_eq",
+    "SimpleGraph.laplacian_row_sum_zero",
+    "SimpleGraph.incidence_mul_transpose"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

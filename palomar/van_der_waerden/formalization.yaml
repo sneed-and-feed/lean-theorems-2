@@ -1,0 +1,60 @@
+version: "v0.4"
+
+project:
+  name: "Van der Waerden's Theorem on Arithmetic Progressions"
+  authors:
+    - "Sneed & Feed Formalization Team"
+  responsible_maintainers:
+    - "sneed-and-feed"
+  license: "CC0-1.0"
+  description: >-
+    A complete Lean 4 formalization of Van der Waerden's Theorem on Arithmetic Progressions (1927),
+    including finite and infinite versions, small-case pigeonhole base cases, and the Multiple Van der Waerden
+    / Gallai–Witt color-focused fan property. Mathlib contains the Hales–Jewett theorem and homothetic copies;
+    this formalization builds an explicit arithmetic progression API and formalizes the finite Van der Waerden
+    property and color-focusing reduction directly, verified absent from the core Mathlib library in this API form
+    (checked against Mathlib v4.34.0-rc1).
+
+classification:
+  arxiv: [math.CO]
+  msc2020: ["05D10", "11B25"]
+
+sources:
+  - title: "Beweis einer Baudetschen Vermutung"
+    type: paper
+    authors:
+      - "B. L. van der Waerden"
+    year: 1927
+    venue: "Nieuw Archief voor Wiskunde, 15, 212–216"
+    relationship: formalizes
+  - title: "Ramsey Theory"
+    type: book
+    authors:
+      - "R. L. Graham"
+      - "B. L. Rothschild"
+      - "J. H. Spencer"
+    year: 1990
+    venue: "John Wiley & Sons"
+    relationship: background
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/HalesJewett.lean"
+    relationship: builds-on
+    note: >-
+      Builds on Mathlib's Hales–Jewett theorem on combinatorial lines and lifts it to concrete
+      finite monochromatic arithmetic progression intervals with explicit step and length bounds.
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
+        and verified with zero custom axioms under standard Lean 4 kernel axioms.
+
+review:
+  status: self-assessed
+  reviewers:
+    - "sneed-and-feed maintainers"
+  notes: >-
+    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
+    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.

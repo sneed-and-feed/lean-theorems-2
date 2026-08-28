@@ -1,0 +1,16 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "cayleys_tree_formula",
+    "cayley_n2",
+    "cayley_n3",
+    "cayley_n4",
+    "rooted_trees_count"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "VanDerWaerden.vdw_one",
+    "VanDerWaerden.vdw_two",
+    "VanDerWaerden.van_der_waerden_finite",
+    "VanDerWaerden.van_der_waerden_infinite",
+    "VanDerWaerden.multiple_van_der_waerden"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

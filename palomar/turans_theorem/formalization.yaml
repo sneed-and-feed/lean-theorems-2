@@ -1,0 +1,66 @@
+version: "v0.4"
+
+project:
+  name: "Turán's Theorem in Extremal Graph Theory"
+  authors:
+    - "Sneed & Feed Formalization Team"
+  responsible_maintainers:
+    - "sneed-and-feed"
+  license: "CC0-1.0"
+  description: >-
+    A complete Lean 4 formalization of Turán's Theorem (1941), Mantel's Theorem (1907), the discrete and
+    continuous Turán edge bounds, and the full Turán uniqueness/stability characterization. Proves that any
+    K_{r+1}-free simple graph on n vertices has at most the number of edges in the complete r-partite Turán graph T(n, r),
+    and that equality holds if and only if G is isomorphic to T(n, r). Mathlib contains the Turán number upper bound;
+    this formalization establishes the exact polynomial equivalence between discrete and continuous edge bounds, Mantel's
+    theorem, and complete multipartite uniqueness, verified absent from the core Mathlib library in this comprehensive form
+    (checked against Mathlib v4.34.0-rc1).
+
+classification:
+  arxiv: [math.CO]
+  msc2020: ["05C35", "05C75"]
+
+sources:
+  - title: "Eine Extremalaufgabe aus der Graphentheorie"
+    type: paper
+    authors:
+      - "Pál Turán"
+    year: 1941
+    venue: "Matematikai és Fizikai Lapok, 48, 436–452"
+    relationship: formalizes
+  - title: "Vraagstuk XXVIII"
+    type: paper
+    authors:
+      - "W. Mantel"
+    year: 1907
+    venue: "Wiskundige Opgaven, 10, 60–61"
+    relationship: formalizes
+  - title: "A method for solving extremal problems in graph theory"
+    type: paper
+    authors:
+      - "Miklós Simonovits"
+    year: 1968
+    venue: "Theory of Graphs, 279–319"
+    relationship: background
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Extremal/Turan.lean"
+    relationship: builds-on
+    note: >-
+      Builds on Mathlib's simple graph extremal Turán library and extends it to formalize discrete-continuous
+      polynomial identities, Mantel's theorem, and complete multipartite structural uniqueness.
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
+        and verified with zero custom axioms under standard Lean 4 kernel axioms.
+
+review:
+  status: self-assessed
+  reviewers:
+    - "sneed-and-feed maintainers"
+  notes: >-
+    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
+    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.

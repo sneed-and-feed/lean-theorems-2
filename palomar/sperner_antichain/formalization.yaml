@@ -1,0 +1,73 @@
+version: "v0.4"
+
+project:
+  name: "Sperner's Theorem on Antichains and the LYM Inequality"
+  authors:
+    - "Sneed & Feed Formalization Team"
+  responsible_maintainers:
+    - "sneed-and-feed"
+  license: "CC0-1.0"
+  description: >-
+    A complete Lean 4 formalization of Sperner's Theorem on Antichains (1928), the Lubell–Yamamoto–Meshalkin
+    (LYM) inequality (1966), and the full extremal equality and stability characterization in the Boolean
+    lattice. Proves that the maximum cardinality of an antichain of subsets of an n-element set is Nat.choose n (n / 2)
+    and characterizes all maximal antichains as middle-level slices. Mathlib contains the upper bound inequality
+    via Mathlib.Combinatorics.SetFamily.LYM; this formalization provides a self-contained combinatorial API and
+    formalizes the complete equality characterization for even and odd n, verified absent from the core Mathlib library
+    (checked against Mathlib v4.34.0-rc1).
+
+classification:
+  arxiv: [math.CO]
+  msc2020: ["05D05", "06A07"]
+
+sources:
+  - title: "Ein Satz über Untermengen einer endlichen Menge"
+    type: paper
+    authors:
+      - "Emanuel Sperner"
+    year: 1928
+    venue: "Mathematische Zeitschrift, 27(1), 544–548"
+    relationship: formalizes
+  - title: "A short proof of Sperner's lemma"
+    type: paper
+    authors:
+      - "David Lubell"
+    year: 1966
+    venue: "Journal of Combinatorial Theory, 1(2), 299"
+    relationship: adapts
+  - title: "Logarithmic order of free distributive lattice"
+    type: paper
+    authors:
+      - "Koichi Yamamoto"
+    year: 1954
+    venue: "Journal of the Mathematical Society of Japan, 6(3-4), 343–353"
+    relationship: background
+  - title: "Generalization of Sperner's theorem on the number of subsets of a finite set"
+    type: paper
+    authors:
+      - "L. D. Meshalkin"
+    year: 1963
+    venue: "Theory of Probability & Its Applications, 8(2), 203–204"
+    relationship: background
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SetFamily/LYM.lean"
+    relationship: builds-on
+    note: >-
+      Builds on Mathlib's LYM inequality and extends it to formalize the full extremal equality cases
+      and middle-level slice classification for arbitrary finite universes.
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
+        and verified with zero custom axioms under standard Lean 4 kernel axioms.
+
+review:
+  status: self-assessed
+  reviewers:
+    - "sneed-and-feed maintainers"
+  notes: >-
+    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
+    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.

@@ -1,0 +1,14 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "BrooksTheorem.brooks_theorem_of_card_le_succ",
+    "BrooksTheorem.odd_cycle_not_two_colorable",
+    "BrooksTheorem.colorable_of_lovasz_ordering"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

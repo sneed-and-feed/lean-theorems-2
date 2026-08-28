@@ -1,0 +1,15 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "sparsity_bound",
+    "sparsity_p2_r1",
+    "sparsity_p2_r3",
+    "sparsity_p2_r6"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

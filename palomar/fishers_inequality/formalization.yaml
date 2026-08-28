@@ -1,0 +1,59 @@
+version: "v0.4"
+
+project:
+  name: "Fisher's Inequality for Balanced Incomplete Block Designs"
+  authors:
+    - "Sneed & Feed Formalization Team"
+  responsible_maintainers:
+    - "sneed-and-feed"
+  license: "CC0-1.0"
+  description: >-
+    A complete Lean 4 formalization of Fisher's Inequality in combinatorial design theory (Fisher 1940, Bose 1949).
+    Proves that for any 2-(v, k, \lambda) balanced incomplete block design with 1 < k < v and \lambda > 0,
+    the number of blocks b is at least the number of points v (b >= v). The proof establishes the exact Gramian
+    product identity N N^T = (r - \lambda) I + \lambda J, computes the determinant det(N N^T) = (r - \lambda)^{v-1}(r + (v-1)\lambda),
+    proves its strict positivity, and applies linear algebraic rank bounds. To the maintainers' knowledge, the theorem
+    was not found in an exact declaration name, docstring, and type signature search of the pinned Mathlib revision
+    (Mathlib v4.34.0-rc1).
+
+classification:
+  arxiv: [math.CO]
+  msc2020: ["05B05", "15A15", "15A03"]
+
+sources:
+  - title: "An examination of the different possible solutions of a problem in incomplete blocks"
+    type: paper
+    authors:
+      - "Ronald A. Fisher"
+    year: 1940
+    venue: "Annals of Eugenics, 10(1), 52–75"
+    relationship: formalizes
+  - title: "A note on Fisher's inequality for balanced incomplete block designs"
+    type: paper
+    authors:
+      - "R. C. Bose"
+    year: 1949
+    venue: "Bulletin of the Calcutta Mathematical Society, 41, 106–107"
+    relationship: adapts
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/LinearAlgebra/Matrix/Determinant/Basic.lean"
+    relationship: builds-on
+    note: >-
+      Builds on Mathlib's matrix determinant, diagonal, and rank libraries to formulate point-block incidence
+      Gramians and prove design-theoretic inequalities.
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
+        and verified with zero custom axioms under standard Lean 4 kernel axioms.
+
+review:
+  status: self-assessed
+  reviewers:
+    - "sneed-and-feed maintainers"
+  notes: >-
+    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
+    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.

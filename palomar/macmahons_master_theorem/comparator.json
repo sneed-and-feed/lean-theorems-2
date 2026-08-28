@@ -1,0 +1,15 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "MacMahon.macmahon_zero_exponent",
+    "MacMahon.coeff_zero_detMacMahon",
+    "MacMahon.macmahon_master_theorem",
+    "MacMahon.macmahon_dim1"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

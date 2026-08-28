@@ -1,0 +1,15 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "det_pathMatrix_eq_permutation_sum",
+    "intersecting_path_systems_sum_zero",
+    "lindstrom_gessel_viennot",
+    "gessel_viennot_planar_dag"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

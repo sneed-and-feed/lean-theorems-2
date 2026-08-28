@@ -1,0 +1,14 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "SpernerAntichain.lym_inequality",
+    "SpernerAntichain.sperners_antichain_theorem",
+    "SpernerAntichain.sperners_antichain_equality"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

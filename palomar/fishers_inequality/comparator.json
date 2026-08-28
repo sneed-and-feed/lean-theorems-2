@@ -1,0 +1,20 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "BlockDesign.incidence_mul_transpose_apply",
+    "BlockDesign.gramian_eq",
+    "BlockDesign.vr_eq_bk",
+    "BlockDesign.r_mul_k_sub_one",
+    "BlockDesign.r_gt_lambda",
+    "BlockDesign.det_allOnes_shift",
+    "BlockDesign.det_gramian",
+    "BlockDesign.det_gramian_pos",
+    "BlockDesign.fishers_inequality"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

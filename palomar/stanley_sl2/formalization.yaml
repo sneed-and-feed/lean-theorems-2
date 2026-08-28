@@ -1,0 +1,55 @@
+version: "v0.4"
+
+project:
+  name: "Stanley's sl2 Representation Proof of the Strong Sperner Property for L(m, n)"
+  authors:
+    - "Sneed & Feed Formalization Team"
+  responsible_maintainers:
+    - "sneed-and-feed"
+  license: "CC0-1.0"
+  description: >-
+    A machine-checked Lean 4 formalization of Richard Stanley's sl2 representation theorem (1980) on the partition poset L(m, n).
+    Formalizes the Young diagram containment poset, partition complementation involution, rank symmetry p_k(m, n) = p_{mn-k}(m, n),
+    graded sl2-module representation theory, raising operator injectivity (Hard Lefschetz property), rank unimodality of q-binomial
+    coefficients, and the Strong Sperner property bounding all rank-level antichains by the middle rank capacity.
+    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type signature
+    search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+
+classification:
+  arxiv: [math.CO, math.RT]
+  msc2020: ["05E10", "06A07", "17B10"]
+
+sources:
+  - title: "Weyl groups, the hard Lefschetz theorem, and the Sperner property"
+    type: paper
+    authors:
+      - "Richard P. Stanley"
+    relationship: formalizes
+  - title: "Representations of sl(2, C) on posets and the Sperner property"
+    type: paper
+    authors:
+      - "Robert A. Proctor"
+    relationship: adapts
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Data/Fintype/Basic.lean"
+    relationship: builds-on
+    note: >-
+      Formalization builds on Mathlib's finite type and finset combinatorics infrastructure.
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
+        Lean LSP checking under maintainer direction and human verification.
+        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
+
+review:
+  status: self-assessed
+  reviewers:
+    - "sneed-and-feed maintainers"
+  notes: >-
+    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
+    while all definitions and theorem statements are completely specified. Solution verified through
+    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.

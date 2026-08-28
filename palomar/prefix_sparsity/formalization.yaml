@@ -1,0 +1,57 @@
+version: "v0.4"
+
+project:
+  name: "Combinatorial Prefix-Sharing and Sparsity on Trees"
+  authors:
+    - "Sneed & Feed Formalization Team"
+  responsible_maintainers:
+    - "sneed-and-feed"
+  license: "CC0-1.0"
+  description: >-
+    A complete Lean 4 formalization of combinatorial prefix-sharing and sparsity ratios on complete p-ary trees
+    of arbitrary depth d. Proves exact cardinality formulas for pairs of paths sharing an r-prefix, the exact
+    shared fraction 1 / p^r, the general sparsity bound 1 - 1 / p^r, and concrete numerical evaluation cases
+    for binary trees (50%, 87.5%, 98.4375%). To the maintainers' knowledge, the theorem was not found in an exact
+    declaration name, docstring, and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+
+classification:
+  arxiv: [math.CO]
+  msc2020: ["05A10", "05C05", "68R05"]
+
+sources:
+  - title: "Enumerative Combinatorics, Volume 1"
+    type: book
+    authors:
+      - "Richard P. Stanley"
+    year: 2012
+    venue: "Cambridge University Press"
+    relationship: background
+  - title: "The Art of Computer Programming, Volume 1: Fundamental Algorithms"
+    type: book
+    authors:
+      - "Donald E. Knuth"
+    year: 1997
+    venue: "Addison-Wesley"
+    relationship: background
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Data/Fintype/Pi.lean"
+    relationship: builds-on
+    note: >-
+      Builds on Mathlib's finite function and product typecardinality theory to formulate canonical
+      prefix-suffix path equivalences and exact tree sparsity ratios.
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
+        and verified with zero custom axioms under standard Lean 4 kernel axioms.
+
+review:
+  status: self-assessed
+  reviewers:
+    - "sneed-and-feed maintainers"
+  notes: >-
+    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
+    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.
