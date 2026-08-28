@@ -1,160 +1,91 @@
-import Mathlib.Data.Nat.Basic
-import Mathlib.Data.List.Basic
 import Mathlib.Data.Finset.Basic
+import Mathlib.Data.Finset.Card
+import Mathlib.Data.Finset.Powerset
 import Mathlib.Data.Fintype.Basic
-import Mathlib.Data.Fintype.BigOperators
-import Mathlib.Algebra.BigOperators.Ring.Finset
-import Mathlib.GroupTheory.Perm.Basic
-import Mathlib.Data.Fintype.Perm
+import Mathlib.Data.Fintype.Card
+import Mathlib.Data.Nat.Choose.Basic
+import Mathlib.Data.Rat.Defs
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
 
-open scoped BigOperators
-open Classical
-
 set_option linter.unusedSectionVars false
 set_option linter.unusedVariables false
+set_option linter.style.haveILetI false
+
+open Finset
+open scoped BigOperators
 
 /-!
-# Robinson–Schensted–Knuth (RSK) Bijection
+# Sperner's Theorem on Antichains and the LYM Inequality (1928, 1966)
 
-This module formalizes the **Robinson–Schensted–Knuth (RSK) Correspondence** (Robinson 1938,
-Schensted 1961, Knuth 1970), Schensted's Longest Increasing Subsequence Theorem, Greene's
-Theorem, the Frobenius Identity (sum of squares formula), and the Involution Fixed Points Theorem.
+This module formalizes **Sperner's Theorem on Antichains** in the Boolean lattice $\mathcal{P}(\alpha)$
+(Emanuel Sperner, 1928) and the **LYM Inequality** (Lubell 1966, Yamamoto 1954, Meshalkin 1963, Bollobás 1965).
+
+## Mathematical Statement
+
+Let $\alpha$ be a finite universe of size $n = |\alpha|$.
+A family of subsets $\mathcal{A} \subseteq \mathcal{P}(\alpha)$ is an **antichain** (or Sperner family)
+if no member of $\mathcal{A}$ is a strict subset of another:
+$$\forall A, B \in \mathcal{A}, \quad A \subseteq B \implies A = B$$
+
+### 1. The LYM Inequality (Lubell 1966)
+For any antichain $\mathcal{A}$ of subsets of an $n$-element set:
+$$\sum_{A \in \mathcal{A}} \frac{1}{\binom{n}{|A|}} \le 1$$
+
+### 2. Sperner's Theorem (1928)
+The maximum size of an antichain in $\mathcal{P}(\alpha)$ is given by the middle binomial coefficient:
+$$|\mathcal{A}| \le \binom{n}{\lfloor n / 2 \rfloor}$$
+
+### 3. Equality Case & Stability
+Equality holds ($|\mathcal{A}| = \binom{n}{\lfloor n / 2 \rfloor}$) if and only if:
+- When $n$ is even: $\mathcal{A} = \binom{\alpha}{n/2}$ (all subsets of size $n/2$).
+- When $n$ is odd: $\mathcal{A} = \binom{\alpha}{(n-1)/2}$ or $\mathcal{A} = \binom{\alpha}{(n+1)/2}$.
+
+## References
+* Sperner, E. (1928). *Ein Satz über Untermengen einer endlichen Menge*. Mathematische Zeitschrift, 27(1), 544–548.
+* Lubell, D. (1966). *A short proof of Sperner's lemma*. Journal of Combinatorial Theory, 1(2), 299.
+* Yamamoto, K. (1954). *Logarithmic order of free distributive lattice*. Journal of the Mathematical Society of Japan, 6(3-4), 343–353.
+* Meshalkin, L. D. (1963). *Generalization of Sperner's theorem on the number of subsets of a finite set*. Theory of Probability & Its Applications, 8(2), 203–204.
 -/
 
-/-- An integer partition of `n \ge 0`, represented as a weakly decreasing list
-    of positive integers summing to `n`. -/
-structure Partition (n : ℕ) where
-  parts : List ℕ
-  sorted : parts.Pairwise (· ≥ ·)
-  pos : ∀ x ∈ parts, 0 < x
-  sum_eq : parts.sum = n
+namespace SpernerAntichain
 
-/-- Row strict monotonicity for a tableau (each row strictly increases). -/
-def RowStrict (T : List (List ℕ)) : Prop :=
-  ∀ r ∈ T, r.Pairwise (· < ·)
+variable {α : Type*} [DecidableEq α] [Fintype α]
 
-/-- Column strict monotonicity for a tableau (each column strictly increases). -/
-def ColStrict (T : List (List ℕ)) : Prop :=
-  ∀ (r₁ r₂ c : ℕ) (hr : r₁ < r₂) (hr₂ : r₂ < T.length)
-    (hc₁ : c < (T.get ⟨r₁, by omega⟩).length) (hc₂ : c < (T.get ⟨r₂, hr₂⟩).length),
-    (T.get ⟨r₁, by omega⟩).get ⟨c, hc₁⟩ < (T.get ⟨r₂, hr₂⟩).get ⟨c, hc₂⟩
+/-- An antichain in the Boolean lattice `Finset α` is a family of pairwise incomparable subsets. -/
+def IsAntichain (A : Finset (Finset α)) : Prop :=
+  ∀ s ∈ A, ∀ t ∈ A, s ⊆ t → s = t
 
-/-- A Standard Young Tableau (SYT) of shape `lam dash n`. -/
-structure SYT {n : ℕ} (lam : Partition n) where
-  rows : List (List ℕ)
-  shape_eq : rows.map List.length = lam.parts
-  row_strict : RowStrict rows
-  col_strict : ColStrict rows
-  entries_perm : rows.flatten.Perm (List.range' 1 n)
+/-- The LYM weight of a subset `s` in an `n`-element universe is `1 / Nat.choose n (|s|)`. -/
+noncomputable def lymWeight (n : ℕ) (s : Finset α) : ℚ :=
+  1 / (Nat.choose n s.card : ℚ)
 
-/-- Dimension $f^\lambda$: The number of Standard Young Tableaux of shape `lam dash n`. -/
-noncomputable def fLambda {n : ℕ} (lam : Partition n) [Fintype (SYT lam)] : ℕ :=
-  Fintype.card (SYT lam)
+/-- The total LYM sum of a family of subsets `A`. -/
+noncomputable def lymSum (n : ℕ) (A : Finset (Finset α)) : ℚ :=
+  ∑ s ∈ A, lymWeight n s
 
-/-- Schensted row insertion: inserting `x` into a strictly increasing row `R`. -/
-def insertRow : List ℕ → ℕ → List ℕ × Option ℕ
-  | [], x => ([x], none)
-  | y :: ys, x =>
-    if x < y then
-      (x :: ys, some y)
-    else
-      let res := insertRow ys x
-      (y :: res.1, res.2)
+/-- The middle binomial coefficient `Nat.choose n (n / 2)`. -/
+def middleChoose (n : ℕ) : ℕ :=
+  Nat.choose n (n / 2)
 
-/-- Schensted tableau insertion: inserting `x` into tableau `P`. -/
-def insertTableau : List (List ℕ) → ℕ → List (List ℕ) × (ℕ × ℕ)
-  | [], x => ([[x]], (0, 0))
-  | r :: rs, x =>
-    let res := insertRow r x
-    match res.2 with
-    | none => (res.1 :: rs, (0, r.length))
-    | some y =>
-      let rec_res := insertTableau rs y
-      (res.1 :: rec_res.1, (rec_res.2.1 + 1, rec_res.2.2))
+/-- **The LYM Inequality (Lubell 1966, Yamamoto 1954, Meshalkin 1963):**
+    For any antichain `A` of subsets of an `n`-element set `α`, the sum of reciprocal
+    binomial coefficients satisfies `∑_{s ∈ A} 1 / choose n |s| ≤ 1`. -/
+theorem lym_inequality {n : ℕ} (hn : Fintype.card α = n)
+    (A : Finset (Finset α)) (h_anti : IsAntichain A) :
+    lymSum n A ≤ 1 := sorry
 
-/-- Places a new entry `v` into row `r` of the recording tableau `Q`. -/
-def addToRow : List (List ℕ) → ℕ → ℕ → List (List ℕ)
-  | [], _, v => [[v]]
-  | r :: rs, 0, v => (r ++ [v]) :: rs
-  | r :: rs, k + 1, v => r :: addToRow rs k v
+/-- **Sperner's Theorem on Antichains (Sperner, 1928):**
+    The maximum cardinality of an antichain of subsets of an `n`-element set is `Nat.choose n (n / 2)`. -/
+theorem sperners_antichain_theorem {n : ℕ} (hn : Fintype.card α = n)
+    (A : Finset (Finset α)) (h_anti : IsAntichain A) :
+    A.card ≤ middleChoose n := sorry
 
-/-- Executes the full Robinson-Schensted algorithm on a list `xs`. -/
-def rskFromList (xs : List ℕ) : List (List ℕ) × List (List ℕ) :=
-  (xs.zip (List.range xs.length)).foldl (fun (P, Q) (x, idx) =>
-    let (P', pos) := insertTableau P x
-    let Q' := addToRow Q pos.1 (idx + 1)
-    (P', Q')
-  ) ([], [])
+/-- An antichain achieving the maximal size `middleChoose n` is a middle level slice. -/
+theorem sperners_antichain_equality {n : ℕ} (hn : Fintype.card α = n)
+    (A : Finset (Finset α)) (h_anti : IsAntichain A)
+    (h_eq : A.card = middleChoose n) :
+    (∀ s ∈ A, s.card = n / 2) ∨ (Odd n ∧ ∀ s ∈ A, s.card = (n + 1) / 2) := sorry
 
-/-- Convert a permutation π ∈ 𝔖_n to a 1-based list [π(0)+1, ..., π(n-1)+1]. -/
-def permToList (n : ℕ) (π : Equiv.Perm (Fin n)) : List ℕ :=
-  (List.finRange n).map (fun i => (π i).val + 1)
-
-/-- The RSK mapping for a permutation π ∈ 𝔖_n. -/
-def rskPerm (n : ℕ) (π : Equiv.Perm (Fin n)) : List (List ℕ) × List (List ℕ) :=
-  rskFromList (permToList n π)
-
-/-- Length of the Longest Increasing Subsequence of a list `xs`. -/
-noncomputable def lis (xs : List ℕ) : ℕ :=
-  Finset.sup (Finset.filter (fun s : List ℕ => s.Pairwise (· < ·)) xs.sublists.toFinset) List.length
-
-/-- Length of the Longest Decreasing Subsequence of a list `xs`. -/
-noncomputable def lds (xs : List ℕ) : ℕ :=
-  Finset.sup (Finset.filter (fun s : List ℕ => s.Pairwise (· > ·)) xs.sublists.toFinset) List.length
-
-/-- Length of the Longest Increasing Subsequence of a permutation `π ∈ 𝔖_n`. -/
-noncomputable def lisPerm (n : ℕ) (π : Equiv.Perm (Fin n)) : ℕ :=
-  lis (permToList n π)
-
-/-- Length of the Longest Decreasing Subsequence of a permutation `π ∈ 𝔖_n`. -/
-noncomputable def ldsPerm (n : ℕ) (π : Equiv.Perm (Fin n)) : ℕ :=
-  lds (permToList n π)
-
-/--
-**Schensted's Theorem (1961)**:
-The length of the first row $\lambda_1 = \operatorname{row}_1(P(\pi))$ of the insertion tableau $P(\pi)$
-equals the length of the Longest Increasing Subsequence $\operatorname{LIS}(\pi)$.
--/
-theorem schensted_lis_theorem (n : ℕ) (π : Equiv.Perm (Fin n))
-    (h_schensted : ((rskPerm n π).1.headD []).length = lisPerm n π) :
-    ((rskPerm n π).1.headD []).length = lisPerm n π := sorry
-
-/--
-**Greene's Theorem (1974)**:
-The length of the first column $\lambda_1' = (P(\pi)).	ext{length}$ of the insertion tableau $P(\pi)$
-equals the length of the Longest Decreasing Subsequence $\operatorname{LDS}(\pi)$.
--/
-theorem greene_lds_theorem (n : ℕ) (π : Equiv.Perm (Fin n))
-    (h_greene : (rskPerm n π).1.length = ldsPerm n π) :
-    (rskPerm n π).1.length = ldsPerm n π := sorry
-
-/--
-**Frobenius Identity / Robinson–Schensted Bijection Cardinality Formula**:
-Given the RSK equivalence $\mathfrak{S}_n \simeq \coprod_{\lambda dash n} (\mathrm{SYT}(\lambda) 	imes \mathrm{SYT}(\lambda))$,
-the sum of squares of the number of Standard Young Tableaux over all partitions $\lambda dash n$
-equals $n!$:
-$$\sum_{\lambda dash n} (f^\lambda)^2 = n!$$
--/
-theorem rsk_sum_squares_eq_factorial (n : ℕ)
-    (rskEquiv : Equiv.Perm (Fin n) ≃ Σ lam : Partition n, SYT lam × SYT lam)
-    [Fintype (Partition n)]
-    [∀ lam : Partition n, Fintype (SYT lam)] :
-    ∑ lam : Partition n, (fLambda lam) ^ 2 = Nat.factorial n := sorry
-
-/-- Inversion swaps insertion and recording tableaux: P(π⁻¹) = Q(π) and Q(π⁻¹) = P(π). -/
-theorem rsk_involution_symmetry (n : ℕ) (π : Equiv.Perm (Fin n))
-    (h_inv_P : (rskPerm n π⁻¹).1 = (rskPerm n π).2)
-    (h_inv_Q : (rskPerm n π⁻¹).2 = (rskPerm n π).1) :
-    (rskPerm n π⁻¹).1 = (rskPerm n π).2 ∧ (rskPerm n π⁻¹).2 = (rskPerm n π).1 := sorry
-
-/--
-**RSK Involution Fixed Points Theorem**:
-A permutation $\pi \in \mathfrak{S}_n$ is an involution ($\pi^2 = \mathrm{id}$) if and only if
-its insertion tableau equals its recording tableau, $P(\pi) = Q(\pi)$.
--/
-theorem rsk_involution_fixed_points (n : ℕ) (π : Equiv.Perm (Fin n))
-    (h_symm : (rskPerm n π⁻¹).1 = (rskPerm n π).2 ∧ (rskPerm n π⁻¹).2 = (rskPerm n π).1)
-    (h_inj : Function.Injective (rskPerm n)) :
-    π * π = 1 ↔ (rskPerm n π).1 = (rskPerm n π).2 := sorry
+end SpernerAntichain

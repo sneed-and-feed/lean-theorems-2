@@ -1,65 +1,73 @@
 version: "v0.4"
 
 project:
-  name: "The Robinson–Schensted–Knuth (RSK) Bijection and Tableaux Combinatorics"
+  name: "Sperner's Theorem on Antichains and the LYM Inequality"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A machine-checked Lean 4 formalization of the Robinson–Schensted–Knuth (RSK) Correspondence (Robinson 1938,
-    Schensted 1961, Knuth 1970). Implements Schensted row-insertion bumping, Standard Young Tableaux (SYT),
-    insertion/recording tableau generation, and formalizes Schensted's LIS theorem, Greene's LDS theorem, the
-    Frobenius sum-of-squares identity sum (f^lambda)^2 = n!, and the Involution Fixed Points Theorem without custom axioms.
-    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type
-    signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+    A complete Lean 4 formalization of Sperner's Theorem on Antichains (1928), the Lubell–Yamamoto–Meshalkin
+    (LYM) inequality (1966), and the full extremal equality and stability characterization in the Boolean
+    lattice. Proves that the maximum cardinality of an antichain of subsets of an n-element set is Nat.choose n (n / 2)
+    and characterizes all maximal antichains as middle-level slices. Mathlib contains the upper bound inequality
+    via Mathlib.Combinatorics.SetFamily.LYM; this formalization provides a self-contained combinatorial API and
+    formalizes the complete equality characterization for even and odd n, verified absent from the core Mathlib library
+    (checked against Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.CO, math.RT]
-  msc2020: ["05E10", "05A19", "20C30"]
+  arxiv: [math.CO]
+  msc2020: ["05D05", "06A07"]
 
 sources:
-  - title: "On the representations of the symmetric group"
+  - title: "Ein Satz über Untermengen einer endlichen Menge"
     type: paper
     authors:
-      - "Gilbert de Beauregard Robinson"
+      - "Emanuel Sperner"
+    year: 1928
+    venue: "Mathematische Zeitschrift, 27(1), 544–548"
     relationship: formalizes
-  - title: "Longest increasing and decreasing subsequences"
+  - title: "A short proof of Sperner's lemma"
     type: paper
     authors:
-      - "Craige Schensted"
-    relationship: formalizes
-  - title: "Permutations, matrices, and generalized Young tableaux"
-    type: paper
-    authors:
-      - "Donald E. Knuth"
+      - "David Lubell"
+    year: 1966
+    venue: "Journal of Combinatorial Theory, 1(2), 299"
     relationship: adapts
-  - title: "An extension of Schensted's theorem"
+  - title: "Logarithmic order of free distributive lattice"
     type: paper
     authors:
-      - "Curtis Greene"
-    relationship: adapts
+      - "Koichi Yamamoto"
+    year: 1954
+    venue: "Journal of the Mathematical Society of Japan, 6(3-4), 343–353"
+    relationship: background
+  - title: "Generalization of Sperner's theorem on the number of subsets of a finite set"
+    type: paper
+    authors:
+      - "L. D. Meshalkin"
+    year: 1963
+    venue: "Theory of Probability & Its Applications, 8(2), 203–204"
+    relationship: background
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/GroupTheory/Perm/Basic.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SetFamily/LYM.lean"
     relationship: builds-on
     note: >-
-      Formalization builds on Mathlib's symmetric group permutations (Equiv.Perm) and finite type cardinalities.
+      Builds on Mathlib's LYM inequality and extends it to formalize the full extremal equality cases
+      and middle-level slice classification for arbitrary finite universes.
 
 automation:
   methods:
     - method: agent
       tool_setup: >-
-        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
-        Lean LSP checking under maintainer direction and human verification.
-        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
+        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
+        and verified with zero custom axioms under standard Lean 4 kernel axioms.
 
 review:
   status: self-assessed
   reviewers:
     - "sneed-and-feed maintainers"
   notes: >-
-    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
-    while all definitions and theorem statements are completely specified. Solution verified through
-    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.
+    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
+    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.
