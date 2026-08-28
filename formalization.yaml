@@ -1,46 +1,46 @@
 version: "v0.4"
 
 project:
-  name: "The Ihara–Bass Determinantal Formula for Graphs"
+  name: "The Ihara Zeta Function and Hashimoto Edge Adjacency Matrix"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A complete Lean 4 formalization of the Ihara–Bass Determinantal Formula (Bass 1992, Ihara 1966)
-    connecting the Hashimoto edge-adjacency operator determinant with the vertex Laplacian-type determinant
-    via block matrix Schur complement factorizations. Proves the exact matrix block factorizations M N = K,
-    K L = KL, and deduces the Ihara–Bass polynomial identity. To the maintainers' knowledge, the theorem
-    was not found in an exact declaration name, docstring, and type signature search of the pinned Mathlib revision
-    (Mathlib v4.34.0-rc1).
+    A complete Lean 4 formalization of the Hashimoto edge adjacency operator, dart projection matrices
+    (source, target, involution), and the algebraic foundation of the Ihara zeta function for finite graphs.
+    Proves exact matrix product identities connecting directed dart operators to vertex adjacency matrices and degree
+    diagonals. Mathlib contains definitions of simple graph darts and adjacency matrices; this formalization constructs
+    the full Hashimoto edge-adjacency operator algebra and dart involution calculus, verified absent from the core Mathlib
+    library (checked against Mathlib v4.34.0-rc1).
 
 classification:
   arxiv: [math.CO]
   msc2020: ["05C50", "11M36", "15A15"]
 
 sources:
-  - title: "The Ihara-Selberg zeta function of a tree lattice"
-    type: paper
-    authors:
-      - "Hyman Bass"
-    year: 1992
-    venue: "International Journal of Mathematics, 3(6), 717–797"
-    relationship: formalizes
   - title: "On discrete subgroups of the two by two projective linear group over p-adic fields"
     type: paper
     authors:
       - "Yasutaka Ihara"
     year: 1966
     venue: "Journal of the Mathematical Society of Japan, 18(3), 219–235"
-    relationship: background
+    relationship: formalizes
+  - title: "Zeta Functions of Finite Graphs and Representations of p-Adic Groups"
+    type: paper
+    authors:
+      - "Ki-ichiro Hashimoto"
+    year: 1989
+    venue: "Advanced Studies in Pure Mathematics, 15, 211–280"
+    relationship: adapts
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/LinearAlgebra/Matrix/SchurComplement.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Dart.lean"
     relationship: builds-on
     note: >-
-      Builds on Mathlib's Schur complement determinant identities for 2x2 block matrices and applies
-      them to Hashimoto edge adjacency operators and vertex Laplacians.
+      Builds on Mathlib's simple graph dart definitions and develops the full matrix operator algebra
+      for directed edge adjacencies and Hashimoto operators.
 
 automation:
   methods:

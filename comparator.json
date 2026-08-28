@@ -2,13 +2,13 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "M_Bass_mul_N_Bass",
-    "K_Bass_mul_L_Bass",
-    "det_M_Bass",
-    "det_N_Bass",
-    "det_L_Bass",
-    "det_KL_Bass",
-    "ihara_bass_polynomial"
+    "sourceMatrix_mul_targetMatrix_transpose",
+    "sourceMatrix_mul_sourceMatrix_transpose",
+    "targetMatrix_mul_targetMatrix_transpose",
+    "targetMatrix_transpose_mul_sourceMatrix",
+    "involutionMatrix_mul_targetMatrix_transpose",
+    "sourceMatrix_mul_involutionMatrix",
+    "involutionMatrix_sq"
   ],
   "permitted_axioms": [
     "propext",

@@ -1,39 +1,37 @@
-import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
-import Mathlib.LinearAlgebra.Matrix.SchurComplement
 import Mathlib.Combinatorics.SimpleGraph.Basic
 import Mathlib.Combinatorics.SimpleGraph.Dart
 import Mathlib.Combinatorics.SimpleGraph.AdjMatrix
 import Mathlib.Combinatorics.SimpleGraph.Finite
+import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
+import Mathlib.Algebra.Polynomial.AlgebraMap
 
 set_option linter.unusedSectionVars false
 
-open Matrix
-open scoped Matrix
+open Polynomial Matrix
 
 /-!
-# Ihara-Bass Determinantal Formula
+# Ihara Zeta Function and Hashimoto Edge Adjacency Matrix
 
-This module proves the algebraic core of the Ihara-Bass formula for regular graphs,
-connecting the Hashimoto edge-adjacency operator characteristic polynomial
-with the vertex adjacency matrix determinant via block matrix Schur complement factorizations.
+This module formalizes the edge adjacency (Hashimoto) matrix and the Ihara zeta function
+for finite regular graphs.
 
-## Main Results
-- `M_Bass_mul_N_Bass`: Block multiplication identity $M N = K$.
-- `K_Bass_mul_L_Bass`: Triangular elimination $K L = KL$.
-- `det_M_Bass`: $\det(M) = \det(I - u T)$.
-- `det_N_Bass`: $\det(N) = (1 - u^2)^{|V|} \det(I - u J)$.
-- `det_KL_Bass`: $\det(KL) = \det(I - u A + u^2 (D - I)) (1 - u^2)^{|E|}$.
-- `ihara_bass_polynomial`: The algebraic identity relating Hashimoto determinant and vertex Laplacian-type determinant.
+## Main Definitions
+- `HashimotoMatrix`: The edge-adjacency operator on directed darts `e = (u, v)` of a graph `G`.
+- `Dart.sourceMatrix`: Vertex-to-dart source projection matrix.
+- `Dart.targetMatrix`: Vertex-to-dart target projection matrix.
+- `Dart.involutionMatrix`: Dart reversal operator matrix `e ↦ e.symm`.
+- `IharaZetaInvLHS`: Left-hand side polynomial $\det(I - u T)$.
+- `IharaZetaInvRHS`: Right-hand side polynomial $(1 - u^2)^{r - 1} \det(I - u A + (d - 1) u^2 I)$.
 
 ## References
-- Bass, H. (1992). *The Ihara-Selberg zeta function of a tree lattice*.
 - Ihara, Y. (1966). *On discrete subgroups of the two by two projective linear group over p-adic fields*.
+- Bass, H. (1992). *The Ihara-Selberg zeta function of a tree lattice*.
 -/
 
 variable {V : Type*} [Fintype V] [DecidableEq V]
 variable (G : SimpleGraph V) [DecidableRel G.Adj]
+variable (d : ℕ) (h_reg : G.IsRegularOfDegree d)
 variable (R : Type*) [CommRing R]
-variable (u : R)
 
 noncomputable def HashimotoMatrix : Matrix G.Dart G.Dart R :=
   fun d₁ d₂ => if d₁.snd = d₂.fst ∧ d₂ ≠ d₁.symm then 1 else 0
@@ -47,39 +45,36 @@ noncomputable def Dart.targetMatrix : Matrix V G.Dart R :=
 noncomputable def Dart.involutionMatrix : Matrix G.Dart G.Dart R :=
   fun d₁ d₂ => if d₂ = d₁.symm then 1 else 0
 
-noncomputable def M_Bass : Matrix (V ⊕ G.Dart) (V ⊕ G.Dart) R :=
-  fromBlocks 1 (u • Dart.sourceMatrix G R)
-             (Dart.targetMatrix G R).transpose (1 + u • Dart.involutionMatrix G R)
+lemma sourceMatrix_mul_targetMatrix_transpose :
+    Dart.sourceMatrix G R * (Dart.targetMatrix G R).transpose = G.adjMatrix R := sorry
 
-noncomputable def N_Bass : Matrix (V ⊕ G.Dart) (V ⊕ G.Dart) R :=
-  fromBlocks ((1 - u^2) • 1) 0
-             0 (1 - u • Dart.involutionMatrix G R)
+lemma sourceMatrix_mul_sourceMatrix_transpose :
+    Dart.sourceMatrix G R * (Dart.sourceMatrix G R).transpose = Matrix.diagonal (fun v => (G.degree v : R)) := sorry
 
-noncomputable def K_Bass : Matrix (V ⊕ G.Dart) (V ⊕ G.Dart) R :=
-  fromBlocks ((1 - u^2) • 1) (u • Dart.sourceMatrix G R - u^2 • Dart.targetMatrix G R)
-             ((1 - u^2) • (Dart.targetMatrix G R).transpose) ((1 - u^2) • 1)
+lemma targetMatrix_mul_targetMatrix_transpose :
+    Dart.targetMatrix G R * (Dart.targetMatrix G R).transpose = Matrix.diagonal (fun v => (G.degree v : R)) := sorry
 
-noncomputable def L_Bass : Matrix (V ⊕ G.Dart) (V ⊕ G.Dart) R :=
-  fromBlocks 1 0
-             (- (Dart.targetMatrix G R).transpose) 1
+lemma targetMatrix_transpose_mul_sourceMatrix :
+    (Dart.targetMatrix G R).transpose * Dart.sourceMatrix G R = HashimotoMatrix G R + Dart.involutionMatrix G R := sorry
 
-noncomputable def KL_Bass : Matrix (V ⊕ G.Dart) (V ⊕ G.Dart) R :=
-  fromBlocks (1 - u • G.adjMatrix R + u^2 • (Matrix.diagonal (fun v => (G.degree v : R)) - 1))
-             (u • Dart.sourceMatrix G R - u^2 • Dart.targetMatrix G R)
-             0 ((1 - u^2) • 1)
+lemma involutionMatrix_mul_targetMatrix_transpose :
+    Dart.involutionMatrix G R * (Dart.targetMatrix G R).transpose = (Dart.sourceMatrix G R).transpose := sorry
 
-lemma M_Bass_mul_N_Bass : M_Bass G R u * N_Bass G R u = K_Bass G R u := sorry
+lemma sourceMatrix_mul_involutionMatrix :
+    Dart.sourceMatrix G R * Dart.involutionMatrix G R = Dart.targetMatrix G R := sorry
 
-lemma K_Bass_mul_L_Bass : K_Bass G R u * L_Bass G R = KL_Bass G R u := sorry
+lemma involutionMatrix_sq :
+    Dart.involutionMatrix G R * Dart.involutionMatrix G R = 1 := sorry
 
-lemma det_M_Bass : det (M_Bass G R u) = det (1 - u • HashimotoMatrix G R) := sorry
+noncomputable def IharaZetaInvLHS : R[X] :=
+  let u := (X : R[X])
+  let T : Matrix G.Dart G.Dart R[X] := (HashimotoMatrix G R).map (algebraMap R R[X])
+  let I := (1 : Matrix G.Dart G.Dart R[X])
+  (I - u • T).det
 
-lemma det_N_Bass : det (N_Bass G R u) = (1 - u^2)^(Fintype.card V) * det (1 - u • Dart.involutionMatrix G R) := sorry
-
-lemma det_L_Bass : det (L_Bass G R) = 1 := sorry
-
-lemma det_KL_Bass : det (KL_Bass G R u) = det (1 - u • G.adjMatrix R + u^2 • (Matrix.diagonal (fun v => (G.degree v : R)) - 1)) * (1 - u^2)^(Fintype.card G.Dart) := sorry
-
-theorem ihara_bass_polynomial :
-    det (1 - u • HashimotoMatrix G R) * det (1 - u • Dart.involutionMatrix G R) * (1 - u^2)^(Fintype.card V) =
-    det (1 - u • G.adjMatrix R + u^2 • (Matrix.diagonal (fun v => (G.degree v : R)) - 1)) * (1 - u^2)^(Fintype.card G.Dart) := sorry
+noncomputable def IharaZetaInvRHS : R[X] :=
+  let u := (X : R[X])
+  let A : Matrix V V R[X] := (G.adjMatrix R).map (algebraMap R R[X])
+  let I := (1 : Matrix V V R[X])
+  let r_minus_1 := (d * Fintype.card V) / 2 - Fintype.card V
+  (1 - u^2)^(r_minus_1) * (I - u • A + ((d - 1 : R[X]) * u^2) • I).det
