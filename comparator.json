@@ -2,11 +2,11 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "cayleys_tree_formula",
-    "cayley_n2",
-    "cayley_n3",
-    "cayley_n4",
-    "rooted_trees_count"
+    "ColorfulCaratheodory.colorful_caratheodory_origin",
+    "ColorfulCaratheodory.colorful_caratheodory_point",
+    "ColorfulCaratheodory.caratheodory_classical_deduction",
+    "ColorfulCaratheodory.colorful_caratheodory_dim1",
+    "ColorfulCaratheodory.colorful_caratheodory_dim2"
   ],
   "permitted_axioms": [
     "propext",

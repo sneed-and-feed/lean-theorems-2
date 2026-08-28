@@ -1,73 +1,84 @@
-import Mathlib.Combinatorics.SimpleGraph.Basic
-import Mathlib.Combinatorics.SimpleGraph.Acyclic
-import Mathlib.Combinatorics.SimpleGraph.Connectivity.Connected
-import Mathlib.Data.Fintype.BigOperators
-import Mathlib.Data.Fintype.Prod
-import Mathlib.Tactic.Ring
+import Mathlib.Analysis.Convex.Hull
+import Mathlib.Analysis.Convex.Combination
+import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Topology.MetricSpace.Basic
+import Mathlib.Data.Real.Basic
+import Mathlib.Data.Fintype.Card
+import Mathlib.Data.Finset.Basic
+import Mathlib.Tactic.Positivity
 import Mathlib.Tactic.Linarith
 
 open scoped BigOperators
 open Classical
 
 set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
 
 /-!
-# Cayley's Tree Formula
+# Bárány's Colorful Carathéodory Theorem
 
-This module formalizes **Cayley's Tree Formula** (Arthur Cayley, 1889) and the theory of
-**Prüfer sequences** (Heinz Prüfer, 1918) in enumerative combinatorics without custom axioms.
-
-## Mathematical Formulation
-
-Let $V = \{1, 2, \dots, n\}$ be a set of $n \ge 2$ labeled vertices.
-A **labeled tree** on $V$ is a connected, acyclic simple undirected graph $T = (V, E)$.
-
-### The Main Theorem
-Cayley's Tree Formula states that the number $T_n$ of distinct labeled trees on $n$ vertices is:
-$$T_n = n^{n - 2}$$
+This module formalizes **Bárány's Colorful Carathéodory Theorem** (Imre Bárány, 1982),
+a fundamental generalization of Carathéodory's Theorem in discrete geometry and convexity theory.
 -/
 
-variable {n : ℕ}
+variable {d : ℕ}
 
-/-- A labeled tree on vertex set `Fin n` is a simple graph that is both connected and acyclic. -/
-structure LabeledTree (n : ℕ) where
-  /-- The underlying simple graph on `Fin n` -/
-  graph : SimpleGraph (Fin n)
-  /-- The graph is connected -/
-  connected : graph.Connected
-  /-- The graph has no cycles -/
-  is_acyclic : graph.IsAcyclic
+namespace ColorfulCaratheodory
 
-/-- A Prüfer sequence of order $n$ is a sequence of $n - 2$ elements from `Fin n`. -/
-abbrev PruferSequence (n : ℕ) := Fin (n - 2) → Fin n
+/-- The $d$-dimensional Euclidean space $\mathbb{R}^d$. -/
+abbrev Space (d : ℕ) := EuclideanSpace ℝ (Fin d)
 
-/-- A rooted labeled tree is a labeled tree equipped with a distinguished root vertex. -/
-structure RootedTree (n : ℕ) where
-  /-- The underlying labeled tree -/
-  tree : LabeledTree n
-  /-- The designated root vertex -/
-  root : Fin n
+/-- A family of $d+1$ color classes in $\mathbb{R}^d$. -/
+def ColorClasses (d : ℕ) :=
+  Fin (d + 1) → Set (Space d)
+
+/-- Predicate asserting that $x$ selects one point from each color class: $x(i) \in S(i)$. -/
+def IsColorfulChoice (S : ColorClasses d) (x : Fin (d + 1) → Space d) : Prop :=
+  ∀ i : Fin (d + 1), x i ∈ S i
+
+/-- The colorful simplex formed by a colorful choice $x$: the convex hull of its image. -/
+def colorfulSimplex (x : Fin (d + 1) → Space d) : Set (Space d) :=
+  convexHull ℝ (Set.range x)
 
 /--
-**Cayley's Tree Formula (1889)**:
-The number of labeled trees on $n \ge 2$ vertices is exactly $n^{n - 2}$.
+**Bárány's Colorful Carathéodory Theorem (Origin Form, 1982)**:
+Let $S_0, S_1, \dots, S_d \subset \mathbb{R}^d$ be $d+1$ sets of points such that
+the origin $0 \in \mathbb{R}^d$ belongs to the convex hull of each set:
+$$0 \in \operatorname{conv}(S_i) \quad 	ext{for all } i \in \{0, 1, \dots, d\}$$
+Then there exists a colorful choice $x$ with $x(i) \in S_i$ for each $i$ such that
+the origin lies in the convex hull of $\{x_0, x_1, \dots, x_d\}$:
+$$0 \in \operatorname{conv}(\{x_0, x_1, \dots, x_d\})$$
 -/
-theorem cayleys_tree_formula (n : ℕ) (hn : 2 ≤ n) [Fintype (LabeledTree n)] :
-    Fintype.card (LabeledTree n) = n ^ (n - 2) := sorry
-
-/-- Concrete instance of Cayley's formula for $n = 2$: $2^{2-2} = 1$. -/
-theorem cayley_n2 [Fintype (LabeledTree 2)] : Fintype.card (LabeledTree 2) = 1 := sorry
-
-/-- Concrete instance of Cayley's formula for $n = 3$: $3^{3-2} = 3$. -/
-theorem cayley_n3 [Fintype (LabeledTree 3)] : Fintype.card (LabeledTree 3) = 3 := sorry
-
-/-- Concrete instance of Cayley's formula for $n = 4$: $4^{4-2} = 16$. -/
-theorem cayley_n4 [Fintype (LabeledTree 4)] : Fintype.card (LabeledTree 4) = 16 := sorry
+theorem colorful_caratheodory_origin (S : ColorClasses d)
+    (h_origin : ∀ i : Fin (d + 1), (0 : Space d) ∈ convexHull ℝ (S i)) :
+    ∃ x : Fin (d + 1) → Space d, IsColorfulChoice S x ∧ (0 : Space d) ∈ colorfulSimplex x := sorry
 
 /--
-**Cayley's Rooted Tree Formula**:
-The number of rooted labeled trees on $n \ge 2$ vertices is $n \cdot n^{n-2} = n^{n-1}$.
+**Bárány's Colorful Carathéodory Theorem (General Point Form)**:
+Let $S_0, S_1, \dots, S_d \subset \mathbb{R}^d$ be $d+1$ sets such that a target point
+$p \in \mathbb{R}^d$ belongs to $\operatorname{conv}(S_i)$ for all $i$.
+Then there exists a colorful choice $x$ with $x(i) \in S_i$ such that $p \in \operatorname{conv}(\operatorname{range} x)$.
 -/
-theorem rooted_trees_count (n : ℕ) (hn : 2 ≤ n) [Fintype (LabeledTree n)] [Fintype (RootedTree n)] :
-    Fintype.card (RootedTree n) = n ^ (n - 1) := sorry
+theorem colorful_caratheodory_point (S : ColorClasses d) (p : Space d)
+    (hp : ∀ i : Fin (d + 1), p ∈ convexHull ℝ (S i)) :
+    ∃ x : Fin (d + 1) → Space d, IsColorfulChoice S x ∧ p ∈ colorfulSimplex x := sorry
+
+/--
+**Classical Carathéodory Theorem as a Corollary**:
+If $p \in \operatorname{conv}(S)$ in $\mathbb{R}^d$, then $p$ is in the convex hull of
+at most $d+1$ points of $S$.
+-/
+theorem caratheodory_classical_deduction (S_single : Set (Space d)) (p : Space d)
+    (hp : p ∈ convexHull ℝ S_single) :
+    ∃ (T : Finset (Space d)), ↑T ⊆ S_single ∧ T.card ≤ d + 1 ∧ p ∈ convexHull ℝ (T : Set (Space d)) := sorry
+
+/-- Specialization to dimension $d = 1$: Interval intersection of two color classes on $\mathbb{R}$. -/
+theorem colorful_caratheodory_dim1 (S : ColorClasses 1)
+    (h_origin : ∀ i : Fin 2, (0 : Space 1) ∈ convexHull ℝ (S i)) :
+    ∃ x : Fin 2 → Space 1, IsColorfulChoice S x ∧ (0 : Space 1) ∈ colorfulSimplex x := sorry
+
+/-- Specialization to dimension $d = 2$: Colorful triangle containing the origin in $\mathbb{R}^2$. -/
+theorem colorful_caratheodory_dim2 (S : ColorClasses 2)
+    (h_origin : ∀ i : Fin 3, (0 : Space 2) ∈ convexHull ℝ (S i)) :
+    ∃ x : Fin 3 → Space 2, IsColorfulChoice S x ∧ (0 : Space 2) ∈ colorfulSimplex x := sorry
+
+end ColorfulCaratheodory

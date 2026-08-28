@@ -1,42 +1,41 @@
 version: "v0.4"
 
 project:
-  name: "Cayley's Tree Formula and Prüfer Sequence Bijection"
+  name: "Bárány's Colorful Carathéodory Theorem in Discrete Geometry"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A machine-checked Lean 4 formalization of Cayley's Tree Formula (1889) establishing that the number of
-    labeled trees on n vertices is n^(n-2). Formalizes the Prüfer sequence correspondence (Heinz Prüfer 1918)
-    encoding trees into sequences of length n-2 and decoding sequences into connected acyclic graphs, deriving
-    the tree count and rooted tree count n^(n-1). To the maintainers' knowledge, the theorem was not found in
-    an exact declaration name, docstring, and type signature search of the pinned Mathlib revision
-    (Mathlib v4.34.0-rc1).
+    A machine-checked Lean 4 formalization of Bárány's Colorful Carathéodory Theorem (1982).
+    Formulates d + 1 color classes in R^d containing a target point (or origin) in their convex hulls,
+    and proves the existence of a colorful transversal selection spanning a simplex enclosing the target point.
+    Deduces the classical Carathéodory Theorem (1907) as a corollary, and proves 1D and 2D specializations.
+    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type
+    signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.CO]
-  msc2020: ["05C05", "05C30", "05A19"]
+  arxiv: [math.MG, math.CO]
+  msc2020: ["52A35", "52A20", "05D15"]
 
 sources:
-  - title: "A theorem on trees"
+  - title: "A generalization of Carathéodory's theorem"
     type: paper
     authors:
-      - "Arthur Cayley"
+      - "Imre Bárány"
     relationship: formalizes
-  - title: "Neuer Beweis eines Satzes über Permutationen"
+  - title: "Über den Variabilitätsbereich der Koeffizienten von Potenzreihen"
     type: paper
     authors:
-      - "Heinz Prüfer"
+      - "Constantin Carathéodory"
     relationship: adapts
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Acyclic.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Convex/Hull.lean"
     relationship: builds-on
     note: >-
-      Formalization builds on Mathlib's simple graph theory and acyclic graph definitions (IsAcyclic, IsTree)
-      to formulate labeled tree structures and their bijective enumerations.
+      Formalization builds on Mathlib's convex hull library (convexHull ℝ) in finite-dimensional Euclidean space.
 
 automation:
   methods:
