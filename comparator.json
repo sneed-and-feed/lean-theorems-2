@@ -2,17 +2,12 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "jungsConstant_pos",
-    "jungsConstant_nonneg",
-    "jungs_theorem_via_helly",
-    "jungs_theorem",
-    "circumradius_le_jungs_bound",
-    "jungsConstant_one",
-    "jungsConstant_two",
-    "jungsConstant_three",
-    "jungs_bound_dim1",
-    "jungs_bound_dim2",
-    "jungs_bound_dim3"
+    "SimpleGraph.matching_card_le_vertexCover_card",
+    "SimpleGraph.weak_duality",
+    "SimpleGraph.konig_duality_le",
+    "SimpleGraph.konig_duality",
+    "SimpleGraph.gallai_independence_vertex_cover",
+    "SimpleGraph.konig_independence_matching"
   ],
   "permitted_axioms": [
     "propext",

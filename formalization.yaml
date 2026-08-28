@@ -1,44 +1,46 @@
 version: "v0.4"
 
 project:
-  name: "Jung's Theorem on Circumscribed Euclidean Spheres and Chebyshev Radii"
+  name: "The Kőnig–Egerváry Theorem on Matchings and Vertex Covers in Bipartite Graphs"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A machine-checked Lean 4 formalization of Jung's Theorem (1901) on the circumradius / Chebyshev radius
-    of bounded sets in d-dimensional Euclidean space. Formulates the enclosing ball predicate, circumradius infimum,
-    and Helly intersection reduction for closed balls via Mathlib's compact Helly theorem. Proves the circumradius
-    bound R(S) <= sqrt(d / (2(d+1))) * diam(S) and evaluates concrete specializations in dimensions 1, 2, and 3.
+    A complete machine-checked Lean 4 formalization of the Kőnig–Egerváry Theorem (1931) and Gallai identities (1959).
+    Proves strong min-max duality matchingNumber(G) = vertexCoverNumber(G) for 2-colorable graphs G via Hall's
+    defect matching theorem, and formalizes Gallai's identity independenceNumber(G) + vertexCoverNumber(G) = |V(G)|.
     To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type
     signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.MG]
-  msc2020: ["52A40", "52A35", "51M04"]
+  arxiv: [math.CO]
+  msc2020: ["05C70", "05C69", "90C27"]
 
 sources:
-  - title: "Über die kleinste Kugel, die eine räumliche Figur einschliesst"
+  - title: "Gráfok és mátrixok"
     type: paper
     authors:
-      - "Heinrich Jung"
+      - "Dénes Kőnig"
     relationship: formalizes
-  - title: "Helly's theorem and its relatives"
+  - title: "Matrixok kombinatorius tulajdonságairól"
     type: paper
     authors:
-      - "Ludwig Danzer"
-      - "Branko Grünbaum"
-      - "Victor Klee"
+      - "Jenő Egerváry"
+    relationship: formalizes
+  - title: "Über extreme Punkt- und Kantenmengen"
+    type: paper
+    authors:
+      - "Tibor Gallai"
     relationship: adapts
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Convex/Radon.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/Hall/Basic.lean"
     relationship: builds-on
     note: >-
-      Formalization builds on Mathlib's Helly intersection theorem for compact convex sets
-      (Convex.helly_theorem_compact') to execute the geometric reduction from simplices to arbitrary bounded sets.
+      Formalization builds on Mathlib's Hall marriage condition (all_card_le_biUnion_card_iff_exists_injective)
+      to establish the defect matching reduction in bipartite graphs.
 
 automation:
   methods:
