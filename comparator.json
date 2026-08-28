@@ -2,11 +2,11 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "VanDerWaerden.vdw_one",
-    "VanDerWaerden.vdw_two",
-    "VanDerWaerden.van_der_waerden_finite",
-    "VanDerWaerden.van_der_waerden_infinite",
-    "VanDerWaerden.multiple_van_der_waerden"
+    "SimpleGraph.edgeColorable_of_bipartite",
+    "SimpleGraph.edgeColorable_of_maxDegree_succ",
+    "SimpleGraph.vizings_theorem",
+    "SimpleGraph.vizing_classification",
+    "SimpleGraph.konig_edge_coloring"
   ],
   "permitted_axioms": [
     "propext",

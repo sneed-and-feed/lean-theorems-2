@@ -1,48 +1,46 @@
 version: "v0.4"
 
 project:
-  name: "Van der Waerden's Theorem on Arithmetic Progressions"
+  name: "Vizing's Theorem on Edge Colorings & König's Line Coloring Theorem"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A complete Lean 4 formalization of Van der Waerden's Theorem on Arithmetic Progressions (1927),
-    including finite and infinite versions, small-case pigeonhole base cases, and the Multiple Van der Waerden
-    / Gallai–Witt color-focused fan property. Mathlib contains the Hales–Jewett theorem and homothetic copies;
-    this formalization builds an explicit arithmetic progression API and formalizes the finite Van der Waerden
-    property and color-focusing reduction directly, verified absent from the core Mathlib library in this API form
-    (checked against Mathlib v4.34.0-rc1).
+    A complete Lean 4 formalization of Vizing's Theorem (1964) and König's Line Coloring Theorem (1916)
+    in graph theory. Formalizes proper edge colorings, the chromatic index \chi'(G), partial edge colorings,
+    Kempe chains and alternating walks, Vizing fan recoloring operations, and proves that \Delta(G) <= \chi'(G) <= \Delta(G) + 1
+    for all finite simple graphs (the Class 1 / Class 2 dichotomy) and \chi'(G) = \Delta(G) for all bipartite graphs.
+    Mathlib contains vertex colorings; this formalization provides the complete edge coloring and chromatic index
+    theory, verified absent from the core Mathlib library in this verified form (checked against Mathlib v4.34.0-rc1).
 
 classification:
   arxiv: [math.CO]
-  msc2020: ["05D10", "11B25"]
+  msc2020: ["05C15"]
 
 sources:
-  - title: "Beweis einer Baudetschen Vermutung"
+  - title: "On an estimate of the chromatic class of a p-graph"
     type: paper
     authors:
-      - "B. L. van der Waerden"
-    year: 1927
-    venue: "Nieuw Archief voor Wiskunde, 15, 212–216"
+      - "Vadim G. Vizing"
+    year: 1964
+    venue: "Diskretny Analiz, 3, 25–30"
     relationship: formalizes
-  - title: "Ramsey Theory"
-    type: book
+  - title: "Über Graphen und ihre Anwendung auf Determinantentheorie und Mengenlehre"
+    type: paper
     authors:
-      - "R. L. Graham"
-      - "B. L. Rothschild"
-      - "J. H. Spencer"
-    year: 1990
-    venue: "John Wiley & Sons"
-    relationship: background
+      - "Dénes König"
+    year: 1916
+    venue: "Mathematische Annalen, 77(4), 453–465"
+    relationship: formalizes
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/HalesJewett.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Coloring/Vertex.lean"
     relationship: builds-on
     note: >-
-      Builds on Mathlib's Hales–Jewett theorem on combinatorial lines and lifts it to concrete
-      finite monochromatic arithmetic progression intervals with explicit step and length bounds.
+      Builds on Mathlib's simple graph theory and develops the entire proper edge coloring and chromatic index
+      framework including Kempe chains, alternating paths, and fan extensions.
 
 automation:
   methods:
