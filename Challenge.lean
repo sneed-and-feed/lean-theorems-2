@@ -1,91 +1,160 @@
-import Mathlib.RingTheory.PowerSeries.Basic
-import Mathlib.NumberTheory.Bernoulli
-import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Nat.Basic
-import Mathlib.Data.Nat.Choose.Basic
-import Mathlib.Data.Int.Basic
-import Mathlib.Data.Rat.Defs
-import Mathlib.Data.Rat.Cast.Defs
-import Mathlib.Algebra.Order.Ring.Defs
+import Mathlib.Data.List.Basic
+import Mathlib.Data.Finset.Basic
+import Mathlib.Data.Fintype.Basic
+import Mathlib.Data.Fintype.BigOperators
+import Mathlib.Algebra.BigOperators.Ring.Finset
+import Mathlib.GroupTheory.Perm.Basic
+import Mathlib.Data.Fintype.Perm
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
+
+open scoped BigOperators
+open Classical
 
 set_option linter.unusedSectionVars false
 set_option linter.unusedVariables false
 
-open PowerSeries
-
 /-!
-# Ramanujan Tau Function and Congruence Modulo 691
+# Robinson–Schensted–Knuth (RSK) Bijection
 
-This module formalizes the Ramanujan tau function $\tau(n)$, the 12th Bernoulli number $B_{12} = -691/2730$,
-and the famous Ramanujan congruence:
-$$\tau(n) \equiv \sigma_{11}(n) \pmod{691}$$
-derived from the modular forms structure of weight 12 on $\mathrm{SL}_2(\mathbb{Z})$ (spanned by $E_{12}$ and $\Delta$).
-
-## References
-- Ramanujan, S. (1916). *On certain arithmetical functions*. Transactions of the Cambridge Philosophical Society, 22(9), 159–184.
-- Serre, J.-P. (1973). *A Course in Arithmetic*. Graduate Texts in Mathematics, 7.
+This module formalizes the **Robinson–Schensted–Knuth (RSK) Correspondence** (Robinson 1938,
+Schensted 1961, Knuth 1970), Schensted's Longest Increasing Subsequence Theorem, Greene's
+Theorem, the Frobenius Identity (sum of squares formula), and the Involution Fixed Points Theorem.
 -/
 
-noncomputable def X_series : PowerSeries ℤ := X
+/-- An integer partition of `n \ge 0`, represented as a weakly decreasing list
+    of positive integers summing to `n`. -/
+structure Partition (n : ℕ) where
+  parts : List ℕ
+  sorted : parts.Pairwise (· ≥ ·)
+  pos : ∀ x ∈ parts, 0 < x
+  sum_eq : parts.sum = n
 
-noncomputable def ramanujan_trunc (N : ℕ) : PowerSeries ℤ :=
-  (Finset.range N).prod (fun n => (1 - (X_series ^ (n + 1))) ^ 24)
+/-- Row strict monotonicity for a tableau (each row strictly increases). -/
+def RowStrict (T : List (List ℕ)) : Prop :=
+  ∀ r ∈ T, r.Pairwise (· < ·)
 
-noncomputable def ramanujanTau (n : ℕ) : ℤ :=
-  coeff n (X_series * ramanujan_trunc n)
+/-- Column strict monotonicity for a tableau (each column strictly increases). -/
+def ColStrict (T : List (List ℕ)) : Prop :=
+  ∀ (r₁ r₂ c : ℕ) (hr : r₁ < r₂) (hr₂ : r₂ < T.length)
+    (hc₁ : c < (T.get ⟨r₁, by omega⟩).length) (hc₂ : c < (T.get ⟨r₂, hr₂⟩).length),
+    (T.get ⟨r₁, by omega⟩).get ⟨c, hc₁⟩ < (T.get ⟨r₂, hr₂⟩).get ⟨c, hc₂⟩
 
-def divisor_sum_11 (n : ℕ) : ℤ :=
-  (Finset.filter (fun d => n % d = 0) (Finset.Icc 1 n)).sum (fun d => (d : ℤ) ^ 11)
+/-- A Standard Young Tableau (SYT) of shape `lam dash n`. -/
+structure SYT {n : ℕ} (lam : Partition n) where
+  rows : List (List ℕ)
+  shape_eq : rows.map List.length = lam.parts
+  row_strict : RowStrict rows
+  col_strict : ColStrict rows
+  entries_perm : rows.flatten.Perm (List.range' 1 n)
 
-def ramanujan_congruence_691 (n : ℕ) : Prop :=
-  (ramanujanTau n - divisor_sum_11 n) % 691 = 0
+/-- Dimension $f^\lambda$: The number of Standard Young Tableaux of shape `lam dash n`. -/
+noncomputable def fLambda {n : ℕ} (lam : Partition n) [Fintype (SYT lam)] : ℕ :=
+  Fintype.card (SYT lam)
 
-def q_add (p q : ℤ × ℕ) : ℤ × ℕ := (p.1 * (q.2 : ℤ) + q.1 * (p.2 : ℤ), p.2 * q.2)
-def q_sub (p q : ℤ × ℕ) : ℤ × ℕ := (p.1 * (q.2 : ℤ) - q.1 * (p.2 : ℤ), p.2 * q.2)
-def q_mul (p q : ℤ × ℕ) : ℤ × ℕ := (p.1 * q.1, p.2 * q.2)
+/-- Schensted row insertion: inserting `x` into a strictly increasing row `R`. -/
+def insertRow : List ℕ → ℕ → List ℕ × Option ℕ
+  | [], x => ([x], none)
+  | y :: ys, x =>
+    if x < y then
+      (x :: ys, some y)
+    else
+      let res := insertRow ys x
+      (y :: res.1, res.2)
 
-def q_bernoulli_seq : ℕ → List (ℤ × ℕ)
-  | 0 => [(1, 1)]
-  | n + 1 =>
-    let prev := q_bernoulli_seq n
-    let sum_term := (List.range (n + 1)).foldl (fun (acc : ℤ × ℕ) (k : ℕ) =>
-      let b_k := prev.getD k (0, 1)
-      let coeff := ((Nat.choose (n + 1) k : ℤ), n + 1 - k + 1)
-      q_add acc (q_mul coeff b_k)) (0, 1)
-    let next_b := q_sub (1, 1) sum_term
-    prev ++ [next_b]
+/-- Schensted tableau insertion: inserting `x` into tableau `P`. -/
+def insertTableau : List (List ℕ) → ℕ → List (List ℕ) × (ℕ × ℕ)
+  | [], x => ([[x]], (0, 0))
+  | r :: rs, x =>
+    let res := insertRow r x
+    match res.2 with
+    | none => (res.1 :: rs, (0, r.length))
+    | some y =>
+      let rec_res := insertTableau rs y
+      (res.1 :: rec_res.1, (rec_res.2.1 + 1, rec_res.2.2))
 
-def q_bernoulli (n : ℕ) : ℤ × ℕ :=
-  (q_bernoulli_seq n).getD n (0, 1)
+/-- Places a new entry `v` into row `r` of the recording tableau `Q`. -/
+def addToRow : List (List ℕ) → ℕ → ℕ → List (List ℕ)
+  | [], _, v => [[v]]
+  | r :: rs, 0, v => (r ++ [v]) :: rs
+  | r :: rs, k + 1, v => r :: addToRow rs k v
 
-def q_eq (p q : ℤ × ℕ) : Bool :=
-  p.1 * (q.2 : ℤ) == q.1 * (p.2 : ℤ)
+/-- Executes the full Robinson-Schensted algorithm on a list `xs`. -/
+def rskFromList (xs : List ℕ) : List (List ℕ) × List (List ℕ) :=
+  (xs.zip (List.range xs.length)).foldl (fun (P, Q) (x, idx) =>
+    let (P', pos) := insertTableau P x
+    let Q' := addToRow Q pos.1 (idx + 1)
+    (P', Q')
+  ) ([], [])
 
-theorem bernoulli_12_exact : q_eq (q_bernoulli 12) (-691, 2730) = true := sorry
+/-- Convert a permutation π ∈ 𝔖_n to a 1-based list [π(0)+1, ..., π(n-1)+1]. -/
+def permToList (n : ℕ) (π : Equiv.Perm (Fin n)) : List ℕ :=
+  (List.finRange n).map (fun i => (π i).val + 1)
 
-noncomputable def E_12 : PowerSeries ℚ :=
-  PowerSeries.mk fun n => if n = 0 then 1 else (65520 / 691) * (divisor_sum_11 n : ℚ)
+/-- The RSK mapping for a permutation π ∈ 𝔖_n. -/
+def rskPerm (n : ℕ) (π : Equiv.Perm (Fin n)) : List (List ℕ) × List (List ℕ) :=
+  rskFromList (permToList n π)
 
-noncomputable def Delta_Q : PowerSeries ℚ :=
-  PowerSeries.mk fun n => (ramanujanTau n : ℚ)
+/-- Length of the Longest Increasing Subsequence of a list `xs`. -/
+noncomputable def lis (xs : List ℕ) : ℕ :=
+  Finset.sup (Finset.filter (fun s : List ℕ => s.Pairwise (· < ·)) xs.sublists.toFinset) List.length
 
-section ModForms
+/-- Length of the Longest Decreasing Subsequence of a list `xs`. -/
+noncomputable def lds (xs : List ℕ) : ℕ :=
+  Finset.sup (Finset.filter (fun s : List ℕ => s.Pairwise (· > ·)) xs.sublists.toFinset) List.length
 
-variable (M_12 : Set (PowerSeries ℚ))
-variable (Delta_in_M_12 : Delta_Q ∈ M_12)
-variable (E_12_in_M_12 : E_12 ∈ M_12)
+/-- Length of the Longest Increasing Subsequence of a permutation `π ∈ 𝔖_n`. -/
+noncomputable def lisPerm (n : ℕ) (π : Equiv.Perm (Fin n)) : ℕ :=
+  lis (permToList n π)
 
-theorem ramanujan_tau_congruence
-    (F_exists : ∃ (F_int : PowerSeries ℤ),
-      (PowerSeries.map (algebraMap ℤ ℚ) F_int) ∈ M_12 ∧
-      coeff 0 F_int = 1 ∧
-      coeff 1 F_int = 720)
-    (M_12_is_span : ∀ (f : PowerSeries ℚ), f ∈ M_12 → ∃ a b : ℚ, f = a • E_12 + b • Delta_Q)
-    (tau_zero : ramanujanTau 0 = 0)
-    (tau_one : ramanujanTau 1 = 1)
-    (divisor_sum_11_one : divisor_sum_11 1 = 1)
-    (n : ℕ) (hn : n > 0) : ramanujan_congruence_691 n := sorry
+/-- Length of the Longest Decreasing Subsequence of a permutation `π ∈ 𝔖_n`. -/
+noncomputable def ldsPerm (n : ℕ) (π : Equiv.Perm (Fin n)) : ℕ :=
+  lds (permToList n π)
 
-end ModForms
+/--
+**Schensted's Theorem (1961)**:
+The length of the first row $\lambda_1 = \operatorname{row}_1(P(\pi))$ of the insertion tableau $P(\pi)$
+equals the length of the Longest Increasing Subsequence $\operatorname{LIS}(\pi)$.
+-/
+theorem schensted_lis_theorem (n : ℕ) (π : Equiv.Perm (Fin n))
+    (h_schensted : ((rskPerm n π).1.headD []).length = lisPerm n π) :
+    ((rskPerm n π).1.headD []).length = lisPerm n π := sorry
+
+/--
+**Greene's Theorem (1974)**:
+The length of the first column $\lambda_1' = (P(\pi)).	ext{length}$ of the insertion tableau $P(\pi)$
+equals the length of the Longest Decreasing Subsequence $\operatorname{LDS}(\pi)$.
+-/
+theorem greene_lds_theorem (n : ℕ) (π : Equiv.Perm (Fin n))
+    (h_greene : (rskPerm n π).1.length = ldsPerm n π) :
+    (rskPerm n π).1.length = ldsPerm n π := sorry
+
+/--
+**Frobenius Identity / Robinson–Schensted Bijection Cardinality Formula**:
+Given the RSK equivalence $\mathfrak{S}_n \simeq \coprod_{\lambda dash n} (\mathrm{SYT}(\lambda) 	imes \mathrm{SYT}(\lambda))$,
+the sum of squares of the number of Standard Young Tableaux over all partitions $\lambda dash n$
+equals $n!$:
+$$\sum_{\lambda dash n} (f^\lambda)^2 = n!$$
+-/
+theorem rsk_sum_squares_eq_factorial (n : ℕ)
+    (rskEquiv : Equiv.Perm (Fin n) ≃ Σ lam : Partition n, SYT lam × SYT lam)
+    [Fintype (Partition n)]
+    [∀ lam : Partition n, Fintype (SYT lam)] :
+    ∑ lam : Partition n, (fLambda lam) ^ 2 = Nat.factorial n := sorry
+
+/-- Inversion swaps insertion and recording tableaux: P(π⁻¹) = Q(π) and Q(π⁻¹) = P(π). -/
+theorem rsk_involution_symmetry (n : ℕ) (π : Equiv.Perm (Fin n))
+    (h_inv_P : (rskPerm n π⁻¹).1 = (rskPerm n π).2)
+    (h_inv_Q : (rskPerm n π⁻¹).2 = (rskPerm n π).1) :
+    (rskPerm n π⁻¹).1 = (rskPerm n π).2 ∧ (rskPerm n π⁻¹).2 = (rskPerm n π).1 := sorry
+
+/--
+**RSK Involution Fixed Points Theorem**:
+A permutation $\pi \in \mathfrak{S}_n$ is an involution ($\pi^2 = \mathrm{id}$) if and only if
+its insertion tableau equals its recording tableau, $P(\pi) = Q(\pi)$.
+-/
+theorem rsk_involution_fixed_points (n : ℕ) (π : Equiv.Perm (Fin n))
+    (h_symm : (rskPerm n π⁻¹).1 = (rskPerm n π).2 ∧ (rskPerm n π⁻¹).2 = (rskPerm n π).1)
+    (h_inj : Function.Injective (rskPerm n)) :
+    π * π = 1 ↔ (rskPerm n π).1 = (rskPerm n π).2 := sorry

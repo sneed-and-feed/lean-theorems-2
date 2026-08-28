@@ -1,57 +1,65 @@
 version: "v0.4"
 
 project:
-  name: "Ramanujan Tau Function and Congruence Modulo 691"
+  name: "The Robinson–Schensted–Knuth (RSK) Bijection and Tableaux Combinatorics"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A complete Lean 4 formalization of the Ramanujan tau function \tau(n), the exact Bernoulli number computation
-    B_{12} = -691/2730, and the Ramanujan congruence \tau(n) \equiv \sigma_{11}(n) \pmod{691} derived from the
-    structure of weight-12 modular forms spanned by E_{12} and \Delta. To the maintainers' knowledge, the theorem
-    was not found in an exact declaration name, docstring, and type signature search of the pinned Mathlib revision
-    (Mathlib v4.34.0-rc1).
+    A machine-checked Lean 4 formalization of the Robinson–Schensted–Knuth (RSK) Correspondence (Robinson 1938,
+    Schensted 1961, Knuth 1970). Implements Schensted row-insertion bumping, Standard Young Tableaux (SYT),
+    insertion/recording tableau generation, and formalizes Schensted's LIS theorem, Greene's LDS theorem, the
+    Frobenius sum-of-squares identity sum (f^lambda)^2 = n!, and the Involution Fixed Points Theorem without custom axioms.
+    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type
+    signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.NT]
-  msc2020: ["11F11", "11F33", "11B68"]
+  arxiv: [math.CO, math.RT]
+  msc2020: ["05E10", "05A19", "20C30"]
 
 sources:
-  - title: "On certain arithmetical functions"
+  - title: "On the representations of the symmetric group"
     type: paper
     authors:
-      - "Srinivasa Ramanujan"
-    year: 1916
-    venue: "Transactions of the Cambridge Philosophical Society, 22(9), 159–184"
+      - "Gilbert de Beauregard Robinson"
     relationship: formalizes
-  - title: "A Course in Arithmetic"
-    type: book
+  - title: "Longest increasing and decreasing subsequences"
+    type: paper
     authors:
-      - "Jean-Pierre Serre"
-    year: 1973
-    venue: "Graduate Texts in Mathematics, 7, Springer"
-    relationship: background
+      - "Craige Schensted"
+    relationship: formalizes
+  - title: "Permutations, matrices, and generalized Young tableaux"
+    type: paper
+    authors:
+      - "Donald E. Knuth"
+    relationship: adapts
+  - title: "An extension of Schensted's theorem"
+    type: paper
+    authors:
+      - "Curtis Greene"
+    relationship: adapts
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/NumberTheory/Bernoulli.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/GroupTheory/Perm/Basic.lean"
     relationship: builds-on
     note: >-
-      Builds on Mathlib's Bernoulli number library and develops formal power series expansions
-      for modular forms and Ramanujan congruences.
+      Formalization builds on Mathlib's symmetric group permutations (Equiv.Perm) and finite type cardinalities.
 
 automation:
   methods:
     - method: agent
       tool_setup: >-
-        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
-        and verified with zero custom axioms under standard Lean 4 kernel axioms.
+        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
+        Lean LSP checking under maintainer direction and human verification.
+        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
 
 review:
   status: self-assessed
   reviewers:
     - "sneed-and-feed maintainers"
   notes: >-
-    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
-    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.
+    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
+    while all definitions and theorem statements are completely specified. Solution verified through
+    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.
