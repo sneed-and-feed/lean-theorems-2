@@ -1,73 +1,55 @@
 version: "v0.4"
 
 project:
-  name: "Sperner's Theorem on Antichains and the LYM Inequality"
+  name: "Stanley's sl2 Representation Proof of the Strong Sperner Property for L(m, n)"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A complete Lean 4 formalization of Sperner's Theorem on Antichains (1928), the Lubell–Yamamoto–Meshalkin
-    (LYM) inequality (1966), and the full extremal equality and stability characterization in the Boolean
-    lattice. Proves that the maximum cardinality of an antichain of subsets of an n-element set is Nat.choose n (n / 2)
-    and characterizes all maximal antichains as middle-level slices. Mathlib contains the upper bound inequality
-    via Mathlib.Combinatorics.SetFamily.LYM; this formalization provides a self-contained combinatorial API and
-    formalizes the complete equality characterization for even and odd n, verified absent from the core Mathlib library
-    (checked against Mathlib v4.34.0-rc1).
+    A machine-checked Lean 4 formalization of Richard Stanley's sl2 representation theorem (1980) on the partition poset L(m, n).
+    Formalizes the Young diagram containment poset, partition complementation involution, rank symmetry p_k(m, n) = p_{mn-k}(m, n),
+    graded sl2-module representation theory, raising operator injectivity (Hard Lefschetz property), rank unimodality of q-binomial
+    coefficients, and the Strong Sperner property bounding all rank-level antichains by the middle rank capacity.
+    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type signature
+    search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.CO]
-  msc2020: ["05D05", "06A07"]
+  arxiv: [math.CO, math.RT]
+  msc2020: ["05E10", "06A07", "17B10"]
 
 sources:
-  - title: "Ein Satz über Untermengen einer endlichen Menge"
+  - title: "Weyl groups, the hard Lefschetz theorem, and the Sperner property"
     type: paper
     authors:
-      - "Emanuel Sperner"
-    year: 1928
-    venue: "Mathematische Zeitschrift, 27(1), 544–548"
+      - "Richard P. Stanley"
     relationship: formalizes
-  - title: "A short proof of Sperner's lemma"
+  - title: "Representations of sl(2, C) on posets and the Sperner property"
     type: paper
     authors:
-      - "David Lubell"
-    year: 1966
-    venue: "Journal of Combinatorial Theory, 1(2), 299"
+      - "Robert A. Proctor"
     relationship: adapts
-  - title: "Logarithmic order of free distributive lattice"
-    type: paper
-    authors:
-      - "Koichi Yamamoto"
-    year: 1954
-    venue: "Journal of the Mathematical Society of Japan, 6(3-4), 343–353"
-    relationship: background
-  - title: "Generalization of Sperner's theorem on the number of subsets of a finite set"
-    type: paper
-    authors:
-      - "L. D. Meshalkin"
-    year: 1963
-    venue: "Theory of Probability & Its Applications, 8(2), 203–204"
-    relationship: background
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SetFamily/LYM.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Data/Fintype/Basic.lean"
     relationship: builds-on
     note: >-
-      Builds on Mathlib's LYM inequality and extends it to formalize the full extremal equality cases
-      and middle-level slice classification for arbitrary finite universes.
+      Formalization builds on Mathlib's finite type and finset combinatorics infrastructure.
 
 automation:
   methods:
     - method: agent
       tool_setup: >-
-        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
-        and verified with zero custom axioms under standard Lean 4 kernel axioms.
+        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
+        Lean LSP checking under maintainer direction and human verification.
+        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
 
 review:
   status: self-assessed
   reviewers:
     - "sneed-and-feed maintainers"
   notes: >-
-    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
-    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.
+    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
+    while all definitions and theorem statements are completely specified. Solution verified through
+    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.
