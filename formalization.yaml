@@ -1,55 +1,58 @@
 version: "v0.4"
 
 project:
-  name: "Bárány's Colorful Carathéodory Theorem in Discrete Geometry"
+  name: "Characteristic Polynomial of Weighted Cyclic Shift Matrices"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A machine-checked Lean 4 formalization of Bárány's Colorful Carathéodory Theorem (1982).
-    Formulates d + 1 color classes in R^d containing a target point (or origin) in their convex hulls,
-    and proves the existence of a colorful transversal selection spanning a simplex enclosing the target point.
-    Deduces the classical Carathéodory Theorem (1907) as a corollary, and proves 1D and 2D specializations.
-    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type
-    signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+    A complete Lean 4 formalization proving the characteristic polynomial of a general weighted cyclic shift
+    matrix over an arbitrary commutative ring R. Proves that charpoly(shiftMatrix n W) = X^n for nilpotent
+    subdiagonal shift matrices, det(upperBidiagonal n W) = \prod (-C(W i)), and establishes that for any
+    L-dimensional cyclic matrix with weights W, charpoly(cyclicWeightMatrix W) = X^L - C(\prod W).
+    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring,
+    and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.MG, math.CO]
-  msc2020: ["52A35", "52A20", "05D15"]
+  arxiv: [math.RA, math.CO]
+  msc2020: ["15A15", "15A18", "15B05"]
 
 sources:
-  - title: "A generalization of Carathéodory's theorem"
-    type: paper
+  - title: "Matrix Analysis"
+    type: book
     authors:
-      - "Imre Bárány"
-    relationship: formalizes
-  - title: "Über den Variabilitätsbereich der Koeffizienten von Potenzreihen"
-    type: paper
+      - "Roger A. Horn"
+      - "Charles R. Johnson"
+    year: 2012
+    venue: "Cambridge University Press"
+    relationship: background
+  - title: "Circulant Matrices"
+    type: book
     authors:
-      - "Constantin Carathéodory"
-    relationship: adapts
+      - "Philip J. Davis"
+    year: 1979
+    venue: "John Wiley & Sons"
+    relationship: background
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Convex/Hull.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/LinearAlgebra/Matrix/Charpoly/Basic.lean"
     relationship: builds-on
     note: >-
-      Formalization builds on Mathlib's convex hull library (convexHull ℝ) in finite-dimensional Euclidean space.
+      Builds on Mathlib's characteristic polynomial and cofactor expansion theories for square matrices.
 
 automation:
   methods:
     - method: agent
       tool_setup: >-
-        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
-        Lean LSP checking under maintainer direction and human verification.
-        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
+        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
+        and verified with zero custom axioms under standard Lean 4 kernel axioms.
 
 review:
   status: self-assessed
   reviewers:
     - "sneed-and-feed maintainers"
   notes: >-
-    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
-    while all definitions and theorem statements are completely specified. Solution verified through
-    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.
+    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
+    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.
