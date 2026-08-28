@@ -1,109 +1,81 @@
-import Mathlib.Combinatorics.SimpleGraph.Basic
-import Mathlib.Combinatorics.SimpleGraph.Finite
-import Mathlib.Combinatorics.SimpleGraph.Coloring.Vertex
-import Mathlib.Combinatorics.Hall.Basic
 import Mathlib.Data.Fintype.Card
 import Mathlib.Data.Finset.Basic
-import Mathlib.Data.Finset.Card
-import Mathlib.Data.Finset.Powerset
-import Mathlib.Tactic.Choose
+import Mathlib.Data.Matrix.Basic
+import Mathlib.Data.Finsupp.Defs
+import Mathlib.Algebra.MvPolynomial.Basic
+import Mathlib.Algebra.MvPolynomial.CommRing
+import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
+import Mathlib.LinearAlgebra.Matrix.Adjugate
+import Mathlib.RingTheory.MvPowerSeries.Basic
+import Mathlib.RingTheory.MvPowerSeries.Inverse
+import Mathlib.Algebra.BigOperators.Ring.Finset
+import Mathlib.Data.Fintype.Powerset
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
 
-open scoped BigOperators
+open scoped BigOperators Matrix
 open Classical
 
 set_option linter.unusedSectionVars false
 
 /-!
-# Kőnig–Egerváry Duality Theorem
+# MacMahon's Master Theorem
 
-This module formalizes the **Kőnig–Egerváry Theorem** (Dénes Kőnig, 1931; Jenő Egerváry, 1931),
-a cornerstone of combinatorial optimization and structural graph theory establishing strong
-min-max duality between matchings and vertex covers in bipartite graphs.
+This module formalizes **MacMahon's Master Theorem** (Major Percy Alexander MacMahon, 1915),
+relating the coefficients of products of linear forms to the reciprocal determinant of a matrix:
+$$[X^s] \prod_{i=1}^n \left(\sum_{j=1}^n A_{ij} X_jight)^{s_i} = [X^s] rac{1}{\det(I_n - X A)}$$
 -/
 
-variable {V : Type*} [Fintype V] [DecidableEq V]
+variable {R : Type*} [CommRing R] {n : ℕ}
 
-namespace SimpleGraph
+namespace MacMahon
 
-/-- Two edges in $G$ share a common endpoint vertex. -/
-def EdgesShareEndpoint (e₁ e₂ : Sym2 V) : Prop :=
-  ∃ v : V, v ∈ e₁ ∧ v ∈ e₂
+/-- Convert a function $s : 	ext{Fin } n 	o \mathbb{N}$ to a finitely supported multi-index. -/
+noncomputable def toFinsupp (s : Fin n → ℕ) : Fin n →₀ ℕ := Finsupp.equivFunOnFinite.symm s
 
-/-- A set of edges $M \subseteq \operatorname{Sym2}(V)$ is a matching in $G$ if all edges belong to $G$
-and no two distinct edges share a vertex. -/
-def IsMatching (G : SimpleGraph V) (M : Finset (Sym2 V)) : Prop :=
-  (∀ e ∈ M, e ∈ G.edgeSet) ∧
-  (∀ e₁ ∈ M, ∀ e₂ ∈ M, e₁ ≠ e₂ → ¬ EdgesShareEndpoint e₁ e₂)
+/-- The $i$-th linear form $Y_i = \sum_{j=1}^n A_{ij} X_j$ in $R[X_1, \dots, X_n]$. -/
+noncomputable def linearForm (A : Matrix (Fin n) (Fin n) R) (i : Fin n) : MvPolynomial (Fin n) R :=
+  ∑ j : Fin n, MvPolynomial.C (A i j) * MvPolynomial.X j
 
-/-- A set of vertices $C \subseteq V$ is a vertex cover of $G$ if every edge has at least
-one endpoint in $C$. -/
-def IsVertexCover (G : SimpleGraph V) (C : Finset V) : Prop :=
-  ∀ u v : V, G.Adj u v → u ∈ C ∨ v ∈ C
+/-- The product of powers of linear forms $\prod_{i=1}^n Y_i^{s_i}$. -/
+noncomputable def prodLinearForms (A : Matrix (Fin n) (Fin n) R) (s : Fin n → ℕ) : MvPolynomial (Fin n) R :=
+  ∏ i : Fin n, (linearForm A i) ^ (s i)
 
-/-- The matching number $\nu(G)$: maximum size of a matching in $G$. -/
-noncomputable def matchingNumber (G : SimpleGraph V) : ℕ :=
-  sSup { k : ℕ | ∃ M : Finset (Sym2 V), IsMatching G M ∧ M.card = k }
+/-- The matrix $I_n - X A$ whose $(i, j)$ entry is $\delta_{ij} - X_i A_{ij}$. -/
+noncomputable def macmahonMatrix (A : Matrix (Fin n) (Fin n) R) :
+    Matrix (Fin n) (Fin n) (MvPolynomial (Fin n) R) :=
+  Matrix.of (fun i j => (if i = j then (1 : MvPolynomial (Fin n) R) else 0) -
+    MvPolynomial.X i * MvPolynomial.C (A i j))
 
-/-- The vertex cover number $\tau(G)$: minimum size of a vertex cover in $G$. -/
-noncomputable def vertexCoverNumber (G : SimpleGraph V) : ℕ :=
-  sInf { k : ℕ | ∃ C : Finset V, IsVertexCover G C ∧ C.card = k }
+/-- The polynomial determinant $\det(I_n - X A)$. -/
+noncomputable def detMacMahon (A : Matrix (Fin n) (Fin n) R) : MvPolynomial (Fin n) R :=
+  Matrix.det (macmahonMatrix A)
 
-/-- An independent set in $G$ is a set of pairwise non-adjacent vertices. -/
-def IsIndependentSet (G : SimpleGraph V) (S : Finset V) : Prop :=
-  ∀ u ∈ S, ∀ v ∈ S, ¬ G.Adj u v
+/-- The reciprocal determinant $\det(I_n - X A)^{-1}$ as a formal power series. -/
+noncomputable def invDetMacMahon (A : Matrix (Fin n) (Fin n) R) : MvPowerSeries (Fin n) R :=
+  MvPowerSeries.invOfUnit (MvPolynomial.toMvPowerSeries (detMacMahon A)) 1
 
-/-- The independence number $\alpha(G)$: maximum size of an independent set in $G$. -/
-noncomputable def independenceNumber (G : SimpleGraph V) : ℕ :=
-  sSup { k : ℕ | ∃ S : Finset V, IsIndependentSet G S ∧ S.card = k }
+theorem macmahon_zero_exponent (A : Matrix (Fin n) (Fin n) R) :
+    MvPolynomial.coeff (toFinsupp (fun _ => 0)) (prodLinearForms A (fun _ => 0)) = 1 := sorry
+
+theorem coeff_zero_detMacMahon (A : Matrix (Fin n) (Fin n) R) :
+    MvPolynomial.coeff 0 (detMacMahon A) = 1 := sorry
 
 /--
-**Weak Duality for Matchings and Vertex Covers**:
-Any matching $M$ and any vertex cover $C$ satisfy $|M| \le |C|$.
+**MacMahon's Master Theorem (1915)**:
+For any $n 	imes n$ matrix $A \in M_{n 	imes n}(R)$ and any multi-index $s \in \mathbb{N}^n$,
+the coefficient of $X^s = X_1^{s_1} \cdots X_n^{s_n}$ in the product of linear forms
+$\prod_{i=1}^n (\sum_{j=1}^n A_{ij} X_j)^{s_i}$ equals the coefficient of $X^s$ in the
+formal power series expansion of $\det(I_n - X A)^{-1}$:
+$$[X^s] \prod_{i=1}^n \left(\sum_{j=1}^n A_{ij} X_jight)^{s_i} = [X^s] rac{1}{\det(I_n - X A)}$$
 -/
-theorem matching_card_le_vertexCover_card (G : SimpleGraph V) {M : Finset (Sym2 V)} {C : Finset V}
-    (hM : IsMatching G M) (hC : IsVertexCover G C) :
-    M.card ≤ C.card := sorry
+theorem macmahon_master_theorem (A : Matrix (Fin n) (Fin n) R) (s : Fin n → ℕ) :
+    MvPolynomial.coeff (toFinsupp s) (prodLinearForms A s) =
+    MvPowerSeries.coeff (toFinsupp s) (invDetMacMahon A) := sorry
 
-/--
-**Weak Duality Theorem**:
-For any finite simple graph $G$, the matching number is bounded by the vertex cover number:
-$$\nu(G) \le \tau(G)$$
--/
-theorem weak_duality (G : SimpleGraph V) :
-    matchingNumber G ≤ vertexCoverNumber G := sorry
+/-- Specialization to $n = 1$: The 1D Master Theorem is the geometric series expansion. -/
+theorem macmahon_dim1 (A : Matrix (Fin 1) (Fin 1) R) (s : Fin 1 → ℕ) :
+    MvPolynomial.coeff (toFinsupp s) (prodLinearForms A s) =
+    MvPowerSeries.coeff (toFinsupp s) (invDetMacMahon A) := sorry
 
-/--
-**Strong Duality Inequality in Bipartite Graphs**:
-For any $2$-colorable graph $G$, the vertex cover number is bounded by the matching number:
-$$\tau(G) \le \nu(G)$$
--/
-theorem konig_duality_le (G : SimpleGraph V) (h_bip : G.Colorable 2) :
-    vertexCoverNumber G ≤ matchingNumber G := sorry
-
-/--
-**Kőnig–Egerváry Theorem (1931)**:
-In any bipartite ($2$-colorable) graph $G$, the maximum size of a matching equals the minimum
-size of a vertex cover (strong min-max duality):
-$$\nu(G) = \tau(G)$$
--/
-theorem konig_duality (G : SimpleGraph V) (h_bip : G.Colorable 2) :
-    matchingNumber G = vertexCoverNumber G := sorry
-
-/--
-**Gallai's Identity for Vertex Covers and Independent Sets (1959)**:
-For any finite graph $G$, the independence number and vertex cover number sum to $|V|$:
-$$\alpha(G) + \tau(G) = |V|$$
--/
-theorem gallai_independence_vertex_cover (G : SimpleGraph V) :
-    independenceNumber G + vertexCoverNumber G = Fintype.card V := sorry
-
-/--
-**Kőnig's Min-Max Formula for Independent Sets in Bipartite Graphs**:
-In a bipartite graph, the independence number satisfies $\alpha(G) = |V| - \nu(G)$.
--/
-theorem konig_independence_matching (G : SimpleGraph V) (h_bip : G.Colorable 2) :
-    independenceNumber G + matchingNumber G = Fintype.card V := sorry
-
-end SimpleGraph
+end MacMahon

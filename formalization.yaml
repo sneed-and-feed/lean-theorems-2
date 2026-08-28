@@ -1,46 +1,42 @@
 version: "v0.4"
 
 project:
-  name: "The Kőnig–Egerváry Theorem on Matchings and Vertex Covers in Bipartite Graphs"
+  name: "MacMahon's Master Theorem for Products of Linear Forms"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A complete machine-checked Lean 4 formalization of the Kőnig–Egerváry Theorem (1931) and Gallai identities (1959).
-    Proves strong min-max duality matchingNumber(G) = vertexCoverNumber(G) for 2-colorable graphs G via Hall's
-    defect matching theorem, and formalizes Gallai's identity independenceNumber(G) + vertexCoverNumber(G) = |V(G)|.
-    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type
-    signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+    A complete machine-checked Lean 4 formalization of MacMahon's Master Theorem (1915).
+    Relates the coefficients of multi-index powers of linear forms [X^s] prod_i (sum_j A_ij X_j)^(s_i)
+    to the formal power series inverse determinant [X^s] det(I - X A)^(-1) over arbitrary commutative rings.
+    Proves the full n-dimensional identity using multivariate polynomials, matrix adjugate identities, and formal
+    power series inversion without custom axioms. To the maintainers' knowledge, the theorem was not found in
+    an exact declaration name, docstring, and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.CO]
-  msc2020: ["05C70", "05C69", "90C27"]
+  arxiv: [math.CO, math.AC]
+  msc2020: ["05A15", "15A15", "13F25"]
 
 sources:
-  - title: "Gráfok és mátrixok"
-    type: paper
+  - title: "Combinatory Analysis, Volume 1"
+    type: book
     authors:
-      - "Dénes Kőnig"
+      - "Percy Alexander MacMahon"
     relationship: formalizes
-  - title: "Matrixok kombinatorius tulajdonságairól"
+  - title: "A short proof of MacMahon's 'Master Theorem'"
     type: paper
     authors:
-      - "Jenő Egerváry"
-    relationship: formalizes
-  - title: "Über extreme Punkt- und Kantenmengen"
-    type: paper
-    authors:
-      - "Tibor Gallai"
+      - "I. J. Good"
     relationship: adapts
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/Hall/Basic.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/RingTheory/MvPowerSeries/Inverse.lean"
     relationship: builds-on
     note: >-
-      Formalization builds on Mathlib's Hall marriage condition (all_card_le_biUnion_card_iff_exists_injective)
-      to establish the defect matching reduction in bipartite graphs.
+      Formalization builds on Mathlib's multivariate polynomial algebra and formal power series inversion
+      infrastructure (MvPowerSeries.invOfUnit) to establish the master generating function duality.
 
 automation:
   methods:

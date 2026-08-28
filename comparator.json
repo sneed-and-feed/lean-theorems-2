@@ -2,12 +2,10 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "SimpleGraph.matching_card_le_vertexCover_card",
-    "SimpleGraph.weak_duality",
-    "SimpleGraph.konig_duality_le",
-    "SimpleGraph.konig_duality",
-    "SimpleGraph.gallai_independence_vertex_cover",
-    "SimpleGraph.konig_independence_matching"
+    "MacMahon.macmahon_zero_exponent",
+    "MacMahon.coeff_zero_detMacMahon",
+    "MacMahon.macmahon_master_theorem",
+    "MacMahon.macmahon_dim1"
   ],
   "permitted_axioms": [
     "propext",
