@@ -1,46 +1,47 @@
 version: "v0.4"
 
 project:
-  name: "Characteristic Polynomial of Weighted Cyclic Shift Matrices"
+  name: "Fisher's Inequality for Balanced Incomplete Block Designs"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A complete Lean 4 formalization proving the characteristic polynomial of a general weighted cyclic shift
-    matrix over an arbitrary commutative ring R. Proves that charpoly(shiftMatrix n W) = X^n for nilpotent
-    subdiagonal shift matrices, det(upperBidiagonal n W) = \prod (-C(W i)), and establishes that for any
-    L-dimensional cyclic matrix with weights W, charpoly(cyclicWeightMatrix W) = X^L - C(\prod W).
-    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring,
-    and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+    A complete Lean 4 formalization of Fisher's Inequality in combinatorial design theory (Fisher 1940, Bose 1949).
+    Proves that for any 2-(v, k, \lambda) balanced incomplete block design with 1 < k < v and \lambda > 0,
+    the number of blocks b is at least the number of points v (b >= v). The proof establishes the exact Gramian
+    product identity N N^T = (r - \lambda) I + \lambda J, computes the determinant det(N N^T) = (r - \lambda)^{v-1}(r + (v-1)\lambda),
+    proves its strict positivity, and applies linear algebraic rank bounds. To the maintainers' knowledge, the theorem
+    was not found in an exact declaration name, docstring, and type signature search of the pinned Mathlib revision
+    (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.RA, math.CO]
-  msc2020: ["15A15", "15A18", "15B05"]
+  arxiv: [math.CO]
+  msc2020: ["05B05", "15A15", "15A03"]
 
 sources:
-  - title: "Matrix Analysis"
-    type: book
+  - title: "An examination of the different possible solutions of a problem in incomplete blocks"
+    type: paper
     authors:
-      - "Roger A. Horn"
-      - "Charles R. Johnson"
-    year: 2012
-    venue: "Cambridge University Press"
-    relationship: background
-  - title: "Circulant Matrices"
-    type: book
+      - "Ronald A. Fisher"
+    year: 1940
+    venue: "Annals of Eugenics, 10(1), 52–75"
+    relationship: formalizes
+  - title: "A note on Fisher's inequality for balanced incomplete block designs"
+    type: paper
     authors:
-      - "Philip J. Davis"
-    year: 1979
-    venue: "John Wiley & Sons"
-    relationship: background
+      - "R. C. Bose"
+    year: 1949
+    venue: "Bulletin of the Calcutta Mathematical Society, 41, 106–107"
+    relationship: adapts
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/LinearAlgebra/Matrix/Charpoly/Basic.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/LinearAlgebra/Matrix/Determinant/Basic.lean"
     relationship: builds-on
     note: >-
-      Builds on Mathlib's characteristic polynomial and cofactor expansion theories for square matrices.
+      Builds on Mathlib's matrix determinant, diagonal, and rank libraries to formulate point-block incidence
+      Gramians and prove design-theoretic inequalities.
 
 automation:
   methods:

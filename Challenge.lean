@@ -1,56 +1,88 @@
+import Mathlib.Data.Real.Basic
 import Mathlib.Data.Matrix.Basic
-import Mathlib.LinearAlgebra.Matrix.Charpoly.Basic
-import Mathlib.Data.ZMod.Basic
-import Mathlib.RingTheory.Polynomial.Basic
+import Mathlib.Data.Fintype.Card
+import Mathlib.Data.Finset.Card
+import Mathlib.Data.Finset.Basic
+import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
+import Mathlib.LinearAlgebra.Matrix.Diagonal
+import Mathlib.LinearAlgebra.Matrix.SchurComplement
+import Mathlib.LinearAlgebra.Matrix.Rank
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Ring
+import Mathlib.Tactic.Positivity
 
-open Matrix Polynomial Finset
-open scoped Polynomial
-
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
+open Classical
+open scoped BigOperators Matrix Finset
 
 /-!
-# Characteristic Polynomial of Cyclic Shift and Weighted Cyclic Matrices
+# Fisher's Inequality for Balanced Incomplete Block Designs
 
-This file proves the characteristic polynomial of a general weighted cyclic shift matrix
-over an arbitrary commutative ring `R`.
+This module formalizes **Fisher's Inequality** (R. A. Fisher, 1940) in combinatorial design theory.
+For any $2$-$(v, k, \lambda)$ balanced incomplete block design (BIBD) with $v$ points and $b$ blocks,
+if $k < v$ (incomplete design) and $\lambda > 0$, then the number of blocks $b$ is at least
+the number of points $v$:
+$$b \ge v$$
 
-## Main Definitions
-- `shiftMatrix n W`: The `n × n` subdiagonal shift matrix with weights `W : Fin n → R`.
-- `upperBidiagonal n W`: An auxiliary upper-bidiagonal polynomial matrix whose determinant
-  computes the off-diagonal minor in the cofactor expansion.
-- `cyclicWeightMatrix W`: The `L × L` cyclic matrix indexed by `ZMod L` where entry `(i, j)`
-  is `W j` if `i = j + 1` and `0` otherwise.
-
-## Main Results
-- `charpoly_shiftMatrix`: The characteristic polynomial of `shiftMatrix n W` is `X ^ n`.
-- `det_upperBidiagonal`: The determinant of `upperBidiagonal n W` is `∏ i, - C (W i)`.
-- `charpoly_cyclicWeightMatrix`: For any `L : ℕ` with `[NeZero L]` and any `W : ZMod L → R`,
-  the characteristic polynomial of `cyclicWeightMatrix W` is `X ^ L - C (∏ k, W k)`.
+## References
+- Fisher, R. A. (1940). *An examination of the different possible solutions of a problem in incomplete blocks*. Annals of Eugenics, 10(1), 52–75.
+- Bose, R. C. (1949). *A note on Fisher's inequality for balanced incomplete block designs*. Bull. Calcutta Math. Soc., 41, 106–107.
 -/
 
-variable {R : Type*} [CommRing R]
+variable {V : Type*} [Fintype V] [DecidableEq V]
+variable {B : Type*} [Fintype B] [DecidableEq B]
 
-/-- The `n × n` subdiagonal shift matrix with weights `W`. -/
-def shiftMatrix (n : ℕ) (W : Fin n → R) : Matrix (Fin n) (Fin n) R :=
-  fun i j => if (i : ℕ) = (j : ℕ) + 1 then W j else 0
+/-- Structure defining a $2$-$(v, k, \lambda)$ balanced incomplete block design (BIBD). -/
+structure BlockDesign (V : Type*) [Fintype V] [DecidableEq V] (B : Type*) [Fintype B] [DecidableEq B] where
+  block : B → Finset V
+  k : ℕ
+  r : ℕ
+  lambda : ℕ
+  card_block : ∀ b : B, (block b).card = k
+  rep_point : ∀ x : V, (Finset.filter (fun b => x ∈ block b) Finset.univ).card = r
+  pair_lambda : ∀ x y : V, x ≠ y → (Finset.filter (fun b => x ∈ block b ∧ y ∈ block b) Finset.univ).card = lambda
 
-/-- Upper-bidiagonal auxiliary matrix for cofactor expansion of cyclic matrices. -/
-noncomputable def upperBidiagonal (n : ℕ) (W : Fin n → R) : Matrix (Fin n) (Fin n) (Polynomial R) :=
-  fun i j => if (i : ℕ) = (j : ℕ) then - C (W j) else if (i : ℕ) + 1 = (j : ℕ) then X else 0
+namespace BlockDesign
 
-/-- The `L × L` cyclic matrix with weights `W : ZMod L → R`. -/
-def cyclicWeightMatrix {L : ℕ} (W : ZMod L → R) : Matrix (ZMod L) (ZMod L) R :=
-  Matrix.of fun i j => if i = j + 1 then W j else 0
+variable (D : BlockDesign V B)
 
-/-- The characteristic polynomial of a nilpotent shift matrix is `X ^ n`. -/
-lemma charpoly_shiftMatrix (n : ℕ) (W : Fin n → R) :
-    (shiftMatrix n W).charpoly = X ^ n := sorry
+noncomputable def incidenceMatrix : Matrix V B ℝ :=
+  fun x b => if x ∈ D.block b then 1 else 0
 
-/-- The determinant of an upper-bidiagonal polynomial matrix. -/
-lemma det_upperBidiagonal (n : ℕ) (W : Fin n → R) :
-    (upperBidiagonal n W).det = ∏ i : Fin n, - C (W i) := sorry
+def allOnesMatrix (V : Type*) [Fintype V] : Matrix V V ℝ :=
+  fun _ _ => 1
 
-/-- The characteristic polynomial of an `L × L` cyclic weight matrix is `X ^ L - ∏ W`. -/
-theorem charpoly_cyclicWeightMatrix {L : ℕ} [NeZero L] (W : ZMod L → R) :
-    (cyclicWeightMatrix W).charpoly = X ^ L - C (∏ k : ZMod L, W k) := sorry
+theorem incidence_mul_transpose_apply (x y : V) :
+    (incidenceMatrix D * (incidenceMatrix D)ᵀ) x y =
+      if x = y then (D.r : ℝ) else (D.lambda : ℝ) := sorry
+
+theorem gramian_eq :
+    incidenceMatrix D * (incidenceMatrix D)ᵀ =
+      ((D.r : ℝ) - (D.lambda : ℝ)) • (1 : Matrix V V ℝ) + (D.lambda : ℝ) • allOnesMatrix V := sorry
+
+theorem vr_eq_bk :
+    (Fintype.card V) * D.r = (Fintype.card B) * D.k := sorry
+
+theorem r_mul_k_sub_one (x : V) :
+    D.r * (D.k - 1) = D.lambda * (Fintype.card V - 1) := sorry
+
+theorem r_gt_lambda (hk : D.k < Fintype.card V) (hl : 0 < D.lambda) (hk1 : 1 < D.k) :
+    (D.lambda : ℝ) < (D.r : ℝ) := sorry
+
+theorem det_allOnes_shift (c d : ℝ) (hc : c ≠ 0) (hv : 0 < Fintype.card V) :
+    Matrix.det ((c • (1 : Matrix V V ℝ)) + (d • allOnesMatrix V)) =
+      c ^ (Fintype.card V - 1) * (c + (Fintype.card V : ℝ) * d) := sorry
+
+theorem det_gramian (hv : 0 < Fintype.card V) (hc : (D.r : ℝ) - (D.lambda : ℝ) ≠ 0) :
+    Matrix.det (incidenceMatrix D * (incidenceMatrix D)ᵀ) =
+      ((D.r : ℝ) - (D.lambda : ℝ)) ^ (Fintype.card V - 1) *
+      ((D.r : ℝ) + ((Fintype.card V : ℝ) - 1) * (D.lambda : ℝ)) := sorry
+
+theorem det_gramian_pos (hv : 1 < Fintype.card V) (hk : D.k < Fintype.card V)
+    (hl : 0 < D.lambda) (hk1 : 1 < D.k) :
+    0 < Matrix.det (incidenceMatrix D * (incidenceMatrix D)ᵀ) := sorry
+
+theorem fishers_inequality (hv : 1 < Fintype.card V) (hk : D.k < Fintype.card V)
+    (hl : 0 < D.lambda) (hk1 : 1 < D.k) :
+    Fintype.card V ≤ Fintype.card B := sorry
+
+end BlockDesign

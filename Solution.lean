@@ -1,268 +1,230 @@
+import Mathlib.Data.Real.Basic
 import Mathlib.Data.Matrix.Basic
-import Mathlib.LinearAlgebra.Matrix.Charpoly.Basic
-import Mathlib.Data.ZMod.Basic
-import Mathlib.RingTheory.Polynomial.Basic
+import Mathlib.Data.Fintype.Card
+import Mathlib.Data.Finset.Card
+import Mathlib.Data.Finset.Basic
+import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
+import Mathlib.LinearAlgebra.Matrix.Diagonal
+import Mathlib.LinearAlgebra.Matrix.SchurComplement
+import Mathlib.LinearAlgebra.Matrix.Rank
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Ring
+import Mathlib.Tactic.Positivity
 
-open Matrix Polynomial Finset
-open scoped Polynomial
+open Classical
+open scoped BigOperators Matrix Finset
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
+/-!
+# Fisher's Inequality for Balanced Incomplete Block Designs
+-/
 
-variable {R : Type*} [CommRing R]
+variable {V : Type*} [Fintype V] [DecidableEq V]
+variable {B : Type*} [Fintype B] [DecidableEq B]
 
-/-- The `n × n` subdiagonal shift matrix with weights `W`. -/
-def shiftMatrix (n : ℕ) (W : Fin n → R) : Matrix (Fin n) (Fin n) R :=
-  fun i j => if (i : ℕ) = (j : ℕ) + 1 then W j else 0
+/-- Structure defining a $2$-$(v, k, \lambda)$ balanced incomplete block design (BIBD). -/
+structure BlockDesign (V : Type*) [Fintype V] [DecidableEq V] (B : Type*) [Fintype B] [DecidableEq B] where
+  block : B → Finset V
+  k : ℕ
+  r : ℕ
+  lambda : ℕ
+  card_block : ∀ b : B, (block b).card = k
+  rep_point : ∀ x : V, (Finset.filter (fun b => x ∈ block b) Finset.univ).card = r
+  pair_lambda : ∀ x y : V, x ≠ y → (Finset.filter (fun b => x ∈ block b ∧ y ∈ block b) Finset.univ).card = lambda
 
-lemma charmatrix_shiftMatrix_submatrix (n : ℕ) (W : Fin (n + 1) → R) :
-    (charmatrix (shiftMatrix (n + 1) W)).submatrix Fin.succ Fin.succ =
-      charmatrix (shiftMatrix n (fun x => W (Fin.succ x))) := by
-  apply Matrix.ext; intro i j
-  dsimp [charmatrix, Matrix.submatrix_apply, Matrix.sub_apply, Matrix.diagonal_apply]
-  have h_succ_eq : (Fin.succ i = Fin.succ j) ↔ (i = j) := Fin.succ_inj
-  have h_succ_add : (Fin.succ i : ℕ) = (Fin.succ j : ℕ) + 1 ↔ (i : ℕ) = (j : ℕ) + 1 := by
-    have _hi : (Fin.succ i : ℕ) = (i : ℕ) + 1 := Fin.val_succ i
-    have _hj : (Fin.succ j : ℕ) = (j : ℕ) + 1 := Fin.val_succ j
-    omega
-  simp only [h_succ_eq, h_succ_add, RingHom.mapMatrix_apply, Matrix.map_apply, shiftMatrix]
+namespace BlockDesign
 
-@[simp]
-lemma shiftMatrix_apply_zero (n : ℕ) (W : Fin (n + 1) → R) (b : Fin (n + 1)) :
-    shiftMatrix (n + 1) W 0 b = 0 := by
-  dsimp [shiftMatrix]
+variable (D : BlockDesign V B)
 
-/-- The characteristic polynomial of a nilpotent shift matrix is `X ^ n`. -/
-lemma charpoly_shiftMatrix (n : ℕ) (W : Fin n → R) :
-    (shiftMatrix n W).charpoly = X ^ n := by
-  induction n with
-  | zero => rw [Matrix.charpoly, Matrix.det_fin_zero, pow_zero]
-  | succ n ih =>
-    rw [Matrix.charpoly, Matrix.det_succ_row_zero, Finset.sum_eq_single 0]
-    · have h_succ : (Fin.succAbove (0 : Fin (n + 1)) : Fin n → Fin (n + 1)) = Fin.succ := rfl
-      rw [h_succ, charmatrix_shiftMatrix_submatrix, ← Matrix.charpoly, ih]
-      dsimp [charmatrix, Matrix.sub_apply, Matrix.diagonal_apply, Matrix.map_apply, shiftMatrix_apply_zero]
-      simp [pow_succ]
-      ring
-    · intro b _ hb
-      dsimp [charmatrix, Matrix.sub_apply, Matrix.diagonal_apply, Matrix.map_apply, shiftMatrix_apply_zero]
-      have hb0 : (0 : Fin (n + 1)) ≠ b := hb.symm
-      simp [hb0]
-    · simp
+noncomputable def incidenceMatrix : Matrix V B ℝ :=
+  fun x b => if x ∈ D.block b then 1 else 0
 
-/-- Upper-bidiagonal auxiliary matrix for cofactor expansion of cyclic matrices. -/
-noncomputable def upperBidiagonal (n : ℕ) (W : Fin n → R) : Matrix (Fin n) (Fin n) (Polynomial R) :=
-  fun i j => if (i : ℕ) = (j : ℕ) then - C (W j) else if (i : ℕ) + 1 = (j : ℕ) then X else 0
+def allOnesMatrix (V : Type*) [Fintype V] : Matrix V V ℝ :=
+  fun _ _ => 1
 
-lemma upperBidiagonal_submatrix (n : ℕ) (W : Fin (n + 1) → R) :
-    ((upperBidiagonal (n + 1) W).submatrix Fin.succ Fin.succ) =
-      upperBidiagonal n (fun x => W (Fin.succ x)) := by
-  apply Matrix.ext; intro i j
-  dsimp [upperBidiagonal, Matrix.submatrix_apply]
-  have c1 : (i : ℕ) + 1 = (j : ℕ) + 1 ↔ (i : ℕ) = (j : ℕ) := by omega
-  have c2 : (i : ℕ) + 1 + 1 = (j : ℕ) + 1 ↔ (i : ℕ) + 1 = (j : ℕ) := by omega
-  simp only [c1, c2]
+theorem incidence_mul_transpose_apply (x y : V) :
+    (incidenceMatrix D * (incidenceMatrix D)ᵀ) x y =
+      if x = y then (D.r : ℝ) else (D.lambda : ℝ) := by
+  simp only [Matrix.mul_apply, Matrix.transpose_apply, incidenceMatrix]
+  have h_prod (b : B) : (if x ∈ D.block b then (1 : ℝ) else 0) * (if y ∈ D.block b then (1 : ℝ) else 0) =
+      if x ∈ D.block b ∧ y ∈ D.block b then (1 : ℝ) else 0 := by
+    by_cases hx : x ∈ D.block b <;> by_cases hy : y ∈ D.block b <;> simp [hx, hy]
+  simp_rw [h_prod]
+  by_cases hxy : x = y
+  · subst hxy
+    simp only [and_self, ite_true]
+    have h_sum : (∑ b : B, if x ∈ D.block b then (1 : ℝ) else 0) =
+        ((Finset.filter (fun b => x ∈ D.block b) Finset.univ).card : ℝ) :=
+      Finset.sum_boole (fun b => x ∈ D.block b) Finset.univ
+    rw [h_sum]
+    exact congr_arg Nat.cast (D.rep_point x)
+  · simp only [hxy, ite_false]
+    have h_sum : (∑ b : B, if x ∈ D.block b ∧ y ∈ D.block b then (1 : ℝ) else 0) =
+        ((Finset.filter (fun b => x ∈ D.block b ∧ y ∈ D.block b) Finset.univ).card : ℝ) :=
+      Finset.sum_boole (fun b => x ∈ D.block b ∧ y ∈ D.block b) Finset.univ
+    rw [h_sum]
+    exact congr_arg Nat.cast (D.pair_lambda x y hxy)
 
-lemma det_upperBidiagonal (n : ℕ) (W : Fin n → R) :
-    (upperBidiagonal n W).det = ∏ i : Fin n, - C (W i) := by
-  induction n with
-  | zero => rw [Matrix.det_fin_zero, Fin.prod_univ_zero]
-  | succ n ih =>
-    rw [Matrix.det_succ_column_zero, Finset.sum_eq_single 0]
-    · change (-1) ^ (0 : ℕ) * _ * ((upperBidiagonal (n + 1) W).submatrix Fin.succ Fin.succ).det = _
-      rw [upperBidiagonal_submatrix, ih, Fin.prod_univ_succ]
-      dsimp [upperBidiagonal]
-      simp
-    · intro b _ hb
-      have h1 : (b : ℕ) ≠ 0 := Fin.val_ne_of_ne hb
-      dsimp [upperBidiagonal]
-      simp [h1]
-    · simp
+theorem gramian_eq :
+    incidenceMatrix D * (incidenceMatrix D)ᵀ =
+      ((D.r : ℝ) - (D.lambda : ℝ)) • (1 : Matrix V V ℝ) + (D.lambda : ℝ) • allOnesMatrix V := by
+  ext x y
+  rw [incidence_mul_transpose_apply D x y]
+  simp only [Matrix.add_apply, Matrix.smul_apply, Matrix.one_apply, allOnesMatrix]
+  by_cases h : x = y
+  · subst h
+    simp
+  · simp [h]
 
-variable {L : ℕ} [NeZero L] (W : ZMod L → R)
+theorem vr_eq_bk :
+    (Fintype.card V) * D.r = (Fintype.card B) * D.k := by
+  have h1 : (∑ x : V, (Finset.filter (fun b => x ∈ D.block b) Finset.univ).card) = Fintype.card V * D.r := by
+    simp [D.rep_point]
+  have h2 : (∑ b : B, (D.block b).card) = Fintype.card B * D.k := by
+    simp [D.card_block]
+  have h3 : (∑ x : V, (Finset.filter (fun b => x ∈ D.block b) Finset.univ).card) = ∑ b : B, (D.block b).card := by
+    have hx : ∀ x : V, (Finset.filter (fun b => x ∈ D.block b) Finset.univ).card =
+        ∑ b : B, if x ∈ D.block b then 1 else 0 := fun x => Finset.card_filter (fun b => x ∈ D.block b) Finset.univ
+    have hb : ∀ b : B, (D.block b).card = ∑ x : V, if x ∈ D.block b then 1 else 0 := by
+      intro b
+      have h : (Finset.filter (fun x => x ∈ D.block b) Finset.univ) = D.block b := by ext x; simp
+      conv_lhs => rw [← h]
+      exact Finset.card_filter (fun x => x ∈ D.block b) Finset.univ
+    simp_rw [hx, hb]
+    exact Finset.sum_comm
+  rw [← h1, h3, h2]
 
-/-- The cyclic matrix with edge weights `W` along the cyclic shift `j ↦ j + 1`. -/
-def cyclicWeightMatrix : Matrix (ZMod L) (ZMod L) R :=
-  fun i j => if i = j + 1 then W j else 0
+theorem r_mul_k_sub_one (x : V) :
+    D.r * (D.k - 1) = D.lambda * (Fintype.card V - 1) := by
+  let Bx := Finset.filter (fun b => x ∈ D.block b) Finset.univ
+  let Vx := Finset.filter (fun y => y ≠ x) Finset.univ
+  have hBx_card : Bx.card = D.r := D.rep_point x
+  have hVx_card : Vx.card = Fintype.card V - 1 := by
+    have : Vx = (Finset.univ : Finset V).erase x := by ext y; simp [Vx, ne_comm]
+    rw [this, Finset.card_erase_of_mem (Finset.mem_univ x), Fintype.card]
+  have h1 : ∑ b ∈ Bx, ((D.block b).erase x).card = D.r * (D.k - 1) := by
+    have h_each : ∀ b ∈ Bx, ((D.block b).erase x).card = D.k - 1 := by
+      intro b hb
+      simp only [Bx, Finset.mem_filter, Finset.mem_univ, true_and] at hb
+      rw [Finset.card_erase_of_mem hb, D.card_block]
+    rw [Finset.sum_congr rfl h_each, Finset.sum_const, smul_eq_mul, hBx_card]
+  have h2 : ∑ y ∈ Vx, (Finset.filter (fun b => x ∈ D.block b ∧ y ∈ D.block b) Finset.univ).card =
+      D.lambda * (Fintype.card V - 1) := by
+    have h_each : ∀ y ∈ Vx, (Finset.filter (fun b => x ∈ D.block b ∧ y ∈ D.block b) Finset.univ).card = D.lambda := by
+      intro y hy
+      simp only [Vx, Finset.mem_filter, Finset.mem_univ, true_and] at hy
+      exact D.pair_lambda x y (Ne.symm hy)
+    rw [Finset.sum_congr rfl h_each, Finset.sum_const, smul_eq_mul, hVx_card, mul_comm]
+  have h3 : (∑ b ∈ Bx, ((D.block b).erase x).card) =
+      ∑ y ∈ Vx, (Finset.filter (fun b => x ∈ D.block b ∧ y ∈ D.block b) Finset.univ).card := by
+    have hl : (∑ b ∈ Bx, ((D.block b).erase x).card) =
+        ∑ b : B, ∑ y : V, if x ∈ D.block b ∧ y ∈ D.block b ∧ y ≠ x then 1 else 0 := by
+      dsimp [Bx]
+      rw [Finset.sum_filter]
+      congr 1 with b
+      have he : ((D.block b).erase x).card = ∑ y : V, if y ∈ D.block b ∧ y ≠ x then 1 else 0 := by
+        have : ((D.block b).erase x) = Finset.filter (fun y => y ∈ D.block b ∧ y ≠ x) Finset.univ := by ext y; simp [and_comm]
+        conv_lhs => rw [this]
+        exact Finset.card_filter (fun y => y ∈ D.block b ∧ y ≠ x) Finset.univ
+      rw [he]
+      split_ifs with hbx
+      · simp [hbx]
+      · simp [hbx]
+    have hr : (∑ y ∈ Vx, (Finset.filter (fun b => x ∈ D.block b ∧ y ∈ D.block b) Finset.univ).card) =
+        ∑ y : V, ∑ b : B, if x ∈ D.block b ∧ y ∈ D.block b ∧ y ≠ x then 1 else 0 := by
+      dsimp [Vx]
+      rw [Finset.sum_filter]
+      congr 1 with y
+      have hf : (Finset.filter (fun b => x ∈ D.block b ∧ y ∈ D.block b) Finset.univ).card =
+          ∑ b : B, if x ∈ D.block b ∧ y ∈ D.block b then 1 else 0 :=
+        Finset.card_filter (fun b => x ∈ D.block b ∧ y ∈ D.block b) Finset.univ
+      rw [hf]
+      split_ifs with hy
+      · simp [hy]
+      · simp [hy]
+    rw [hl, hr, Finset.sum_comm]
+  rw [← h1, h3, h2]
 
-lemma charmatrix_cyclic_submatrix_00 (n : ℕ) (W : ZMod (n + 1 + 1) → R) :
-    (charmatrix (Matrix.of fun i j : Fin (n + 1 + 1) => cyclicWeightMatrix W i j)).submatrix Fin.succ Fin.succ =
-      charmatrix (shiftMatrix (n + 1) (fun x => W (Fin.succ x))) := by
-  apply Matrix.ext; intro i j
-  dsimp [charmatrix, Matrix.submatrix_apply, Matrix.sub_apply, Matrix.diagonal_apply]
-  simp only [RingHom.mapMatrix_apply, Matrix.map_apply, Matrix.of_apply,
-    shiftMatrix, cyclicWeightMatrix, Fin.succ_inj]
-  congr 2
-  split_ifs with h1 h2 h2
-  · rfl
-  · exfalso
-    have hi : (i : ℕ) < n + 1 := i.is_lt
-    have hj : (j : ℕ) < n + 1 := j.is_lt
-    have hval := congrArg Fin.val h1
-    change (i : ℕ) + 1 = ((j : ℕ) + 1 + 1) % (n + 1 + 1) at hval
-    rcases lt_or_eq_of_le (Nat.succ_le_of_lt hj) with hlt | heq
-    · rw [Nat.mod_eq_of_lt (by omega)] at hval
-      omega
-    · have h_mod : ((j : ℕ) + 1 + 1) % (n + 1 + 1) = 0 := by
-        have : (j : ℕ) + 1 + 1 = n + 1 + 1 := by omega
-        rw [this, Nat.mod_self]
-      rw [h_mod] at hval
-      omega
-  · exfalso
-    have hi : (i : ℕ) < n + 1 := i.is_lt
-    have hj : (j : ℕ) < n + 1 := j.is_lt
-    apply h1
-    apply Fin.ext
-    change (i : ℕ) + 1 = ((j : ℕ) + 1 + 1) % (n + 1 + 1)
-    rw [Nat.mod_eq_of_lt (by omega)]
-    omega
-  · rfl
+theorem r_gt_lambda (hk : D.k < Fintype.card V) (hl : 0 < D.lambda) (hk1 : 1 < D.k) :
+    (D.lambda : ℝ) < (D.r : ℝ) := by
+  have hv : 0 < Fintype.card V := by linarith
+  have : Nonempty V := Fintype.card_pos_iff.mp hv
+  obtain ⟨x⟩ := this
+  have h := D.r_mul_k_sub_one x
+  have hk_sub : ((D.k - 1 : ℕ) : ℝ) = (D.k : ℝ) - 1 := by rw [Nat.cast_sub (by linarith)]; simp
+  have hv_sub : ((Fintype.card V - 1 : ℕ) : ℝ) = (Fintype.card V : ℝ) - 1 := by rw [Nat.cast_sub (by linarith)]; simp
+  have h_nat : ((D.r * (D.k - 1) : ℕ) : ℝ) = ((D.lambda * (Fintype.card V - 1) : ℕ) : ℝ) := by exact_mod_cast h
+  push_cast at h_nat
+  rw [hk_sub, hv_sub] at h_nat
+  have hk_pos : 0 < (D.k : ℝ) - 1 := by linarith [show 1 < (D.k : ℝ) by exact_mod_cast hk1]
+  have h_ineq : (D.lambda : ℝ) * ((D.k : ℝ) - 1) < (D.lambda : ℝ) * ((Fintype.card V : ℝ) - 1) := by
+    apply mul_lt_mul_of_pos_left _ (by exact_mod_cast hl)
+    linarith [show (D.k : ℝ) < (Fintype.card V : ℝ) by exact_mod_cast hk]
+  rw [← h_nat] at h_ineq
+  exact (mul_lt_mul_iff_of_pos_right hk_pos).mp h_ineq
 
-lemma charmatrix_cyclic_submatrix_0n (n : ℕ) (W : ZMod (n + 1 + 1) → R) :
-    (charmatrix (Matrix.of fun i j : Fin (n + 1 + 1) => cyclicWeightMatrix W i j)).submatrix Fin.succ (Fin.last (n + 1)).succAbove =
-      upperBidiagonal (n + 1) (fun x => W (Fin.castSucc x)) := by
-  apply Matrix.ext; intro i j
-  dsimp [charmatrix, Matrix.submatrix_apply, Matrix.sub_apply, Matrix.diagonal_apply, upperBidiagonal]
-  rw [Fin.succAbove_last]
-  simp only [RingHom.mapMatrix_apply, Matrix.map_apply, Matrix.of_apply, cyclicWeightMatrix]
-  have hi : (i : ℕ) < n + 1 := i.is_lt
-  have hj : (j : ℕ) < n + 1 := j.is_lt
-  split_ifs with h1 h2 h3 h4 h5 h6 h7 h8 <;> try { simp [map_zero] } <;> try {
-    exfalso
-    first
-    | have hval := congrArg Fin.val h1; dsimp at hval; omega
-    | have hval1 := congrArg Fin.val h1; have hval2 := congrArg Fin.val h2; dsimp at hval1; change (i : ℕ) + 1 = ((j : ℕ) + 1) % (n + 1 + 1) at hval2; rw [Nat.mod_eq_of_lt (by omega)] at hval2; omega
-    | have hval := congrArg Fin.val h7; change (i : ℕ) + 1 = ((j : ℕ) + 1) % (n + 1 + 1) at hval; rw [Nat.mod_eq_of_lt (by omega)] at hval; omega
-    | apply h1; apply Fin.ext; dsimp; omega
-    | apply h7; apply Fin.ext; change (i : ℕ) + 1 = ((j : ℕ) + 1) % (n + 1 + 1); rw [Nat.mod_eq_of_lt (by omega)]; omega
-  }
+theorem det_allOnes_shift (c d : ℝ) (hc : c ≠ 0) (hv : 0 < Fintype.card V) :
+    Matrix.det ((c • (1 : Matrix V V ℝ)) + (d • allOnesMatrix V)) =
+      c ^ (Fintype.card V - 1) * (c + (Fintype.card V : ℝ) * d) := by
+  have h_mat : (c • (1 : Matrix V V ℝ)) + (d • allOnesMatrix V) =
+      c • (1 + Matrix.replicateCol Unit (fun _ : V => d / c) * Matrix.replicateRow Unit (fun _ : V => (1 : ℝ))) := by
+    ext i j
+    simp only [Matrix.add_apply, Matrix.smul_apply, Matrix.one_apply, allOnesMatrix, Matrix.mul_apply,
+      Matrix.replicateCol, Matrix.replicateRow, Finset.univ_unique, Finset.sum_singleton]
+    by_cases hij : i = j
+    · subst hij
+      simp [mul_add, mul_div_cancel₀ d hc, add_comm]
+    · simp [hij, mul_div_cancel₀ d hc]
+  rw [h_mat, Matrix.det_smul, Matrix.det_one_add_replicateCol_mul_replicateRow]
+  simp only [dotProduct, Finset.sum_const, nsmul_eq_mul]
+  have h_exp : c ^ Fintype.card V = c ^ (Fintype.card V - 1) * c := by
+    have : Fintype.card V = Fintype.card V - 1 + 1 := (Nat.sub_add_cancel hv).symm
+    nth_rw 1 [this]
+    rw [pow_succ]
+  change c ^ Fintype.card V * (1 + (Fintype.card V : ℝ) * (1 * (d / c))) = _
+  rw [h_exp]
+  have h_cancel : c * (d / c) = d := mul_div_cancel₀ d hc
+  calc c ^ (Fintype.card V - 1) * c * (1 + (Fintype.card V : ℝ) * (1 * (d / c)))
+    _ = c ^ (Fintype.card V - 1) * (c * (1 + (Fintype.card V : ℝ) * (d / c))) := by ring
+    _ = c ^ (Fintype.card V - 1) * (c + (Fintype.card V : ℝ) * (c * (d / c))) := by ring
+    _ = c ^ (Fintype.card V - 1) * (c + (Fintype.card V : ℝ) * d) := by rw [h_cancel]
 
-lemma prod_ZMod (n : ℕ) (W : ZMod (n + 1 + 1) → R) :
-    (∏ k : ZMod (n + 1 + 1), W k) = (∏ i : Fin n, W (Fin.castSucc i).succ) * W (Fin.last (n + 1) : ZMod (n + 1 + 1)) * W 0 := by
-  have h1 : (∏ k : ZMod (n + 1 + 1), W k) = (∏ k : Fin (n + 1 + 1), (W k : R)) := rfl
-  rw [h1, Fin.prod_univ_castSucc (fun k : Fin (n + 1 + 1) => W k), Fin.prod_univ_succ (fun k : Fin (n + 1) => W (Fin.castSucc k))]
-  have h_eq : (∏ i : Fin n, W (Fin.castSucc (Fin.succ i) : ZMod (n + 1 + 1))) = ∏ i : Fin n, W ((Fin.castSucc i).succ : ZMod (n + 1 + 1)) := rfl
-  rw [h_eq]
-  have h0 : (Fin.castSucc (0 : Fin (n + 1)) : ZMod (n + 1 + 1)) = (0 : ZMod (n + 1 + 1)) := rfl
-  rw [h0]
+theorem det_gramian (hv : 0 < Fintype.card V) (hc : (D.r : ℝ) - (D.lambda : ℝ) ≠ 0) :
+    Matrix.det (incidenceMatrix D * (incidenceMatrix D)ᵀ) =
+      ((D.r : ℝ) - (D.lambda : ℝ)) ^ (Fintype.card V - 1) *
+      ((D.r : ℝ) + ((Fintype.card V : ℝ) - 1) * (D.lambda : ℝ)) := by
+  rw [D.gramian_eq]
+  have h := det_allOnes_shift ((D.r : ℝ) - (D.lambda : ℝ)) (D.lambda : ℝ) hc hv
+  rw [h]
+  congr 1
   ring
 
-/-- The characteristic polynomial of an `L × L` cyclic weight matrix is `X ^ L - ∏ W`. -/
-theorem charpoly_cyclicWeightMatrix :
-    (cyclicWeightMatrix W).charpoly = X ^ L - C (∏ k : ZMod L, W k) := by
-  cases L with
-  | zero => exact (NeZero.ne 0 rfl).elim
-  | succ m =>
-    cases m with
-    | zero =>
-      have h_charpoly : (cyclicWeightMatrix W).charpoly = (Matrix.of fun (i j : Fin 1) => cyclicWeightMatrix W i j).charpoly := rfl
-      rw [h_charpoly, Matrix.charpoly, Matrix.det_fin_one]
-      change X - C (if ((0 : Fin 1) : ZMod 1) = ((0 : Fin 1) : ZMod 1) + 1 then W ((0 : Fin 1) : ZMod 1) else 0) = X ^ 1 - C (∏ k : ZMod 1, W k)
-      have h2 : ((0 : Fin 1) : ZMod 1) = ((0 : Fin 1) : ZMod 1) + 1 := Subsingleton.elim _ _
-      have h_prod : (∏ k : ZMod 1, W k) = W (0 : ZMod 1) := by
-        have h_equiv : (∏ k : ZMod 1, W k) = ∏ k : Fin 1, (W k : R) := rfl
-        rw [h_equiv]
-        exact Fin.prod_univ_one (fun k : Fin 1 => W k)
-      rw [if_pos h2, pow_one, h_prod]
-      rfl
-    | succ n =>
-      have h_charpoly : (cyclicWeightMatrix W).charpoly = (Matrix.of fun (i j : Fin (n + 1 + 1)) => cyclicWeightMatrix W i j).charpoly := rfl
-      rw [h_charpoly]
-      rw [Matrix.charpoly, Matrix.det_succ_row_zero, Finset.sum_eq_add_of_mem 0 (Fin.last (n + 1))]
-      · have h_succ : (Fin.succAbove (0 : Fin (n + 1 + 1)) : Fin (n + 1) → Fin (n + 1 + 1)) = Fin.succ := rfl
-        rw [h_succ]
-        rw [charmatrix_cyclic_submatrix_00]
-        have h_shift := charpoly_shiftMatrix (n + 1) (fun x => W (Fin.succ x))
-        rw [Matrix.charpoly] at h_shift
-        rw [h_shift]
-        rw [charmatrix_cyclic_submatrix_0n, det_upperBidiagonal]
-        have h_pow : (-1 : Polynomial R) ^ (Fin.last (n + 1) : ℕ) = (-1) ^ (n + 1) := rfl
-        rw [h_pow]
-        rw [prod_ZMod]
-        rw [Fin.prod_univ_succ (fun i : Fin (n + 1) => -C (W (Fin.castSucc i)))]
-        rw [Matrix.charmatrix_apply, Matrix.diagonal_apply, Matrix.charmatrix_apply, Matrix.diagonal_apply]
-        dsimp [cyclicWeightMatrix, Matrix.of_apply]
-        have h_prod_neg : (∏ i : Fin n, -C (W (Fin.castSucc i).succ)) = (-1 : Polynomial R) ^ n * ∏ i : Fin n, C (W (Fin.castSucc i).succ) := by
-          have : ∀ i, -C (W (Fin.castSucc i).succ) = (-1 : Polynomial R) * C (W (Fin.castSucc i).succ) := fun i => by ring
-          simp_rw [this]
-          rw [Finset.prod_mul_distrib]
-          have h_const : (∏ i : Fin n, (-1 : Polynomial R)) = (-1 : Polynomial R) ^ n := by
-            have hc : (Finset.univ : Finset (Fin n)).card = n := Fintype.card_fin n
-            have : (∏ i : Fin n, (-1 : Polynomial R)) = (-1 : Polynomial R) ^ (Finset.univ : Finset (Fin n)).card := Finset.prod_const (-1 : Polynomial R)
-            rw [this, hc]
-          rw [h_const]
-        rw [h_prod_neg]
-        split_ifs with h1 h2 h3
-        · exfalso
-          have hval := congrArg Fin.val h1
-          change 0 = (0 + 1) % (n + 1 + 1) at hval
-          rw [Nat.mod_eq_of_lt (by omega)] at hval
-          omega
-        · exfalso
-          have hval := congrArg Fin.val h1
-          change 0 = (0 + 1) % (n + 1 + 1) at hval
-          rw [Nat.mod_eq_of_lt (by omega)] at hval
-          omega
-        · simp only [pow_zero, map_zero, sub_zero, one_mul, zero_sub]
-          have h_term1 : (X : Polynomial R) * X ^ (n + 1) = X ^ (n + 1 + 1) := by
-            have : (X : Polynomial R) = X ^ 1 := (pow_one X).symm
-            nth_rw 1 [this]
-            rw [← pow_add]
-            congr 1
-            omega
-          rw [h_term1]
-          have h_pow_even : (-1 : Polynomial R) ^ (n * 2) = 1 := by
-            have h1 : (-1 : Polynomial R) ^ (n * 2) = ((-1 : Polynomial R) ^ 2) ^ n := by
-              have : n * 2 = 2 * n := mul_comm n 2
-              rw [this, pow_mul]
-            rw [h1]
-            have h2 : (-1 : Polynomial R) ^ 2 = 1 := by ring
-            rw [h2, one_pow]
-          have h_pow_simp : (-1 : Polynomial R) ^ n * (-1 : Polynomial R) ^ n = 1 := by
-            have h3 : (-1 : Polynomial R) ^ n * (-1 : Polynomial R) ^ n = (-1 : Polynomial R) ^ (n * 2) := by
-              rw [← pow_add]
-              have : n + n = n * 2 := by omega
-              rw [this]
-            rw [h3, h_pow_even]
-          have h_pow_succ : (-1 : Polynomial R) ^ (n + 1) = (-1 : Polynomial R) ^ n * -1 := by ring
-          have h_C_all : C (W (Fin.last (n + 1))) * C (W 0) * ∏ i : Fin n, C (W (Fin.castSucc i).succ) = C ((∏ i : Fin n, W (Fin.castSucc i).succ) * W (Fin.last (n + 1)) * W 0) := by
-            have h_prod_C : (∏ i : Fin n, C (W (Fin.castSucc i).succ)) = C (∏ i : Fin n, W (Fin.castSucc i).succ) := (map_prod C _ _).symm
-            rw [h_prod_C, ← _root_.map_mul, ← _root_.map_mul]
-            congr 1
-            ring
-          rw [sub_eq_add_neg, h_pow_succ]
-          congr 1
-          rw [← h_C_all]
-          calc
-            (-1 : Polynomial R) ^ n * -1 * -C (W (Fin.last (n + 1))) * (-C (W 0) * ((-1 : Polynomial R) ^ n * ∏ i : Fin n, C (W (Fin.castSucc i).succ))) =
-              - (((-1 : Polynomial R) ^ n * (-1 : Polynomial R) ^ n) * (C (W (Fin.last (n + 1))) * C (W 0) * ∏ i : Fin n, C (W (Fin.castSucc i).succ))) := by ring
-            _ = - (1 * (C (W (Fin.last (n + 1))) * C (W 0) * ∏ i : Fin n, C (W (Fin.castSucc i).succ))) := by rw [h_pow_simp]
-            _ = - (C (W (Fin.last (n + 1))) * C (W 0) * ∏ i : Fin n, C (W (Fin.castSucc i).succ)) := by ring
-        · exfalso
-          apply h3
-          apply Fin.ext
-          change 0 = (n + 1 + 1) % (n + 1 + 1)
-          rw [Nat.mod_self]
-      · exact mem_univ 0
-      · exact mem_univ (Fin.last (n + 1))
-      · intro h
-        have : (0 : ℕ) = n + 1 := congrArg Fin.val h
-        omega
-      · intro b _ hb_ne
-        have hb0 : b ≠ 0 := hb_ne.1
-        have hbn : b ≠ Fin.last (n + 1) := hb_ne.2
-        rw [Matrix.charmatrix_apply, Matrix.diagonal_apply]
-        dsimp [cyclicWeightMatrix, Matrix.of_apply]
-        split_ifs with h1 h2 h3
-        · exfalso; exact hb0 h1.symm
-        · exfalso; exact hb0 h1.symm
-        · exfalso
-          have hlt : (b : ℕ) + 1 < n + 1 + 1 := by
-            have h_lt : (b : ℕ) < n + 1 + 1 := b.is_lt
-            have h_neq : (b : ℕ) ≠ n + 1 := fun eq => hbn (Fin.ext eq)
-            omega
-          have hval := congrArg Fin.val h3
-          change 0 = ((b : ℕ) + 1) % (n + 1 + 1) at hval
-          rw [Nat.mod_eq_of_lt hlt] at hval
-          omega
-        · simp
+theorem det_gramian_pos (hv : 1 < Fintype.card V) (hk : D.k < Fintype.card V)
+    (hl : 0 < D.lambda) (hk1 : 1 < D.k) :
+    0 < Matrix.det (incidenceMatrix D * (incidenceMatrix D)ᵀ) := by
+  have hr_gt_l := D.r_gt_lambda hk hl hk1
+  have hc : (D.r : ℝ) - (D.lambda : ℝ) ≠ 0 := by linarith
+  have hv0 : 0 < Fintype.card V := by linarith
+  rw [D.det_gramian hv0 hc]
+  have h_diff_pos : 0 < (D.r : ℝ) - (D.lambda : ℝ) := by linarith
+  have h_pow_pos : 0 < ((D.r : ℝ) - (D.lambda : ℝ)) ^ (Fintype.card V - 1) := by positivity
+  have h_term2_pos : 0 < (D.r : ℝ) + ((Fintype.card V : ℝ) - 1) * (D.lambda : ℝ) := by
+    have hl_pos : 0 < (D.lambda : ℝ) := by exact_mod_cast hl
+    have hr_pos : 0 < (D.r : ℝ) := by linarith
+    have hv_sub_pos : 0 < (Fintype.card V : ℝ) - 1 := by linarith [show 1 < (Fintype.card V : ℝ) by exact_mod_cast hv]
+    positivity
+  exact mul_pos h_pow_pos h_term2_pos
+
+theorem fishers_inequality (hv : 1 < Fintype.card V) (hk : D.k < Fintype.card V)
+    (hl : 0 < D.lambda) (hk1 : 1 < D.k) :
+    Fintype.card V ≤ Fintype.card B := by
+  have h_det_pos := D.det_gramian_pos hv hk hl hk1
+  have h_det_ne : (incidenceMatrix D * (incidenceMatrix D)ᵀ).det ≠ 0 := ne_of_gt h_det_pos
+  have h_rank_gram : (incidenceMatrix D * (incidenceMatrix D)ᵀ).rank = Fintype.card V :=
+    Matrix.rank_of_det_ne_zero h_det_ne
+  have h_rank_le : (incidenceMatrix D * (incidenceMatrix D)ᵀ).rank ≤ (incidenceMatrix D).rank := by
+    have h := Matrix.rank_mul_le (incidenceMatrix D) (incidenceMatrix D)ᵀ
+    exact le_trans h (min_le_left _ _)
+  have h_rank_le_B : (incidenceMatrix D).rank ≤ Fintype.card B := Matrix.rank_le_card_width _
+  linarith
+
+end BlockDesign
