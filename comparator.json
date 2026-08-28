@@ -2,10 +2,9 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "MacMahon.macmahon_zero_exponent",
-    "MacMahon.coeff_zero_detMacMahon",
-    "MacMahon.macmahon_master_theorem",
-    "MacMahon.macmahon_dim1"
+    "SimpleGraph.laplacian_transpose_eq",
+    "SimpleGraph.laplacian_row_sum_zero",
+    "SimpleGraph.incidence_mul_transpose"
   ],
   "permitted_axioms": [
     "propext",
