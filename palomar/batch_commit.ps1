@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-$root = (Get-Item .).FullName
+$root = (Get-Item $PSScriptRoot).Parent.FullName
 $palomarDir = Join-Path $root "palomar"
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 

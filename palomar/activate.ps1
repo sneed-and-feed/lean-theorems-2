@@ -4,7 +4,7 @@ param (
 )
 
 $ErrorActionPreference = "Stop"
-$root = "c:\Users\x\Documents\antigravity\lean-theorems-1"
+$root = (Get-Item $PSScriptRoot).Parent.FullName
 $src = Join-Path "$root\palomar" $Slug
 
 if (!(Test-Path $src)) {
@@ -48,7 +48,7 @@ Write-Output ""
 Write-Output "=================================================================="
 Write-Output "  SUCCESS: '$Slug' is active and pushed to GitHub!"
 Write-Output "=================================================================="
-Write-Output "  Repository: sneed-and-feed/lean-theorems-1"
+Write-Output "  Repository: sneed-and-feed/lean-theorems-2"
 Write-Output "  Commit SHA: $sha"
 Write-Output "  Comparator: comparator.json"
 Write-Output "  Portal URL: https://submit.palomar-registry.org/"
