@@ -2,22 +2,10 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "StanleySL2.rankLevel_isAntichain",
-    "StanleySL2.rank_complement",
-    "StanleySL2.rankSize_symm",
-    "StanleySL2.sl2_norm_sq_lower_bound",
-    "StanleySL2.sl2_dimension_le",
-    "StanleySL2.sl2_dim_mono_left",
-    "StanleySL2.sl2_dimension_le_middle",
-    "StanleySL2.sl2_hard_lefschetz_isomorphism",
-    "StanleySL2.sl2_raising_injective",
-    "StanleySL2.rankSize_unimodal",
-    "StanleySL2.rankSize_le_middle",
-    "StanleySL2.sperner_partition_poset_slice",
-    "StanleySL2.sperner_partition_poset",
-    "StanleySL2.rankSize_one_row",
-    "StanleySL2.rankSize_2_2_middle_ge_two",
-    "StanleySL2.explicit_antichain_2_2"
+    "TuransTheorem.mantels_theorem",
+    "TuransTheorem.turans_theorem_exact",
+    "TuransTheorem.turans_theorem",
+    "TuransTheorem.turans_uniqueness"
   ],
   "permitted_axioms": [
     "propext",

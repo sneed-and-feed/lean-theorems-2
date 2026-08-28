@@ -1,55 +1,66 @@
 version: "v0.4"
 
 project:
-  name: "Stanley's sl2 Representation Proof of the Strong Sperner Property for L(m, n)"
+  name: "Turán's Theorem in Extremal Graph Theory"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A machine-checked Lean 4 formalization of Richard Stanley's sl2 representation theorem (1980) on the partition poset L(m, n).
-    Formalizes the Young diagram containment poset, partition complementation involution, rank symmetry p_k(m, n) = p_{mn-k}(m, n),
-    graded sl2-module representation theory, raising operator injectivity (Hard Lefschetz property), rank unimodality of q-binomial
-    coefficients, and the Strong Sperner property bounding all rank-level antichains by the middle rank capacity.
-    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type signature
-    search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+    A complete Lean 4 formalization of Turán's Theorem (1941), Mantel's Theorem (1907), the discrete and
+    continuous Turán edge bounds, and the full Turán uniqueness/stability characterization. Proves that any
+    K_{r+1}-free simple graph on n vertices has at most the number of edges in the complete r-partite Turán graph T(n, r),
+    and that equality holds if and only if G is isomorphic to T(n, r). Mathlib contains the Turán number upper bound;
+    this formalization establishes the exact polynomial equivalence between discrete and continuous edge bounds, Mantel's
+    theorem, and complete multipartite uniqueness, verified absent from the core Mathlib library in this comprehensive form
+    (checked against Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.CO, math.RT]
-  msc2020: ["05E10", "06A07", "17B10"]
+  arxiv: [math.CO]
+  msc2020: ["05C35", "05C75"]
 
 sources:
-  - title: "Weyl groups, the hard Lefschetz theorem, and the Sperner property"
+  - title: "Eine Extremalaufgabe aus der Graphentheorie"
     type: paper
     authors:
-      - "Richard P. Stanley"
+      - "Pál Turán"
+    year: 1941
+    venue: "Matematikai és Fizikai Lapok, 48, 436–452"
     relationship: formalizes
-  - title: "Representations of sl(2, C) on posets and the Sperner property"
+  - title: "Vraagstuk XXVIII"
     type: paper
     authors:
-      - "Robert A. Proctor"
-    relationship: adapts
+      - "W. Mantel"
+    year: 1907
+    venue: "Wiskundige Opgaven, 10, 60–61"
+    relationship: formalizes
+  - title: "A method for solving extremal problems in graph theory"
+    type: paper
+    authors:
+      - "Miklós Simonovits"
+    year: 1968
+    venue: "Theory of Graphs, 279–319"
+    relationship: background
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Data/Fintype/Basic.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Extremal/Turan.lean"
     relationship: builds-on
     note: >-
-      Formalization builds on Mathlib's finite type and finset combinatorics infrastructure.
+      Builds on Mathlib's simple graph extremal Turán library and extends it to formalize discrete-continuous
+      polynomial identities, Mantel's theorem, and complete multipartite structural uniqueness.
 
 automation:
   methods:
     - method: agent
       tool_setup: >-
-        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
-        Lean LSP checking under maintainer direction and human verification.
-        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
+        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
+        and verified with zero custom axioms under standard Lean 4 kernel axioms.
 
 review:
   status: self-assessed
   reviewers:
     - "sneed-and-feed maintainers"
   notes: >-
-    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
-    while all definitions and theorem statements are completely specified. Solution verified through
-    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.
+    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
+    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.
