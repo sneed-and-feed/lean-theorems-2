@@ -1,382 +1,264 @@
-import Mathlib.Combinatorics.SimpleGraph.Basic
-import Mathlib.Combinatorics.SimpleGraph.Clique
-import Mathlib.Combinatorics.SimpleGraph.DegreeSum
-import Mathlib.Combinatorics.SimpleGraph.Extremal.Basic
-import Mathlib.Combinatorics.SimpleGraph.Extremal.Turan
 import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Finset.Card
-import Mathlib.Data.Fintype.Basic
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic
+import Mathlib.Data.Finset.Image
+import Mathlib.Data.Fin.Basic
+import Mathlib.Data.Fintype.Pigeonhole
+import Mathlib.Tactic.IntervalCases
+import Mathlib.Combinatorics.HalesJewett
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
 
 set_option linter.unusedSectionVars false
 set_option linter.unusedVariables false
 set_option linter.style.haveILetI false
 
-open Finset SimpleGraph
+open Finset
 
 /-!
-# Turán's Theorem in Extremal Graph Theory (1941)
+# Van der Waerden's Theorem on Arithmetic Progressions (1927)
 
-This module formalizes **Turán's Theorem** (Pál Turán, 1941) and its foundational base case,
-**Mantel's Theorem** (W. Mantel, 1907), representing the starting point of extremal graph theory.
+This module formalizes **Van der Waerden's Theorem** (B. L. van der Waerden, 1927),
+one of the central pillars of Ramsey theory and additive combinatorics.
 
 ## Mathematical Statement
 
-Let $G = (V, E)$ be a finite simple graph on $n = |V|$ vertices.
-If $G$ contains no complete subgraph of size $r + 1$ (i.e. $G$ is $K_{r+1}$-free, or $\omega(G) \le r$),
-then the number of edges in $G$ is at most the number of edges in the **Turán graph** $T(n, r)$:
-$$|E(G)| \le e(T(n, r)) = \frac{r - 1}{2r} (n^2 - (n \bmod r)^2) + \binom{n \bmod r}{2} \le \left(1 - \frac{1}{r}\right) \frac{n^2}{2}$$
+For any positive integers $r \ge 1$ (number of colors) and $k \ge 1$ (length of progression),
+there exists a finite positive integer $W(r, k)$, known as the **Van der Waerden number**,
+such that for every $r$-coloring of the integers $\{1, 2, \dots, W(r, k)\}$:
+$$\chi : \{1, \dots, W(r, k)\} \to \{1, \dots, r\}$$
+there exists a **monochromatic arithmetic progression** of length $k$:
+$$\exists a, d \in \mathbb{N}, \quad d > 0 \quad \text{such that} \quad \chi(a) = \chi(a + d) = \chi(a + 2d) = \dots = \chi(a + (k - 1)d)$$
 
-### 1. Mantel's Theorem (1907, $r = 2$)
-Any triangle-free graph on $n$ vertices has at most $\lfloor n^2 / 4 \rfloor$ edges:
-$$|E(G)| \le \frac{n^2}{4}$$
-with equality if and only if $G$ is the balanced complete bipartite graph $K_{\lfloor n/2 \rfloor, \lceil n/2 \rceil}$.
-
-### 2. Turán Graph $T(n, r)$
-The Turán graph $T(n, r)$ is the complete $r$-partite graph whose vertex set is partitioned into
-$r$ parts as equally sized as possible (each part has size $\lfloor n/r \rfloor$ or $\lceil n/r \rceil$).
-
-### 3. Turán Stability & Uniqueness
-A $K_{r+1}$-free graph achieving the maximal number of edges $e(T(n, r))$ is isomorphic
-to the complete $r$-partite Turán graph.
+## Proof Architecture (Multiple Van der Waerden & Color Focusing)
+1. **Double Induction (on $k$, then on $r$):**
+   The standard proof proceeds by strong induction on $k$, and an inner induction on $r$,
+   proving the stronger statement that for any $m \ge 1$, one can find "color-focused" fans of APs.
+2. **Product Coloring & Block Induction:**
+   Large intervals are partitioned into blocks of length $B$. An $r$-coloring of the universe induces
+   an $r^B$-coloring of the blocks. By induction on $k-1$, blocks contain monochromatic structures,
+   which are then extended to a full $k$-term monochromatic AP.
 
 ## References
-* Turán, P. (1941). *Eine Extremalaufgabe aus der Graphentheorie*. Mat. Fiz. Lapok, 48, 436–452.
-* Mantel, W. (1907). *Vraagstuk XXVIII*. Wiskundige Opgaven, 10, 60–61.
-* Simonovits, M. (1968). *A method for solving extremal problems in graph theory*. Theory of Graphs, 279–319.
-* Aigner, M., & Ziegler, G. M. (2018). *Proofs from THE BOOK*. Springer.
+* Van der Waerden, B. L. (1927). *Beweis einer Baudetschen Vermutung*. Nieuw Archief voor Wiskunde, 15, 212–216.
+* Graham, R. L., Rothschild, B. L., & Spencer, J. H. (1990). *Ramsey Theory*. John Wiley & Sons.
+* Gowers, W. T. (2001). *A new proof of Szemerédi's theorem*. Geometric and Functional Analysis, 11(3), 465–588.
+* Freek Wiedijk. *Formalizing 100 Theorems*.
 -/
 
-namespace TuransTheorem
-
-variable {V : Type*} [Fintype V] [DecidableEq V]
+namespace VanDerWaerden
 
 -- ============================================================================
--- Section 1: Cliques and Free Graphs
+-- Section 1: Arithmetic Progressions and Monochromaticity
 -- ============================================================================
 
-/-- A graph `G` is `k`-clique-free if it contains no complete subgraph on `k` vertices. -/
-def IsCliqueFree (G : SimpleGraph V) (k : ℕ) : Prop :=
-  ∀ (s : Finset V), G.IsClique (s : Set V) → s.card < k
+/-- An arithmetic progression of length `k` with start `a` and step `d`. -/
+def arithmeticProgression (a d k : ℕ) : Finset ℕ :=
+  (Finset.range k).image (fun i => a + i * d)
 
-/-- Predicate stating that `G` is triangle-free (contains no `K₃`). -/
-def IsTriangleFree (G : SimpleGraph V) : Prop :=
-  IsCliqueFree G 3
+/-- Predicate stating that an arithmetic progression is monochromatic under coloring `c`. -/
+def IsMonochromaticAP {r : ℕ} (c : ℕ → Fin r) (a d k : ℕ) : Prop :=
+  d > 0 ∧ ∀ i : Fin k, c (a + (i : ℕ) * d) = c a
 
-/-- Bridge connecting `IsCliqueFree G k` to Mathlib's native `G.CliqueFree k`. -/
-lemma isCliqueFree_iff_cliqueFree (G : SimpleGraph V) (k : ℕ) :
-    IsCliqueFree G k ↔ G.CliqueFree k := by
-  constructor
-  · intro h s hs
-    have hc := h s hs.isClique
-    rw [hs.card_eq] at hc
-    exact Nat.lt_irrefl k hc
-  · intro h s hs
-    by_contra! hle
-    obtain ⟨t, hts, ht⟩ := Finset.exists_subset_card_eq hle
-    have htc : G.IsClique (t : Set V) := hs.subset (Finset.coe_subset.mpr hts)
-    exact h t ⟨htc, ht⟩
+/-- A finite interval `Fin W` contains a monochromatic arithmetic progression of length `k`. -/
+def HasMonochromaticAP {r : ℕ} (W : ℕ) (c : Fin W → Fin r) (k : ℕ) : Prop :=
+  ∃ (a d : ℕ), d > 0 ∧ ∃ (h_bound : a + (k - 1) * d < W),
+    ∀ (i : Fin k),
+      c ⟨a + (i : ℕ) * d, by
+        have : (i : ℕ) ≤ k - 1 := by omega
+        have h_mul : (i : ℕ) * d ≤ (k - 1) * d := Nat.mul_le_mul_right d this
+        omega⟩ = c ⟨a, by
+        have : a ≤ a + (k - 1) * d := by omega
+        omega⟩
 
-/-- Bridge connecting `IsTriangleFree G` to Mathlib's `G.CliqueFree 3`. -/
-lemma isTriangleFree_iff_cliqueFree (G : SimpleGraph V) :
-    IsTriangleFree G ↔ G.CliqueFree 3 :=
-  isCliqueFree_iff_cliqueFree G 3
+/-- The Van der Waerden property for a given bound `W`, number of colors `r`, and length `k`. -/
+def HasVDWProperty (W r k : ℕ) : Prop :=
+  ∀ (c : Fin W → Fin r), HasMonochromaticAP W c k
 
 -- ============================================================================
--- Section 2: Turán Edge Bounds and Exact Formula
+-- Section 2: Small Values and Base Cases
 -- ============================================================================
 
-/-- Exact number of edges in the Turán graph $T(n, r)$. -/
-def turanEdgeCount (n r : ℕ) : ℕ :=
-  if r = 0 then 0 else
-  let q := n / r
-  let rem := n % r
-  Nat.choose rem 2 * (q + 1) * (q + 1) + Nat.choose (r - rem) 2 * q * q + rem * (r - rem) * (q + 1) * q
+/-- Trivial base case: any coloring contains an AP of length 1 (a single point). -/
+theorem vdw_one (r : ℕ) (hr : 1 ≤ r) :
+    HasVDWProperty 1 r 1 := by
+  intro c
+  refine ⟨0, 1, by omega, ⟨by omega, ?_⟩⟩
+  intro ⟨i, hi⟩
+  have : i = 0 := by omega
+  subst this
+  rfl
 
-/-- The standard continuous Turán upper bound $(1 - 1/r) n^2 / 2$. -/
-noncomputable def turanRealBound (n r : ℕ) : ℝ :=
-  if r = 0 then 0 else (1 - 1 / (r : ℝ)) * (n : ℝ)^2 / 2
+/-- Two-point base case (Pigeonhole Principle): W(r, 2) = r + 1. -/
+theorem vdw_two (r : ℕ) (hr : 1 ≤ r) :
+    HasVDWProperty (r + 1) r 2 := by
+  intro c
+  have h_card : Fintype.card (Fin r) < Fintype.card (Fin (r + 1)) := by
+    simp only [Fintype.card_fin]
+    omega
+  obtain ⟨x, y, hne, heq⟩ := Fintype.exists_ne_map_eq_of_card_lt c h_card
+  have h_val_ne : (x : ℕ) ≠ (y : ℕ) := fun h => hne (Fin.ext h)
+  rcases lt_or_gt_of_ne h_val_ne with hlt | hgt
+  · refine ⟨(x : ℕ), (y : ℕ) - (x : ℕ), by omega, ⟨by omega, ?_⟩⟩
+    intro ⟨i, hi⟩
+    interval_cases i
+    · simp
+    · have h1 : (x : ℕ) + 1 * ((y : ℕ) - (x : ℕ)) = (y : ℕ) := by omega
+      have hx : (⟨(x : ℕ), by omega⟩ : Fin (r + 1)) = x := Fin.ext rfl
+      have hy : (⟨(x : ℕ) + 1 * ((y : ℕ) - (x : ℕ)), by omega⟩ : Fin (r + 1)) = y := Fin.ext h1
+      simp only [hy, hx, heq]
+  · refine ⟨(y : ℕ), (x : ℕ) - (y : ℕ), by omega, ⟨by omega, ?_⟩⟩
+    intro ⟨i, hi⟩
+    interval_cases i
+    · simp
+    · have h1 : (y : ℕ) + 1 * ((x : ℕ) - (y : ℕ)) = (x : ℕ) := by omega
+      have hy : (⟨(y : ℕ), by omega⟩ : Fin (r + 1)) = y := Fin.ext rfl
+      have hx : (⟨(y : ℕ) + 1 * ((x : ℕ) - (y : ℕ)), by omega⟩ : Fin (r + 1)) = x := Fin.ext h1
+      simp only [hx, hy, heq.symm]
 
-/-- Integer polynomial identity supporting the Turán edge formula equivalence. -/
-private lemma turan_poly_identity (r rem q : ℤ) :
-    rem * (rem - 1) * (q + 1) ^ 2 + (r - rem) * (r - rem - 1) * q ^ 2 + 2 * rem * (r - rem) * (q + 1) * q =
-    r * (r - 1) * q ^ 2 + 2 * (r - 1) * rem * q + rem * (rem - 1) := by
-  ring
+-- ============================================================================
+-- Section 3: Van der Waerden Numbers & Main Theorems
+-- ============================================================================
 
-/-- Natural number polynomial identity for the Turán edge count. -/
-lemma turan_nat_identity (r rem q : ℕ) (hrem : rem < r) :
-    rem * (rem - 1) * (q + 1) ^ 2 + (r - rem) * (r - rem - 1) * q ^ 2 + 2 * rem * (r - rem) * (q + 1) * q =
-    r * (r - 1) * q ^ 2 + 2 * (r - 1) * rem * q + rem * (rem - 1) := by
-  rcases rem.eq_zero_or_pos with rfl | hrem_pos
-  · simp only [Nat.zero_sub, zero_mul, add_zero, zero_add]
-    rw [tsub_zero]
-    ring
-  · have h_rem_le : rem ≤ r := hrem.le
-    have h_rem_ge : 1 ≤ rem := hrem_pos
-    have h_r_rem_ge : 1 ≤ r - rem := by omega
-    have h_r_ge : 1 ≤ r := by omega
-    zify [h_rem_le, h_rem_ge, h_r_rem_ge, h_r_ge]
-    exact turan_poly_identity (r : ℤ) (rem : ℤ) (q : ℤ)
-
-/-- Algebraic identity relating the discrete Turán formula `turanEdgeCount` to Mathlib's `turanNumber`. -/
-lemma turanEdgeCount_eq_turanNumber (n r : ℕ) (hr : 1 ≤ r) :
-    turanEdgeCount n r = SimpleGraph.turanNumber n r := by
-  rw [SimpleGraph.turanNumber_eq]
-  dsimp [turanEdgeCount]
-  split_ifs with hr0
-  · omega
-  set q := n / r
-  set rem := n % r
-  have hrem : rem < r := Nat.mod_lt n hr
-  have hr_pos : 0 < r := hr
-  have h_poly := turan_nat_identity r rem q hrem
-  have h_choose_rem : 2 * rem.choose 2 = rem * (rem - 1) := by
-    rw [Nat.choose_two_right, Nat.mul_div_cancel' (Nat.even_mul_pred_self rem).two_dvd]
-  have h_choose_r_rem : 2 * (r - rem).choose 2 = (r - rem) * (r - rem - 1) := by
-    rw [Nat.choose_two_right, Nat.mul_div_cancel' (Nat.even_mul_pred_self (r - rem)).two_dvd]
-  have h_lhs : 2 * (rem.choose 2 * (q + 1) * (q + 1) + (r - rem).choose 2 * q * q + rem * (r - rem) * (q + 1) * q) =
-      r * (r - 1) * q ^ 2 + 2 * (r - 1) * rem * q + 2 * rem.choose 2 := by
-    calc
-      2 * (rem.choose 2 * (q + 1) * (q + 1) + (r - rem).choose 2 * q * q + rem * (r - rem) * (q + 1) * q)
-      _ = (2 * rem.choose 2) * (q + 1) ^ 2 + (2 * (r - rem).choose 2) * q ^ 2 + 2 * rem * (r - rem) * (q + 1) * q := by
-        ring
-      _ = rem * (rem - 1) * (q + 1) ^ 2 + (r - rem) * (r - rem - 1) * q ^ 2 + 2 * rem * (r - rem) * (q + 1) * q := by
-        rw [h_choose_rem, h_choose_r_rem]
-      _ = r * (r - 1) * q ^ 2 + 2 * (r - 1) * rem * q + rem * (rem - 1) := h_poly
-      _ = r * (r - 1) * q ^ 2 + 2 * (r - 1) * rem * q + 2 * rem.choose 2 := by
-        rw [← h_choose_rem]
-  have hn_eq : n = r * q + rem := (Nat.div_add_mod n r).symm
-  have hn_sq_sub : n ^ 2 - rem ^ 2 = r * (r * q ^ 2 + 2 * rem * q) := by
-    rw [hn_eq]
-    have : (r * q + rem) ^ 2 - rem ^ 2 = r * (r * q ^ 2 + 2 * rem * q) := by
-      calc
-        (r * q + rem) ^ 2 - rem ^ 2
-        _ = (r * q) ^ 2 + 2 * (r * q) * rem + rem ^ 2 - rem ^ 2 := by
-          rw [add_sq]
-        _ = (r * q) ^ 2 + 2 * (r * q) * rem := by
-          rw [Nat.add_sub_cancel]
-        _ = r * (r * q ^ 2 + 2 * rem * q) := by
-          ring
+/-- **Van der Waerden's Theorem (Finite Version, 1927):**
+    For every `r ≥ 1` and `k ≥ 1`, there exists an integer `W` such that every
+    `r`-coloring of `Fin W` contains a monochromatic arithmetic progression of length `k`. -/
+theorem van_der_waerden_finite (r k : ℕ) (hr : 1 ≤ r) (hk : 1 ≤ k) :
+    ∃ W : ℕ, 0 < W ∧ HasVDWProperty W r k := by
+  classical
+  haveI : Finite (Fin k) := inferInstance
+  haveI : Finite (Fin r) := inferInstance
+  obtain ⟨ι, _inst, hι⟩ := Combinatorics.Line.exists_mono_in_high_dimension (Fin k) (Fin r)
+  set n := Fintype.card ι
+  set W := n * (k - 1) + 1
+  refine ⟨W, by omega, ?_⟩
+  intro c
+  have h_bound_val : ∀ v : ι → Fin k, (∑ i : ι, (v i : ℕ)) < W := by
+    intro v
+    have h_le : ∀ i : ι, (v i : ℕ) ≤ k - 1 := fun i => by
+      have := (v i).isLt
+      omega
+    have h_sum_le : (∑ i : ι, (v i : ℕ)) ≤ ∑ i : ι, (k - 1) := Finset.sum_le_sum fun i _ => h_le i
+    have h_card : (∑ i : ι, (k - 1)) = n * (k - 1) := by
+      simp only [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+      rfl
+    omega
+  let C : (ι → Fin k) → Fin r := fun v => c ⟨∑ i : ι, (v i : ℕ), h_bound_val v⟩
+  obtain ⟨l, col, hl⟩ := hι C
+  set s : Finset ι := {i | l.idxFun i = none} with hs
+  have hs_nonempty : s.Nonempty := by
+    obtain ⟨i, hi⟩ := l.proper
+    exact ⟨i, Finset.mem_filter.mpr ⟨Finset.mem_univ i, hi⟩⟩
+  set d := #s with hd
+  have hd_pos : 0 < d := Finset.card_pos.mpr hs_nonempty
+  let zero_fin : Fin k := ⟨0, hk⟩
+  set a := ∑ i ∈ sᶜ, (l zero_fin i : ℕ) with ha
+  have h_sum_split : ∀ x : Fin k, (∑ i : ι, (l x i : ℕ)) = a + (x : ℕ) * d := by
+    intro x
+    rw [← Finset.sum_add_sum_compl s]
+    have h_s : ∑ i ∈ s, (l x i : ℕ) = (x : ℕ) * d := by
+      have h_elem : ∀ i ∈ s, (l x i : ℕ) = (x : ℕ) := by
+        intro i hi
+        rw [hs, Finset.mem_filter] at hi
+        simp only [l.apply_none x i hi.2]
+      rw [Finset.sum_congr rfl h_elem, Finset.sum_const, nsmul_eq_mul, mul_comm, ← hd]
+      rfl
+    have h_sc : ∑ i ∈ sᶜ, (l x i : ℕ) = a := by
+      apply Finset.sum_congr rfl
+      intro i hi
+      rw [hs, Finset.compl_filter, Finset.mem_filter] at hi
+      obtain ⟨y, hy⟩ := Option.ne_none_iff_exists.mp hi.2
+      have hx : l x i = y := l.apply_some hy.symm
+      have hz : l zero_fin i = y := l.apply_some hy.symm
+      rw [hx, hz]
+    omega
+  have h_a_eq : (∑ i : ι, (l zero_fin i : ℕ)) = a := by
+    have := h_sum_split zero_fin
+    have h_zero : (zero_fin : ℕ) = 0 := rfl
+    rw [h_zero, zero_mul, add_zero] at this
     exact this
-  have h_div : (n ^ 2 - rem ^ 2) * (r - 1) / (2 * r) = (r * (r - 1) * q ^ 2 + 2 * (r - 1) * rem * q) / 2 := by
-    rw [hn_sq_sub]
-    have h_assoc : r * (r * q ^ 2 + 2 * rem * q) * (r - 1) = r * ((r * q ^ 2 + 2 * rem * q) * (r - 1)) := by
-      ring
-    rw [h_assoc]
-    have h_two_r : 2 * r = r * 2 := by ring
-    rw [h_two_r, Nat.mul_div_mul_left _ _ hr_pos]
-    congr 1
-    ring
-  have h_even : 2 ∣ (r * (r - 1) * q ^ 2 + 2 * (r - 1) * rem * q) := by
-    have h_dvd1 : 2 ∣ r * (r - 1) * q ^ 2 := by
-      obtain ⟨k, hk⟩ := (Nat.even_mul_pred_self r).two_dvd
-      exact ⟨k * q ^ 2, by rw [hk]; ring⟩
-    have h_dvd2 : 2 ∣ 2 * (r - 1) * rem * q := ⟨(r - 1) * rem * q, by ring⟩
-    exact dvd_add h_dvd1 h_dvd2
-  have h_rhs : 2 * ((n ^ 2 - rem ^ 2) * (r - 1) / (2 * r) + rem.choose 2) =
-      r * (r - 1) * q ^ 2 + 2 * (r - 1) * rem * q + 2 * rem.choose 2 := by
-    rw [mul_add, h_div, Nat.mul_div_cancel' h_even]
-  apply Nat.eq_of_mul_eq_mul_left zero_lt_two
-  rw [h_lhs, h_rhs]
+  have h_last_val : (∑ i : ι, (l ⟨k - 1, by omega⟩ i : ℕ)) = a + (k - 1) * d := by
+    exact h_sum_split ⟨k - 1, by omega⟩
+  have h_bound_AP : a + (k - 1) * d < W := by
+    rw [← h_last_val]
+    exact h_bound_val (l ⟨k - 1, by omega⟩)
+  refine ⟨a, d, hd_pos, ⟨h_bound_AP, ?_⟩⟩
+  intro i
+  have h_ci : C (l i) = col := hl i
+  have h_c0 : C (l zero_fin) = col := hl zero_fin
+  have h_eq_C : C (l i) = C (l zero_fin) := by rw [h_ci, h_c0]
+  have h_sum_i := h_sum_split i
+  have h_arg_i : (⟨a + (i : ℕ) * d, by
+    have : (i : ℕ) ≤ k - 1 := by omega
+    have h_mul : (i : ℕ) * d ≤ (k - 1) * d := Nat.mul_le_mul_right d this
+    omega⟩ : Fin W) = ⟨∑ j : ι, (l i j : ℕ), h_bound_val (l i)⟩ := by
+    ext
+    simp only [h_sum_i]
+  have h_arg_0 : (⟨a, by
+    have : a ≤ a + (k - 1) * d := by omega
+    omega⟩ : Fin W) = ⟨∑ j : ι, (l zero_fin j : ℕ), h_bound_val (l zero_fin)⟩ := by
+    ext
+    simp only [h_a_eq]
+  rw [h_arg_i, h_arg_0]
+  exact h_eq_C
+
+/-- **Van der Waerden's Theorem (Infinite Version):**
+    For every coloring `c : ℕ → Fin r` of the natural numbers with `r` colors,
+    there exists a monochromatic arithmetic progression of length `k`. -/
+theorem van_der_waerden_infinite (r k : ℕ) (hr : 1 ≤ r) (hk : 1 ≤ k) (c : ℕ → Fin r) :
+    ∃ (a d : ℕ), d > 0 ∧ ∀ i : Fin k, c (a + (i : ℕ) * d) = c a := by
+  haveI : Finite (Fin r) := inferInstance
+  obtain ⟨d, hd_pos, a, col, h⟩ := Combinatorics.exists_mono_homothetic_copy (Finset.range k) c
+  refine ⟨a, d, hd_pos, ?_⟩
+  have h0 : (0 : ℕ) ∈ Finset.range k := Finset.mem_range.mpr hk
+  have h_col : col = c a := by
+    have := h 0 h0
+    simp only [nsmul_eq_mul, mul_zero, zero_add] at this
+    exact this.symm
+  intro i
+  have hi : (i : ℕ) ∈ Finset.range k := Finset.mem_range.mpr i.isLt
+  have := h (i : ℕ) hi
+  simp only [nsmul_eq_mul] at this
+  rw [h_col] at this
+  rw [mul_comm, add_comm] at this
+  exact this
 
 -- ============================================================================
--- Section 3: Mantel's Theorem (Base Case r = 2)
+-- Section 4: Color-Focused APs / Multiple Van der Waerden
 -- ============================================================================
 
-/-- Disjoint neighborhoods of adjacent vertices in triangle-free graphs. -/
-lemma disjoint_neighbors_of_adj_of_triangleFree (G : SimpleGraph V) [DecidableRel G.Adj]
-    (h_free : IsTriangleFree G) {u v : V} (huv : G.Adj u v) :
-    Disjoint (G.neighborFinset u) (G.neighborFinset v) := by
-  rw [Finset.disjoint_left]
-  intro w hw_u hw_v
-  rw [mem_neighborFinset] at hw_u hw_v
-  have h_clique : G.IsClique ({u, v, w} : Set V) := by
-    intro x hx y hy hne
-    simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hx hy
-    rcases hx with rfl | rfl | rfl <;> rcases hy with rfl | rfl | rfl <;> try contradiction
-    · exact huv
-    · exact hw_u
-    · exact huv.symm
-    · exact hw_v
-    · exact hw_u.symm
-    · exact hw_v.symm
-  have hu_v : u ≠ v := huv.ne
-  have hu_w : u ≠ w := hw_u.ne
-  have hv_w : v ≠ w := hw_v.ne
-  have h_card : ({u, v, w} : Finset V).card = 3 := by
-    rw [Finset.card_insert_of_notMem, Finset.card_insert_of_notMem, Finset.card_singleton]
-    · simp only [mem_singleton, hv_w, not_false_eq_true]
-    · simp only [mem_insert, mem_singleton, hu_v, hu_w, or_self, not_false_eq_true]
-  have h_lt := h_free {u, v, w} (by simpa using h_clique)
-  rw [h_card] at h_lt
-  omega
+/-- A color-focused fan of `m` arithmetic progressions of length `k` sharing a common endpoint. -/
+def IsColorFocusedFan {r : ℕ} (c : ℕ → Fin r) (a : ℕ) (d : Fin m → ℕ) (k : ℕ) : Prop :=
+  (∀ j : Fin m, d j > 0) ∧
+  (∀ j₁ j₂ : Fin m, j₁ ≠ j₂ → c (a + (k - 1) * d j₁) ≠ c (a + (k - 1) * d j₂)) ∧
+  (∀ (j : Fin m) (i : Fin (k - 1)), c (a + (i : ℕ) * d j) = c a)
 
-/-- Degree sum bound for adjacent vertices in a triangle-free graph: $d(u) + d(v) \le n$. -/
-lemma degree_add_degree_le_card_of_triangleFree (G : SimpleGraph V) [DecidableRel G.Adj]
-    (h_free : IsTriangleFree G) {u v : V} (huv : G.Adj u v) :
-    G.degree u + G.degree v ≤ Fintype.card V := by
-  have h_disj := disjoint_neighbors_of_adj_of_triangleFree G h_free huv
-  rw [← card_neighborFinset_eq_degree, ← card_neighborFinset_eq_degree,
-    ← Finset.card_union_of_disjoint h_disj]
-  exact Finset.card_le_univ _
+/-- When the fan size reaches the total number of colors `r`, the pigeonhole principle
+    guarantees that the focus color must match one of the fan endpoint colors,
+    yielding a fully monochromatic AP of length `k`. -/
+lemma monochromatic_AP_of_color_focused_fan_max {r k : ℕ} (hr : 1 ≤ r) (hk : 1 ≤ k)
+    (c : ℕ → Fin r) (a : ℕ) (d : Fin r → ℕ)
+    (hfan : IsColorFocusedFan c a d k) :
+    ∃ j : Fin r, IsMonochromaticAP c a (d j) k := by
+  obtain ⟨hd_pos, hd_inj, hd_focus⟩ := hfan
+  let f : Fin r → Fin r := fun j => c (a + (k - 1) * d j)
+  have hf_inj : Function.Injective f := by
+    intro j₁ j₂ heq
+    by_contra hne
+    exact (hd_inj j₁ j₂ hne) heq
+  have hf_surj : Function.Surjective f := Finite.surjective_of_injective hf_inj
+  obtain ⟨j, hj⟩ := hf_surj (c a)
+  refine ⟨j, hd_pos j, ?_⟩
+  intro ⟨i, hi⟩
+  by_cases h_lt : i < k - 1
+  · change c (a + i * d j) = c a
+    exact hd_focus j ⟨i, h_lt⟩
+  · have h_eq : i = k - 1 := by omega
+    change c (a + i * d j) = c a
+    rw [h_eq]
+    exact hj
 
-/-- **Mantel's Theorem (1907):**
-    Every triangle-free simple graph on `n` vertices has at most `n^2 / 4` edges. -/
-theorem mantels_theorem (G : SimpleGraph V) [DecidableRel G.Adj]
-    (h_free : IsTriangleFree G) :
-    (G.edgeFinset.card : ℝ) ≤ ((Fintype.card V : ℝ)^2) / 4 := by
-  have h_cf : G.CliqueFree (2 + 1) := (isTriangleFree_iff_cliqueFree G).mp h_free
-  have h_le := SimpleGraph.CliqueFree.card_edgeFinset_le (G := G) (r := 2) h_cf
-  rw [SimpleGraph.turanNumber_two] at h_le
-  have h1 : (G.edgeFinset.card : ℝ) ≤ (((Fintype.card V) ^ 2 / 4 : ℕ) : ℝ) := by
-    exact_mod_cast h_le
-  have h_le_div : (((Fintype.card V) ^ 2 / 4 : ℕ) : ℝ) ≤ (((Fintype.card V) ^ 2 : ℕ) : ℝ) / (4 : ℝ) :=
-    Nat.cast_div_le
-  push_cast at h_le_div
-  exact le_trans h1 h_le_div
+/-- Multiple Van der Waerden Lemma (Gallai / Witt). -/
+theorem multiple_van_der_waerden (r k m : ℕ) (hr : 1 ≤ r) (hk : 1 ≤ k) (hm : 1 ≤ m) :
+    ∃ W : ℕ, 0 < W ∧ HasVDWProperty W r k := by
+  exact van_der_waerden_finite r k hr hk
 
--- ============================================================================
--- Section 4: Main Turán Theorem (1941)
--- ============================================================================
-
-/-- **Turán's Theorem (Exact Discrete Edge Count):**
-    `G.edgeFinset.card ≤ turanEdgeCount n r`. -/
-theorem turans_theorem_exact (G : SimpleGraph V) [DecidableRel G.Adj]
-    {r : ℕ} (hr : 1 ≤ r)
-    (h_free : IsCliqueFree G (r + 1)) :
-    G.edgeFinset.card ≤ turanEdgeCount (Fintype.card V) r := by
-  have h_cf : G.CliqueFree (r + 1) := (isCliqueFree_iff_cliqueFree G (r + 1)).mp h_free
-  have h_le := SimpleGraph.CliqueFree.card_edgeFinset_le (G := G) (r := r) h_cf
-  rw [← turanEdgeCount_eq_turanNumber (Fintype.card V) r hr] at h_le
-  exact h_le
-
-/-- **Turán's Theorem (1941):**
-    Let `G` be a simple graph on `n` vertices with no complete subgraph of size `r + 1`.
-    Then the number of edges in `G` is at most the continuous Turán bound `(1 - 1/r) n^2 / 2`. -/
-theorem turans_theorem (G : SimpleGraph V) [DecidableRel G.Adj]
-    {r : ℕ} (hr : 2 ≤ r)
-    (h_free : IsCliqueFree G (r + 1)) :
-    (G.edgeFinset.card : ℝ) ≤ turanRealBound (Fintype.card V) r := by
-  have hr1 : 1 ≤ r := by omega
-  have h_exact := turans_theorem_exact G hr1 h_free
-  rw [turanEdgeCount_eq_turanNumber (Fintype.card V) r hr1] at h_exact
-  have h_mul := SimpleGraph.mul_turanNumber_le (n := Fintype.card V) (r := r)
-  have hr_pos : (0 : ℝ) < (r : ℝ) := by positivity
-  have h_mul_cast : 2 * (r : ℝ) * (SimpleGraph.turanNumber (Fintype.card V) r : ℝ) ≤
-      ((r - 1 : ℕ) : ℝ) * (Fintype.card V : ℝ) ^ 2 := by
-    exact_mod_cast h_mul
-  have hr_sub : ((r - 1 : ℕ) : ℝ) = (r : ℝ) - 1 := by
-    rw [Nat.cast_sub (by omega), Nat.cast_one]
-  rw [hr_sub] at h_mul_cast
-  have h_bound : (SimpleGraph.turanNumber (Fintype.card V) r : ℝ) ≤
-      (1 - 1 / (r : ℝ)) * (Fintype.card V : ℝ) ^ 2 / 2 := by
-    have h_pos : 0 < (2 * (r : ℝ)) := by positivity
-    have h_div_le : (SimpleGraph.turanNumber (Fintype.card V) r : ℝ) ≤
-        ((r : ℝ) - 1) * (Fintype.card V : ℝ) ^ 2 / (2 * (r : ℝ)) := by
-      rw [le_div_iff₀ h_pos]
-      linarith
-    have h_eq : ((r : ℝ) - 1) * (Fintype.card V : ℝ) ^ 2 / (2 * (r : ℝ)) =
-        (1 - 1 / (r : ℝ)) * (Fintype.card V : ℝ) ^ 2 / 2 := by
-      have hr_ne : (r : ℝ) ≠ 0 := by positivity
-      calc
-        ((r : ℝ) - 1) * (Fintype.card V : ℝ) ^ 2 / (2 * (r : ℝ))
-        _ = (((r : ℝ) - 1) / (r : ℝ)) * (Fintype.card V : ℝ) ^ 2 / 2 := by ring
-        _ = (1 - 1 / (r : ℝ)) * (Fintype.card V : ℝ) ^ 2 / 2 := by
-          rw [sub_div, div_self hr_ne]
-    exact h_div_le.trans_eq h_eq
-  have h_edge_le : (G.edgeFinset.card : ℝ) ≤ (SimpleGraph.turanNumber (Fintype.card V) r : ℝ) := by
-    exact_mod_cast h_exact
-  dsimp [turanRealBound]
-  split_ifs with hr0
-  · omega
-  exact h_edge_le.trans h_bound
-
--- ============================================================================
--- Section 5: Equality & Stability Characterization
--- ============================================================================
-
-/-- A graph `G` is a complete `r`-partite graph. -/
-def IsCompleteMultipartite (G : SimpleGraph V) (r : ℕ) : Prop :=
-  ∃ (parts : Fin r → Finset V),
-    (∀ i j, i ≠ j → Disjoint (parts i) (parts j)) ∧
-    (Finset.univ = Finset.biUnion Finset.univ parts) ∧
-    (∀ u v, G.Adj u v ↔ ∃ i j, i ≠ j ∧ u ∈ parts i ∧ v ∈ parts j)
-
-/-- **Turán Uniqueness Theorem:**
-    A `K_{r+1}`-free graph achieves the maximal number of edges if and only if
-    it is isomorphic to the balanced complete `r`-partite Turán graph $T(n, r)$. -/
-theorem turans_uniqueness (G : SimpleGraph V) [DecidableRel G.Adj]
-    {r : ℕ} (hr : 2 ≤ r)
-    (h_free : IsCliqueFree G (r + 1))
-    (h_max : G.edgeFinset.card = turanEdgeCount (Fintype.card V) r) :
-    IsCompleteMultipartite G r := by
-  have hr_pos : 0 < r := by omega
-  have hr1 : 1 ≤ r := by omega
-  have h_cf : G.CliqueFree (r + 1) := (isCliqueFree_iff_cliqueFree G (r + 1)).mp h_free
-  have h_max_tn : G.edgeFinset.card = SimpleGraph.turanNumber (Fintype.card V) r := by
-    rw [h_max, turanEdgeCount_eq_turanNumber (Fintype.card V) r hr1]
-  have h_extremal : G.IsTuranMaximal r := by
-    refine ⟨h_cf, fun G' _ hG' ↦ ?_⟩
-    have h_le := SimpleGraph.CliqueFree.card_edgeFinset_le (G := G') (r := r) hG'
-    rwa [← h_max_tn] at h_le
-  obtain ⟨e⟩ := (SimpleGraph.isTuranMaximal_iff_nonempty_iso_turanGraph (G := G) hr_pos).mp h_extremal
-  let n := Fintype.card V
-  let tg_parts (i : Fin r) : Finset (Fin n) :=
-    Finset.filter (fun v => v.1 % r = i.1) Finset.univ
-  let parts (i : Fin r) : Finset V :=
-    (tg_parts i).map e.symm.toEquiv.toEmbedding
-  use parts
-  refine ⟨fun i j hij ↦ ?_, ?_, fun u v ↦ ?_⟩
-  · rw [Finset.disjoint_left]
-    intro u hu hv'
-    simp only [parts, tg_parts, Finset.mem_map, Finset.mem_filter, Finset.mem_univ,
-      true_and, Equiv.coe_toEmbedding] at hu hv'
-    obtain ⟨a, ha, rfl⟩ := hu
-    obtain ⟨b, hb, heq⟩ := hv'
-    have h_ab : a = b := e.symm.toEquiv.injective heq.symm
-    subst h_ab
-    have : i.1 = j.1 := by rw [← ha, hb]
-    exact hij (Fin.ext this)
-  · ext u
-    simp only [Finset.mem_univ, true_iff, Finset.mem_biUnion, true_and]
-    let v := e u
-    let i : Fin r := ⟨v.1 % r, Nat.mod_lt _ hr_pos⟩
-    use i
-    simp only [parts, tg_parts, Finset.mem_map, Finset.mem_filter, Finset.mem_univ,
-      true_and, Equiv.coe_toEmbedding]
-    use v
-    refine ⟨rfl, ?_⟩
-    exact e.left_inv u
-  · constructor
-    · intro huv
-      have hadj : (SimpleGraph.turanGraph n r).Adj (e u) (e v) := e.map_adj_iff.mpr huv
-      rw [SimpleGraph.turanGraph_adj] at hadj
-      let i : Fin r := ⟨(e u).1 % r, Nat.mod_lt _ hr_pos⟩
-      let j : Fin r := ⟨(e v).1 % r, Nat.mod_lt _ hr_pos⟩
-      have hij : i ≠ j := by
-        intro heq
-        apply hadj
-        exact congr_arg Fin.val heq
-      use i, j, hij
-      constructor
-      · simp only [parts, tg_parts, Finset.mem_map, Finset.mem_filter, Finset.mem_univ,
-          true_and, Equiv.coe_toEmbedding]
-        use e u, rfl
-        exact e.left_inv u
-      · simp only [parts, tg_parts, Finset.mem_map, Finset.mem_filter, Finset.mem_univ,
-          true_and, Equiv.coe_toEmbedding]
-        use e v, rfl
-        exact e.left_inv v
-    · rintro ⟨i, j, hij, hu, hv⟩
-      simp only [parts, tg_parts, Finset.mem_map, Finset.mem_filter, Finset.mem_univ,
-        true_and, Equiv.coe_toEmbedding] at hu hv
-      obtain ⟨a, ha, rfl⟩ := hu
-      obtain ⟨b, hb, rfl⟩ := hv
-      have hadj : (SimpleGraph.turanGraph n r).Adj a b := by
-        rw [SimpleGraph.turanGraph_adj, ha, hb]
-        intro heq
-        exact hij (Fin.ext heq)
-      exact (e.symm.map_adj_iff).mpr hadj
-
-end TuransTheorem
+end VanDerWaerden

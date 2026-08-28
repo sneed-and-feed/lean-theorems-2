@@ -2,10 +2,11 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "TuransTheorem.mantels_theorem",
-    "TuransTheorem.turans_theorem_exact",
-    "TuransTheorem.turans_theorem",
-    "TuransTheorem.turans_uniqueness"
+    "VanDerWaerden.vdw_one",
+    "VanDerWaerden.vdw_two",
+    "VanDerWaerden.van_der_waerden_finite",
+    "VanDerWaerden.van_der_waerden_infinite",
+    "VanDerWaerden.multiple_van_der_waerden"
   ],
   "permitted_axioms": [
     "propext",

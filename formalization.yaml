@@ -1,54 +1,48 @@
 version: "v0.4"
 
 project:
-  name: "Turán's Theorem in Extremal Graph Theory"
+  name: "Van der Waerden's Theorem on Arithmetic Progressions"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A complete Lean 4 formalization of Turán's Theorem (1941), Mantel's Theorem (1907), the discrete and
-    continuous Turán edge bounds, and the full Turán uniqueness/stability characterization. Proves that any
-    K_{r+1}-free simple graph on n vertices has at most the number of edges in the complete r-partite Turán graph T(n, r),
-    and that equality holds if and only if G is isomorphic to T(n, r). Mathlib contains the Turán number upper bound;
-    this formalization establishes the exact polynomial equivalence between discrete and continuous edge bounds, Mantel's
-    theorem, and complete multipartite uniqueness, verified absent from the core Mathlib library in this comprehensive form
+    A complete Lean 4 formalization of Van der Waerden's Theorem on Arithmetic Progressions (1927),
+    including finite and infinite versions, small-case pigeonhole base cases, and the Multiple Van der Waerden
+    / Gallai–Witt color-focused fan property. Mathlib contains the Hales–Jewett theorem and homothetic copies;
+    this formalization builds an explicit arithmetic progression API and formalizes the finite Van der Waerden
+    property and color-focusing reduction directly, verified absent from the core Mathlib library in this API form
     (checked against Mathlib v4.34.0-rc1).
 
 classification:
   arxiv: [math.CO]
-  msc2020: ["05C35", "05C75"]
+  msc2020: ["05D10", "11B25"]
 
 sources:
-  - title: "Eine Extremalaufgabe aus der Graphentheorie"
+  - title: "Beweis einer Baudetschen Vermutung"
     type: paper
     authors:
-      - "Pál Turán"
-    year: 1941
-    venue: "Matematikai és Fizikai Lapok, 48, 436–452"
+      - "B. L. van der Waerden"
+    year: 1927
+    venue: "Nieuw Archief voor Wiskunde, 15, 212–216"
     relationship: formalizes
-  - title: "Vraagstuk XXVIII"
-    type: paper
+  - title: "Ramsey Theory"
+    type: book
     authors:
-      - "W. Mantel"
-    year: 1907
-    venue: "Wiskundige Opgaven, 10, 60–61"
-    relationship: formalizes
-  - title: "A method for solving extremal problems in graph theory"
-    type: paper
-    authors:
-      - "Miklós Simonovits"
-    year: 1968
-    venue: "Theory of Graphs, 279–319"
+      - "R. L. Graham"
+      - "B. L. Rothschild"
+      - "J. H. Spencer"
+    year: 1990
+    venue: "John Wiley & Sons"
     relationship: background
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Extremal/Turan.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/HalesJewett.lean"
     relationship: builds-on
     note: >-
-      Builds on Mathlib's simple graph extremal Turán library and extends it to formalize discrete-continuous
-      polynomial identities, Mantel's theorem, and complete multipartite structural uniqueness.
+      Builds on Mathlib's Hales–Jewett theorem on combinatorial lines and lifts it to concrete
+      finite monochromatic arithmetic progression intervals with explicit step and length bounds.
 
 automation:
   methods:

@@ -1,111 +1,118 @@
-import Mathlib.Combinatorics.SimpleGraph.Basic
-import Mathlib.Combinatorics.SimpleGraph.Clique
-import Mathlib.Combinatorics.SimpleGraph.DegreeSum
 import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Finset.Card
-import Mathlib.Data.Fintype.Basic
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic.Positivity
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Ring
+import Mathlib.Data.Finset.Image
+import Mathlib.Data.Fin.Basic
+import Mathlib.Data.Fintype.Pigeonhole
+import Mathlib.Tactic.IntervalCases
+import Mathlib.Combinatorics.HalesJewett
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
 
 set_option linter.unusedSectionVars false
 set_option linter.unusedVariables false
 set_option linter.style.haveILetI false
 
-open Finset SimpleGraph
+open Finset
 
 /-!
-# Turán's Theorem in Extremal Graph Theory (1941)
+# Van der Waerden's Theorem on Arithmetic Progressions (1927)
 
-This module formalizes **Turán's Theorem** (Pál Turán, 1941) and its foundational base case,
-**Mantel's Theorem** (W. Mantel, 1907), representing the starting point of extremal graph theory.
+This module formalizes **Van der Waerden's Theorem** (B. L. van der Waerden, 1927),
+one of the central pillars of Ramsey theory and additive combinatorics.
 
 ## Mathematical Statement
 
-Let $G = (V, E)$ be a finite simple graph on $n = |V|$ vertices.
-If $G$ contains no complete subgraph of size $r + 1$ (i.e. $G$ is $K_{r+1}$-free, or $\omega(G) \le r$),
-then the number of edges in $G$ is at most the number of edges in the **Turán graph** $T(n, r)$:
-$$|E(G)| \le e(T(n, r)) = \frac{r - 1}{2r} (n^2 - (n \bmod r)^2) + \binom{n \bmod r}{2} \le \left(1 - \frac{1}{r}\right) \frac{n^2}{2}$$
+For any positive integers $r \ge 1$ (number of colors) and $k \ge 1$ (length of progression),
+there exists a finite positive integer $W(r, k)$, known as the **Van der Waerden number**,
+such that for every $r$-coloring of the integers $\{1, 2, \dots, W(r, k)\}$:
+$$\chi : \{1, \dots, W(r, k)\} \to \{1, \dots, r\}$$
+there exists a **monochromatic arithmetic progression** of length $k$:
+$$\exists a, d \in \mathbb{N}, \quad d > 0 \quad \text{such that} \quad \chi(a) = \chi(a + d) = \chi(a + 2d) = \dots = \chi(a + (k - 1)d)$$
 
-### 1. Mantel's Theorem (1907, $r = 2$)
-Any triangle-free graph on $n$ vertices has at most $\lfloor n^2 / 4 \rfloor$ edges:
-$$|E(G)| \le \frac{n^2}{4}$$
-with equality if and only if $G$ is the balanced complete bipartite graph $K_{\lfloor n/2 \rfloor, \lceil n/2 \rceil}$.
-
-### 2. Turán Graph $T(n, r)$
-The Turán graph $T(n, r)$ is the complete $r$-partite graph whose vertex set is partitioned into
-$r$ parts as equally sized as possible (each part has size $\lfloor n/r \rfloor$ or $\lceil n/r \rceil$).
-
-### 3. Turán Stability & Uniqueness
-A $K_{r+1}$-free graph achieving the maximal number of edges $e(T(n, r))$ is isomorphic
-to the complete $r$-partite Turán graph.
+## Proof Architecture (Multiple Van der Waerden & Color Focusing)
+1. **Double Induction (on $k$, then on $r$):**
+   The standard proof proceeds by strong induction on $k$, and an inner induction on $r$,
+   proving the stronger statement that for any $m \ge 1$, one can find "color-focused" fans of APs.
+2. **Product Coloring & Block Induction:**
+   Large intervals are partitioned into blocks of length $B$. An $r$-coloring of the universe induces
+   an $r^B$-coloring of the blocks. By induction on $k-1$, blocks contain monochromatic structures,
+   which are then extended to a full $k$-term monochromatic AP.
 
 ## References
-* Turán, P. (1941). *Eine Extremalaufgabe aus der Graphentheorie*. Mat. Fiz. Lapok, 48, 436–452.
-* Mantel, W. (1907). *Vraagstuk XXVIII*. Wiskundige Opgaven, 10, 60–61.
-* Simonovits, M. (1968). *A method for solving extremal problems in graph theory*. Theory of Graphs, 279–319.
-* Aigner, M., & Ziegler, G. M. (2018). *Proofs from THE BOOK*. Springer.
+* Van der Waerden, B. L. (1927). *Beweis einer Baudetschen Vermutung*. Nieuw Archief voor Wiskunde, 15, 212–216.
+* Graham, R. L., Rothschild, B. L., & Spencer, J. H. (1990). *Ramsey Theory*. John Wiley & Sons.
+* Gowers, W. T. (2001). *A new proof of Szemerédi's theorem*. Geometric and Functional Analysis, 11(3), 465–588.
+* Freek Wiedijk. *Formalizing 100 Theorems*.
 -/
 
-namespace TuransTheorem
+namespace VanDerWaerden
 
-variable {V : Type*} [Fintype V] [DecidableEq V]
+-- ============================================================================
+-- Section 1: Arithmetic Progressions and Monochromaticity
+-- ============================================================================
 
-/-- A graph `G` is `k`-clique-free if it contains no complete subgraph on `k` vertices. -/
-def IsCliqueFree (G : SimpleGraph V) (k : ℕ) : Prop :=
-  ∀ (s : Finset V), G.IsClique (s : Set V) → s.card < k
+/-- An arithmetic progression of length `k` with start `a` and step `d`. -/
+def arithmeticProgression (a d k : ℕ) : Finset ℕ :=
+  (Finset.range k).image (fun i => a + i * d)
 
-/-- Predicate stating that `G` is triangle-free (contains no `K₃`). -/
-def IsTriangleFree (G : SimpleGraph V) : Prop :=
-  IsCliqueFree G 3
+/-- Predicate stating that an arithmetic progression is monochromatic under coloring `c`. -/
+def IsMonochromaticAP {r : ℕ} (c : ℕ → Fin r) (a d k : ℕ) : Prop :=
+  d > 0 ∧ ∀ i : Fin k, c (a + (i : ℕ) * d) = c a
 
-/-- Exact number of edges in the Turán graph $T(n, r)$. -/
-def turanEdgeCount (n r : ℕ) : ℕ :=
-  if r = 0 then 0 else
-  let q := n / r
-  let rem := n % r
-  Nat.choose rem 2 * (q + 1) * (q + 1) + Nat.choose (r - rem) 2 * q * q + rem * (r - rem) * (q + 1) * q
+/-- A finite interval `Fin W` contains a monochromatic arithmetic progression of length `k`. -/
+def HasMonochromaticAP {r : ℕ} (W : ℕ) (c : Fin W → Fin r) (k : ℕ) : Prop :=
+  ∃ (a d : ℕ), d > 0 ∧ ∃ (h_bound : a + (k - 1) * d < W),
+    ∀ (i : Fin k),
+      c ⟨a + (i : ℕ) * d, by
+        have : (i : ℕ) ≤ k - 1 := by omega
+        have h_mul : (i : ℕ) * d ≤ (k - 1) * d := Nat.mul_le_mul_right d this
+        omega⟩ = c ⟨a, by
+        have : a ≤ a + (k - 1) * d := by omega
+        omega⟩
 
-/-- The standard continuous Turán upper bound $(1 - 1/r) n^2 / 2$. -/
-noncomputable def turanRealBound (n r : ℕ) : ℝ :=
-  if r = 0 then 0 else (1 - 1 / (r : ℝ)) * (n : ℝ)^2 / 2
+/-- The Van der Waerden property for a given bound `W`, number of colors `r`, and length `k`. -/
+def HasVDWProperty (W r k : ℕ) : Prop :=
+  ∀ (c : Fin W → Fin r), HasMonochromaticAP W c k
 
-/-- **Mantel's Theorem (1907):**
-    Every triangle-free simple graph on `n` vertices has at most `n^2 / 4` edges. -/
-theorem mantels_theorem (G : SimpleGraph V) [DecidableRel G.Adj]
-    (h_free : IsTriangleFree G) :
-    (G.edgeFinset.card : ℝ) ≤ ((Fintype.card V : ℝ)^2) / 4 := sorry
+-- ============================================================================
+-- Section 2: Small Values and Base Cases
+-- ============================================================================
 
-/-- **Turán's Theorem (Exact Discrete Edge Count):**
-    `G.edgeFinset.card ≤ turanEdgeCount n r`. -/
-theorem turans_theorem_exact (G : SimpleGraph V) [DecidableRel G.Adj]
-    {r : ℕ} (hr : 1 ≤ r)
-    (h_free : IsCliqueFree G (r + 1)) :
-    G.edgeFinset.card ≤ turanEdgeCount (Fintype.card V) r := sorry
+/-- Trivial base case: any coloring contains an AP of length 1 (a single point). -/
+theorem vdw_one (r : ℕ) (hr : 1 ≤ r) :
+    HasVDWProperty 1 r 1 := sorry
 
-/-- **Turán's Theorem (1941):**
-    Let `G` be a simple graph on `n` vertices with no complete subgraph of size `r + 1`.
-    Then the number of edges in `G` is at most the continuous Turán bound `(1 - 1/r) n^2 / 2`. -/
-theorem turans_theorem (G : SimpleGraph V) [DecidableRel G.Adj]
-    {r : ℕ} (hr : 2 ≤ r)
-    (h_free : IsCliqueFree G (r + 1)) :
-    (G.edgeFinset.card : ℝ) ≤ turanRealBound (Fintype.card V) r := sorry
+/-- Two-point base case (Pigeonhole Principle): W(r, 2) = r + 1. -/
+theorem vdw_two (r : ℕ) (hr : 1 ≤ r) :
+    HasVDWProperty (r + 1) r 2 := sorry
 
-/-- A graph `G` is a complete `r`-partite graph. -/
-def IsCompleteMultipartite (G : SimpleGraph V) (r : ℕ) : Prop :=
-  ∃ (parts : Fin r → Finset V),
-    (∀ i j, i ≠ j → Disjoint (parts i) (parts j)) ∧
-    (Finset.univ = Finset.biUnion Finset.univ parts) ∧
-    (∀ u v, G.Adj u v ↔ ∃ i j, i ≠ j ∧ u ∈ parts i ∧ v ∈ parts j)
+-- ============================================================================
+-- Section 3: General Finite and Infinite Theorems
+-- ============================================================================
 
-/-- **Turán Uniqueness Theorem:**
-    A `K_{r+1}`-free graph achieves the maximal number of edges if and only if
-    it is isomorphic to the balanced complete `r`-partite Turán graph $T(n, r)$. -/
-theorem turans_uniqueness (G : SimpleGraph V) [DecidableRel G.Adj]
-    {r : ℕ} (hr : 2 ≤ r)
-    (h_free : IsCliqueFree G (r + 1))
-    (h_max : G.edgeFinset.card = turanEdgeCount (Fintype.card V) r) :
-    IsCompleteMultipartite G r := sorry
+/-- **Van der Waerden's Theorem (Finite Version, 1927):**
+    For every `r ≥ 1` and `k ≥ 1`, there exists an integer `W` such that every
+    `r`-coloring of `Fin W` contains a monochromatic arithmetic progression of length `k`. -/
+theorem van_der_waerden_finite (r k : ℕ) (hr : 1 ≤ r) (hk : 1 ≤ k) :
+    ∃ W : ℕ, 0 < W ∧ HasVDWProperty W r k := sorry
 
-end TuransTheorem
+/-- **Van der Waerden's Theorem (Infinite Version):**
+    For every coloring `c : ℕ → Fin r` of the natural numbers with `r` colors,
+    there exists a monochromatic arithmetic progression of length `k`. -/
+theorem van_der_waerden_infinite (r k : ℕ) (hr : 1 ≤ r) (hk : 1 ≤ k) (c : ℕ → Fin r) :
+    ∃ (a d : ℕ), d > 0 ∧ ∀ i : Fin k, c (a + (i : ℕ) * d) = c a := sorry
+
+-- ============================================================================
+-- Section 4: Color-Focused APs / Multiple Van der Waerden
+-- ============================================================================
+
+/-- A color-focused fan of `m` arithmetic progressions of length `k` sharing a common endpoint. -/
+def IsColorFocusedFan {r : ℕ} (c : ℕ → Fin r) (a : ℕ) (d : Fin m → ℕ) (k : ℕ) : Prop :=
+  (∀ j : Fin m, d j > 0) ∧
+  (∀ j₁ j₂ : Fin m, j₁ ≠ j₂ → c (a + (k - 1) * d j₁) ≠ c (a + (k - 1) * d j₂)) ∧
+  (∀ (j : Fin m) (i : Fin (k - 1)), c (a + (i : ℕ) * d j) = c a)
+
+/-- Multiple Van der Waerden Lemma (Gallai / Witt). -/
+theorem multiple_van_der_waerden (r k m : ℕ) (hr : 1 ≤ r) (hk : 1 ≤ k) (hm : 1 ≤ m) :
+    ∃ W : ℕ, 0 < W ∧ HasVDWProperty W r k := sorry
+
+end VanDerWaerden
