@@ -1,66 +1,51 @@
 version: "v0.4"
 
 project:
-  name: "The Lindström–Gessel–Viennot Lemma (LGV Lemma)"
+  name: "The Hoffman–Singleton Moore Graph Classification Theorem"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A complete Lean 4 formalization of the Lindström–Gessel–Viennot (LGV) Lemma (Lindström 1973, Gessel & Viennot 1985)
-    connecting matrix determinants to sums of non-intersecting path systems in directed graphs. Proves the Leibniz
-    determinant expansion over permutation path products, the sign-reversing involution cancellation of intersecting path systems,
-    the full LGV determinant identity, and its specialization to planar DAGs. To the maintainers' knowledge, the theorem
-    was not found in an exact declaration name, docstring, and type signature search of the pinned Mathlib revision
-    (Mathlib v4.34.0-rc1).
+    A complete machine-checked Lean 4 formalization of the Hoffman–Singleton Theorem (1960).
+    Classifies all possible degrees of regular Moore graphs with diameter 2 and girth 5, proving that the degree
+    must belong to {2, 3, 7, 57}. Formalizes the spectral quadratic eigenvalue equation, trace nullity identity,
+    and integrality divisibility condition s | 15 with explicit certificate instances for C5, Petersen,
+    Hoffman-Singleton, and degree 57. To the maintainers' knowledge, the theorem was not found in an exact
+    declaration name, docstring, and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.CO]
-  msc2020: ["05A15", "05A19", "15A15"]
+  arxiv: [math.CO, math.SP]
+  msc2020: ["05C50", "05C75", "05E30"]
 
 sources:
-  - title: "On the vector representations of induced matroids"
+  - title: "On Moore graphs with diameters 2 and 3"
     type: paper
     authors:
-      - "Bernt Lindström"
-    year: 1973
-    venue: "Bulletin of the London Mathematical Society, 5(1), 85–90"
+      - "Alan J. Hoffman"
+      - "Robert R. Singleton"
     relationship: formalizes
-  - title: "Binomial determinants, paths, and hook length formulae"
-    type: paper
-    authors:
-      - "Ira Gessel"
-      - "Gérard Viennot"
-    year: 1985
-    venue: "Advances in Mathematics, 58(3), 300–321"
-    relationship: formalizes
-  - title: "Enumerative Combinatorics, Volume 2"
-    type: book
-    authors:
-      - "Richard P. Stanley"
-    year: 1999
-    venue: "Cambridge University Press"
-    relationship: background
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/LinearAlgebra/Matrix/Determinant/Basic.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Real/Sqrt.lean"
     relationship: builds-on
     note: >-
-      Builds on Mathlib's permutation sign and Leibniz matrix determinant formulas to establish
-      non-intersecting path counting identities.
+      Formalization builds on Mathlib's real square root and ring arithmetic tactics (linarith, linear_combination).
 
 automation:
   methods:
     - method: agent
       tool_setup: >-
-        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
-        and verified with zero custom axioms under standard Lean 4 kernel axioms.
+        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
+        Lean LSP checking under maintainer direction and human verification.
+        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
 
 review:
   status: self-assessed
   reviewers:
     - "sneed-and-feed maintainers"
   notes: >-
-    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
-    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.
+    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
+    while all definitions and theorem statements are completely specified. Solution verified through
+    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.

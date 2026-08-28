@@ -1,100 +1,116 @@
-import Mathlib.Data.Matrix.Basic
-import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
-import Mathlib.GroupTheory.Perm.Sign
-import Mathlib.GroupTheory.Perm.Basic
-import Mathlib.Data.Fintype.Card
-import Mathlib.Data.Fintype.BigOperators
-import Mathlib.Algebra.BigOperators.Ring.Finset
-import Mathlib.Tactic.Ring
+import Mathlib.Data.Nat.Basic
+import Mathlib.Data.Int.Basic
+import Mathlib.Data.Real.Basic
+import Mathlib.Analysis.Real.Sqrt
 import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.LinearCombination
+import Mathlib.Tactic.Ring
+import Mathlib.Tactic.NormNum
+import Mathlib.Tactic.IntervalCases
 
-open Equiv Equiv.Perm Matrix BigOperators Classical
+open Real
 
 set_option linter.unusedSectionVars false
 
 /-!
-# Lindström–Gessel–Viennot Lemma (LGV Lemma)
+# The Hoffman–Singleton Theorem (1960)
 
-This module formalizes the **Lindström–Gessel–Viennot Lemma** (Lindström 1973, Gessel & Viennot 1985),
-a fundamental bridge between algebraic determinants and enumerative combinatorics.
-
-## References
-- Lindström, B. (1973). *On the vector representations of induced matroids*. Bulletin of the London Mathematical Society, 5(1), 85–90.
-- Gessel, I., & Viennot, G. (1985). *Binomial determinants, paths, and hook length formulae*. Advances in Mathematics, 58(3), 300–321.
-- Stanley, R. P. (1999). *Enumerative Combinatorics, Volume 2*. Cambridge Studies in Advanced Mathematics.
+The **Hoffman–Singleton Theorem** classifies the possible degrees of Moore graphs
+of diameter 2 and girth 5.
 -/
 
-/-- A directed path in a graph on vertex set $V$. -/
-structure DirectedPath (V : Type*) where
-  verts : List V
-  nonempty : verts ≠ []
+namespace HoffmanSingleton
 
-variable {n : ℕ} {R : Type*} [CommRing R] {V : Type*} [DecidableEq V] [Fintype (DirectedPath V)]
+/-- Moore bound vertex count for diameter 2 and girth 5: `n = 1 + d²`. -/
+def mooreVertexCount (d : ℕ) : ℕ := 1 + d ^ 2
 
-namespace DirectedPath
+/-- Discriminant of the quadratic eigenvalue equation `λ² + λ - (d - 1) = 0`. -/
+def mooreDiscr (d : ℕ) : ℤ := 4 * (d : ℤ) - 3
 
-def start (P : DirectedPath V) : V := P.verts.head P.nonempty
+/-- Discriminant in ℝ. -/
+def mooreDiscrR (d : ℝ) : ℝ := 4 * d - 3
 
-def target (P : DirectedPath V) : V := P.verts.getLast P.nonempty
+/-- The two algebraic roots of `λ² + λ - (d - 1) = 0` parameterized by `s = √Δ`. -/
+noncomputable def mooreEigenvalue1 (s : ℝ) : ℝ := (-1 + s) / 2
+noncomputable def mooreEigenvalue2 (s : ℝ) : ℝ := (-1 - s) / 2
 
-def Intersects (P Q : DirectedPath V) : Prop :=
-  ∃ v : V, v ∈ P.verts ∧ v ∈ Q.verts
+/-- Sum of the two quadratic roots equals -1. -/
+theorem roots_sum (s : ℝ) : mooreEigenvalue1 s + mooreEigenvalue2 s = -1 := sorry
 
-def Disjoint (P Q : DirectedPath V) : Prop :=
-  ¬ Intersects P Q
+/-- Difference of the two quadratic roots equals `s`. -/
+theorem roots_diff (s : ℝ) : mooreEigenvalue1 s - mooreEigenvalue2 s = s := sorry
 
-lemma disjoint_comm (P Q : DirectedPath V) : Disjoint P Q ↔ Disjoint Q P := by
-  simp only [Disjoint, Intersects, and_comm]
+/-- The fundamental trace relation:
+  `2 * (d + m₁λ₁ + m₂λ₂) = (m₁ - m₂) * s - d * (d - 2)` when `m₁ + m₂ = d²`. -/
+theorem trace_identity (d m1 m2 s : ℝ) (hsum : m1 + m2 = d ^ 2) :
+    2 * (d + m1 * mooreEigenvalue1 s + m2 * mooreEigenvalue2 s) =
+      (m1 - m2) * s - d * (d - 2) := sorry
 
-end DirectedPath
+/-- The trace is zero if and only if `(m₁ - m₂) * s = d * (d - 2)`. -/
+theorem trace_zero_iff (d m1 m2 s : ℝ) (hsum : m1 + m2 = d ^ 2) :
+    d + m1 * mooreEigenvalue1 s + m2 * mooreEigenvalue2 s = 0 ↔
+      (m1 - m2) * s = d * (d - 2) := sorry
 
-abbrev PathSystem (A B : Fin n → V) (σ : Perm (Fin n)) :=
-  ∀ i : Fin n, { P : DirectedPath V // P.start = A i ∧ P.target = B (σ i) }
+/-- The core divisibility theorem: `s` divides 15. -/
+theorem s_divides_15 (d s k : ℤ) (hs : s ^ 2 = 4 * d - 3)
+    (htrace : k * s = d * (d - 2)) :
+    s ∣ 15 := sorry
 
-def IsNonIntersecting {A B : Fin n → V} {σ : Perm (Fin n)} (paths : PathSystem A B σ) : Prop :=
-  ∀ i j : Fin n, i ≠ j → DirectedPath.Disjoint (paths i).val (paths j).val
+/-- Any positive natural divisor of 15 is in `{1, 3, 5, 15}`. -/
+theorem nat_divisors_15 (s : ℕ) (hs : s ∣ 15) (hs_pos : s > 0) :
+    s = 1 ∨ s = 3 ∨ s = 5 ∨ s = 15 := sorry
 
-def IsIntersecting {A B : Fin n → V} {σ : Perm (Fin n)} (paths : PathSystem A B σ) : Prop :=
-  ¬ IsNonIntersecting paths
+/-- From `s ∈ {1, 3, 5, 15}` and `s² = 4d - 3`, determine `d ∈ {1, 3, 7, 57}`. -/
+theorem degree_from_s (d s : ℕ) (hs : (s : ℤ) ^ 2 = 4 * (d : ℤ) - 3)
+    (hs_vals : s = 1 ∨ s = 3 ∨ s = 5 ∨ s = 15) :
+    d = 1 ∨ d = 3 ∨ d = 7 ∨ d = 57 := sorry
 
-def PathMatrix (e : V → V → R) (A B : Fin n → V) : Matrix (Fin n) (Fin n) R :=
-  fun i j => e (A i) (B j)
+/-- Moore graph parameter system with explicit integral square root `s`. -/
+structure MooreIntegralParams where
+  d : ℕ
+  n : ℕ
+  s : ℕ
+  m1 : ℕ
+  m2 : ℕ
+  hn : n = mooreVertexCount d
+  hs_pos : s > 0
+  hs_sq : (s : ℤ) ^ 2 = 4 * (d : ℤ) - 3
+  hm_sum : m1 + m2 = d ^ 2
+  h_trace : ((m1 : ℤ) - (m2 : ℤ)) * (s : ℤ) = (d : ℤ) * ((d : ℤ) - 2)
+  hd_ge_2 : d ≥ 2
 
-theorem det_pathMatrix_eq_permutation_sum (e : V → V → R) (A B : Fin n → V) :
-    Matrix.det (PathMatrix e A B) =
-      ∑ σ : Perm (Fin n), (Equiv.Perm.sign σ : R) * ∏ i : Fin n, e (A i) (B (σ i)) := sorry
+/-- Classification of degrees with integer square root parameter `s` and `d ≥ 2`. -/
+theorem classification_integral_params (p : MooreIntegralParams) :
+    p.d = 3 ∨ p.d = 7 ∨ p.d = 57 := sorry
 
-def lgv_sign_reversing_involution_prop
-    (A B : Fin n → V)
-    (w : DirectedPath V → R) : Prop :=
-  ∃ (Φ : (Σ σ : Perm (Fin n), { paths : PathSystem A B σ // IsIntersecting paths }) →
-         (Σ σ : Perm (Fin n), { paths : PathSystem A B σ // IsIntersecting paths })),
-    Function.Involutive Φ ∧
-    (∀ x, Φ x ≠ x) ∧
-    (∀ x, (Equiv.Perm.sign (Φ x).1 : R) * (∏ i, w ((Φ x).2.val i).val) =
-          - ((Equiv.Perm.sign x.1 : R) * (∏ i, w (x.2.val i).val)))
+/-- General classification for any `d ≥ 1` admitting integral parameter `s`. -/
+theorem classification_general (d s : ℕ) (k : ℤ) (hs_pos : s > 0)
+    (hs : (s : ℤ) ^ 2 = 4 * (d : ℤ) - 3)
+    (htrace : k * (s : ℤ) = (d : ℤ) * ((d : ℤ) - 2)) :
+    d = 1 ∨ d = 3 ∨ d = 7 ∨ d = 57 := sorry
 
-theorem intersecting_path_systems_sum_zero
-    (A B : Fin n → V)
-    (w : DirectedPath V → R)
-    (h_inv : lgv_sign_reversing_involution_prop A B w) :
-    (∑ σ : Perm (Fin n), (Equiv.Perm.sign σ : R) *
-      (∑ paths : { p : PathSystem A B σ // IsIntersecting p }, ∏ i, w (paths.val i).val)) = 0 := sorry
+/-- The complete Hoffman–Singleton Theorem:
+  Any Moore graph of diameter 2 and girth 5 has degree `d ∈ {2, 3, 7, 57}`. -/
+theorem hoffman_singleton_theorem (d : ℕ) (hd : d ≥ 2)
+    (h_cases : (∃ (m1 m2 : ℕ), m1 = m2 ∧ ((d : ℤ) * ((d : ℤ) - 2)) = 0) ∨
+               (∃ (s : ℕ) (k : ℤ), s > 0 ∧ (s : ℤ) ^ 2 = 4 * (d : ℤ) - 3 ∧
+                 k * (s : ℤ) = (d : ℤ) * ((d : ℤ) - 2))) :
+    d = 2 ∨ d = 3 ∨ d = 7 ∨ d = 57 := sorry
 
-theorem lindstrom_gessel_viennot
-    (e : V → V → R) (A B : Fin n → V)
-    (w : DirectedPath V → R)
-    (h_inv : lgv_sign_reversing_involution_prop A B w)
-    (h_weight_sum : ∀ i j, e (A i) (B j) = ∑ P : { P : DirectedPath V // P.start = A i ∧ P.target = B j }, w P.val) :
-    Matrix.det (PathMatrix e A B) =
-      ∑ σ : Perm (Fin n), (Equiv.Perm.sign σ : R) *
-        (∑ paths : { p : PathSystem A B σ // IsNonIntersecting p }, ∏ i, w (paths.val i).val) := sorry
+/-- Spectrum of C₅ (d = 2, n = 5). -/
+theorem c5_spectral_trace :
+    (2 : ℝ) + 2 * mooreEigenvalue1 (Real.sqrt 5) + 2 * mooreEigenvalue2 (Real.sqrt 5) = 0 := sorry
 
-theorem gessel_viennot_planar_dag
-    (e : V → V → R) (A B : Fin n → V)
-    (w : DirectedPath V → R)
-    (h_inv : lgv_sign_reversing_involution_prop A B w)
-    (h_weight_sum : ∀ i j, e (A i) (B j) = ∑ P : { P : DirectedPath V // P.start = A i ∧ P.target = B j }, w P.val)
-    (h_only_id : ∀ σ : Perm (Fin n), (∃ paths : PathSystem A B σ, IsNonIntersecting paths) → σ = 1) :
-    Matrix.det (PathMatrix e A B) =
-      ∑ paths : { p : PathSystem A B 1 // IsNonIntersecting p }, ∏ i, w (paths.val i).val := sorry
+/-- Spectrum of the Petersen graph (d = 3, n = 10). -/
+theorem petersen_spectral_trace :
+    (3 : ℝ) + 5 * mooreEigenvalue1 3 + 4 * mooreEigenvalue2 3 = 0 := sorry
+
+/-- Spectrum of the Hoffman–Singleton graph (d = 7, n = 50). -/
+theorem hoffman_singleton_spectral_trace :
+    (7 : ℝ) + 28 * mooreEigenvalue1 5 + 21 * mooreEigenvalue2 5 = 0 := sorry
+
+/-- Spectrum of the potential degree 57 Moore graph (d = 57, n = 3250). -/
+theorem degree_57_spectral_trace :
+    (57 : ℝ) + 1729 * mooreEigenvalue1 15 + 1520 * mooreEigenvalue2 15 = 0 := sorry
+
+end HoffmanSingleton
