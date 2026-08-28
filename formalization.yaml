@@ -1,45 +1,45 @@
 version: "v0.4"
 
 project:
-  name: "Combinatorial Prefix-Sharing and Sparsity on Trees"
+  name: "Ramanujan Tau Function and Congruence Modulo 691"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A complete Lean 4 formalization of combinatorial prefix-sharing and sparsity ratios on complete p-ary trees
-    of arbitrary depth d. Proves exact cardinality formulas for pairs of paths sharing an r-prefix, the exact
-    shared fraction 1 / p^r, the general sparsity bound 1 - 1 / p^r, and concrete numerical evaluation cases
-    for binary trees (50%, 87.5%, 98.4375%). To the maintainers' knowledge, the theorem was not found in an exact
-    declaration name, docstring, and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+    A complete Lean 4 formalization of the Ramanujan tau function \tau(n), the exact Bernoulli number computation
+    B_{12} = -691/2730, and the Ramanujan congruence \tau(n) \equiv \sigma_{11}(n) \pmod{691} derived from the
+    structure of weight-12 modular forms spanned by E_{12} and \Delta. To the maintainers' knowledge, the theorem
+    was not found in an exact declaration name, docstring, and type signature search of the pinned Mathlib revision
+    (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.CO]
-  msc2020: ["05A10", "05C05", "68R05"]
+  arxiv: [math.NT]
+  msc2020: ["11F11", "11F33", "11B68"]
 
 sources:
-  - title: "Enumerative Combinatorics, Volume 1"
+  - title: "On certain arithmetical functions"
+    type: paper
+    authors:
+      - "Srinivasa Ramanujan"
+    year: 1916
+    venue: "Transactions of the Cambridge Philosophical Society, 22(9), 159–184"
+    relationship: formalizes
+  - title: "A Course in Arithmetic"
     type: book
     authors:
-      - "Richard P. Stanley"
-    year: 2012
-    venue: "Cambridge University Press"
-    relationship: background
-  - title: "The Art of Computer Programming, Volume 1: Fundamental Algorithms"
-    type: book
-    authors:
-      - "Donald E. Knuth"
-    year: 1997
-    venue: "Addison-Wesley"
+      - "Jean-Pierre Serre"
+    year: 1973
+    venue: "Graduate Texts in Mathematics, 7, Springer"
     relationship: background
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Data/Fintype/Pi.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/NumberTheory/Bernoulli.lean"
     relationship: builds-on
     note: >-
-      Builds on Mathlib's finite function and product typecardinality theory to formulate canonical
-      prefix-suffix path equivalences and exact tree sparsity ratios.
+      Builds on Mathlib's Bernoulli number library and develops formal power series expansions
+      for modular forms and Ramanujan congruences.
 
 automation:
   methods:

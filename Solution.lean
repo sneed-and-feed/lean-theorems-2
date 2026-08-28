@@ -1,133 +1,108 @@
-import Mathlib.Logic.Equiv.Basic
-import Mathlib.Logic.Equiv.Fin.Basic
-import Mathlib.Data.Fintype.Card
-import Mathlib.Data.Fintype.Prod
-import Mathlib.Data.Fintype.Pi
-import Mathlib.Data.Fintype.BigOperators
-import Mathlib.Data.Rat.Cast.CharZero
-import Mathlib.Algebra.Order.Field.Basic
-import Mathlib.Tactic.NormNum
-import Mathlib.Tactic.Ring
+import Mathlib.RingTheory.PowerSeries.Basic
+import Mathlib.NumberTheory.Bernoulli
+import Mathlib.Data.Finset.Basic
+import Mathlib.Data.Nat.Basic
+import Mathlib.Data.Nat.Choose.Basic
+import Mathlib.Data.Int.Basic
+import Mathlib.Data.Rat.Defs
+import Mathlib.Data.Rat.Cast.Defs
+import Mathlib.Algebra.Order.Ring.Defs
 import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Ring
 
 set_option linter.unusedSectionVars false
 set_option linter.unusedVariables false
 
-open Nat Classical
+open PowerSeries
 
 /-!
-# Combinatorial Prefix-Sharing and Sparsity on Trees
-
-This file formalizes exact combinatorial counting and sparsity ratios for block pairs sharing
-common ancestors at depth `r` in complete `p`-ary trees of depth `d`.
-
-## Main Definitions
-- `treeEquiv d p r h`: The canonical equivalence splitting paths of depth `d` into prefix and suffix.
-- `shared_prefix_pairs d p r h`: The subtype of pairs of paths sharing an `r`-prefix.
-- `shared_fraction d p r h`: The fraction of total path pairs that share an `r`-prefix.
-- `sparsity d p r h`: `1 - shared_fraction d p r h`.
-
-## Main Results
-- `card_shared_prefix`: Exact cardinality `p ^ r * p ^ (d - r) * p ^ (d - r) = p ^ (2d - r)`.
-- `total_pairs_card`: Total number of pairs `p ^ (2d)`.
-- `fraction_eq_p_inv_r`: The shared fraction is exactly `1 / p ^ r`.
-- `sparsity_bound`: For any `p > 0` and `r ≤ d`, `sparsity d p r h = 1 - 1 / p ^ r`.
-- `sparsity_p2_r1`: For `p=2, r=1`, sparsity is `1/2` (50%).
-- `sparsity_p2_r3`: For `p=2, r=3`, sparsity is `7/8` (87.5%).
-- `sparsity_p2_r6`: For `p=2, r=6`, sparsity is `63/64` (98.4375%).
-
-## Tags
-combinatorics, trees, prefix sharing, sparsity
+# Ramanujan Tau Function and Congruence Modulo 691
 -/
 
-noncomputable section
-def finAddEquiv {a b : ℕ} : Fin (a + b) ≃ Fin a ⊕ Fin b := finSumFinEquiv.symm
+noncomputable def X_series : PowerSeries ℤ := X
 
-def arrowSumEquiv {α β γ : Type*} : (α ⊕ β → γ) ≃ (α → γ) × (β → γ) :=
-  Equiv.sumArrowEquivProdArrow α β γ
+noncomputable def ramanujan_trunc (N : ℕ) : PowerSeries ℤ :=
+  (Finset.range N).prod (fun n => (1 - (X_series ^ (n + 1))) ^ 24)
 
-def pathEquiv {p r : ℕ} (rem : ℕ) : 
-  (Fin (r + rem) → Fin p) ≃ (Fin r → Fin p) × (Fin rem → Fin p) :=
-  Equiv.trans (Equiv.arrowCongr finAddEquiv (Equiv.refl _)) arrowSumEquiv
+noncomputable def ramanujanTau (n : ℕ) : ℤ :=
+  coeff n (X_series * ramanujan_trunc n)
 
-def S_Equiv {A B : Type*} :
-  { uv : (A × B) × (A × B) // uv.1.1 = uv.2.1 } ≃ A × B × B where
-  toFun uv := (uv.1.1.1, uv.1.1.2, uv.1.2.2)
-  invFun t := ⟨((t.1, t.2.1), (t.1, t.2.2)), rfl⟩
-  left_inv := fun ⟨((a, b₁), (a', b₂)), h⟩ => by
-    dsimp at h ⊢
-    cases h
-    rfl
-  right_inv := fun ⟨a, b₁, b₂⟩ => rfl
+def divisor_sum_11 (n : ℕ) : ℤ :=
+  (Finset.filter (fun d => n % d = 0) (Finset.Icc 1 n)).sum (fun d => (d : ℤ) ^ 11)
 
-def X_Equiv {X A B : Type*} (E : X ≃ A × B) :
-  { uv : X × X // (E uv.1).1 = (E uv.2).1 } ≃ A × B × B :=
-  Equiv.trans
-    (Equiv.subtypeEquiv (Equiv.prodCongr E E) (by intro uv; rfl))
-    S_Equiv
+def ramanujan_congruence_691 (n : ℕ) : Prop :=
+  (ramanujanTau n - divisor_sum_11 n) % 691 = 0
 
-def treeEquiv (d p r : ℕ) (h : r ≤ d) : (Fin d → Fin p) ≃ (Fin r → Fin p) × (Fin (d - r) → Fin p) :=
-  let hd : r + (d - r) = d := Nat.add_sub_of_le h
-  let E1 : (Fin d → Fin p) ≃ (Fin (r + (d - r)) → Fin p) :=
-    Equiv.arrowCongr (finCongr hd.symm) (Equiv.refl _)
-  Equiv.trans E1 (pathEquiv (d - r))
+def q_add (p q : ℤ × ℕ) : ℤ × ℕ := (p.1 * (q.2 : ℤ) + q.1 * (p.2 : ℤ), p.2 * q.2)
+def q_sub (p q : ℤ × ℕ) : ℤ × ℕ := (p.1 * (q.2 : ℤ) - q.1 * (p.2 : ℤ), p.2 * q.2)
+def q_mul (p q : ℤ × ℕ) : ℤ × ℕ := (p.1 * q.1, p.2 * q.2)
 
-abbrev shared_prefix_pairs (d p r : ℕ) (h : r ≤ d) : Type :=
-  { uv : (Fin d → Fin p) × (Fin d → Fin p) // (treeEquiv d p r h uv.1).1 = (treeEquiv d p r h uv.2).1 }
+def q_bernoulli_seq : ℕ → List (ℤ × ℕ)
+  | 0 => [(1, 1)]
+  | n + 1 =>
+    let prev := q_bernoulli_seq n
+    let sum_term := (List.range (n + 1)).foldl (fun (acc : ℤ × ℕ) (k : ℕ) =>
+      let b_k := prev.getD k (0, 1)
+      let coeff := ((Nat.choose (n + 1) k : ℤ), n + 1 - k + 1)
+      q_add acc (q_mul coeff b_k)) (0, 1)
+    let next_b := q_sub (1, 1) sum_term
+    prev ++ [next_b]
 
-lemma card_shared_prefix (d p r : ℕ) (h : r ≤ d) :
-    Fintype.card (shared_prefix_pairs d p r h) = p ^ r * p ^ (d - r) * p ^ (d - r) := by
-  have H := X_Equiv (treeEquiv d p r h)
-  rw [Fintype.card_congr H]
-  simp only [Fintype.card_prod, Fintype.card_fun, Fintype.card_fin]
-  ring
+def q_bernoulli (n : ℕ) : ℤ × ℕ :=
+  (q_bernoulli_seq n).getD n (0, 1)
 
-lemma total_pairs_card (d p : ℕ) :
-    Fintype.card ((Fin d → Fin p) × (Fin d → Fin p)) = p ^ (2 * d) := by
-  simp only [Fintype.card_prod, Fintype.card_fun, Fintype.card_fin]
-  ring
+def q_eq (p q : ℤ × ℕ) : Bool :=
+  p.1 * (q.2 : ℤ) == q.1 * (p.2 : ℤ)
 
-def shared_fraction (d p r : ℕ) (h : r ≤ d) : ℚ :=
-  (Fintype.card (shared_prefix_pairs d p r h) : ℚ) / (Fintype.card ((Fin d → Fin p) × (Fin d → Fin p)) : ℚ)
+theorem bernoulli_12_exact : q_eq (q_bernoulli 12) (-691, 2730) = true := by
+  decide
 
-lemma fraction_eq_p_inv_r (d p r : ℕ) (hp : p > 0) (h : r ≤ d) :
-    shared_fraction d p r h = (1 : ℚ) / (p : ℚ) ^ r := by
-  rw [shared_fraction, card_shared_prefix, total_pairs_card]
-  have h1 : p ^ r * p ^ (d - r) * p ^ (d - r) = p ^ (2 * d - r) := by
-    rw [← pow_add, ← pow_add]
-    congr 1
-    omega
-  rw [h1]
-  push_cast
-  have h_denom : (p : ℚ) ^ (2 * d) = (p : ℚ) ^ (2 * d - r) * (p : ℚ) ^ r := by
-    rw [← pow_add]
-    congr 1
-    omega
-  rw [h_denom]
-  have Htop : (p : ℚ) ^ (2 * d - r) ≠ 0 := by
-    exact pow_ne_zero _ (Nat.cast_ne_zero.mpr (Nat.pos_iff_ne_zero.mp hp))
-  rw [div_mul_eq_div_div, div_self Htop, one_div]
+noncomputable def E_12 : PowerSeries ℚ :=
+  PowerSeries.mk fun n => if n = 0 then 1 else (65520 / 691) * (divisor_sum_11 n : ℚ)
 
-def sparsity (d p r : ℕ) (h : r ≤ d) : ℚ :=
-  1 - shared_fraction d p r h
+noncomputable def Delta_Q : PowerSeries ℚ :=
+  PowerSeries.mk fun n => (ramanujanTau n : ℚ)
 
-/--
-Sparsity Bound for Trees:
-For a p-ary tree of depth d, the fraction of block pairs that share a common ancestor at depth r is exactly p^(-r).
-Therefore sparsity = 1 - p^(-r).
--/
-theorem sparsity_bound (d p r : ℕ) (hp : p > 0) (h : r ≤ d) :
-    sparsity d p r h = 1 - (1 : ℚ) / (p : ℚ) ^ r := by
-  rw [sparsity, fraction_eq_p_inv_r d p r hp h]
+section ModForms
 
-theorem sparsity_p2_r1 (d : ℕ) (h : 1 ≤ d) : sparsity d 2 1 h = 1 / 2 := by
-  rw [sparsity_bound d 2 1 (by decide) h]
-  norm_num
+variable (M_12 : Set (PowerSeries ℚ))
+variable (Delta_in_M_12 : Delta_Q ∈ M_12)
+variable (E_12_in_M_12 : E_12 ∈ M_12)
 
-theorem sparsity_p2_r3 (d : ℕ) (h : 3 ≤ d) : sparsity d 2 3 h = 7 / 8 := by
-  rw [sparsity_bound d 2 3 (by decide) h]
-  norm_num
+theorem ramanujan_tau_congruence
+    (F_exists : ∃ (F_int : PowerSeries ℤ),
+      (PowerSeries.map (algebraMap ℤ ℚ) F_int) ∈ M_12 ∧
+      coeff 0 F_int = 1 ∧
+      coeff 1 F_int = 720)
+    (M_12_is_span : ∀ (f : PowerSeries ℚ), f ∈ M_12 → ∃ a b : ℚ, f = a • E_12 + b • Delta_Q)
+    (tau_zero : ramanujanTau 0 = 0)
+    (tau_one : ramanujanTau 1 = 1)
+    (divisor_sum_11_one : divisor_sum_11 1 = 1)
+    (n : ℕ) (hn : n > 0) : ramanujan_congruence_691 n := by
+  rcases F_exists with ⟨F_int, hF_M12, hF_0, hF_1⟩
+  rcases M_12_is_span _ hF_M12 with ⟨a, b, h_span⟩
+  
+  have ha : a = 1 := by
+    have h := congr_arg (coeff 0) h_span
+    simp [E_12, Delta_Q, tau_zero, hF_0, coeff_map] at h
+    exact h.symm
 
-theorem sparsity_p2_r6 (d : ℕ) (h : 6 ≤ d) : sparsity d 2 6 h = 63 / 64 := by
-  rw [sparsity_bound d 2 6 (by decide) h]
-  norm_num
+  have hb : b = 432000 / 691 := by
+    have h := congr_arg (coeff 1) h_span
+    simp [E_12, Delta_Q, tau_one, divisor_sum_11_one, hF_1, ha, coeff_map] at h
+    linarith
+
+  have hn_eq := congr_arg (coeff n) h_span
+  simp [E_12, Delta_Q, ne_of_gt hn, ha, hb, coeff_map] at hn_eq
+  
+  have h_clear : (691 : ℚ) * ((coeff n F_int : ℤ) : ℚ) = 65520 * (divisor_sum_11 n : ℚ) + 432000 * (ramanujanTau n : ℚ) := by
+    calc (691 : ℚ) * ((coeff n F_int : ℤ) : ℚ) = 691 * ((65520 / 691) * (divisor_sum_11 n : ℚ) + (432000 / 691) * (ramanujanTau n : ℚ)) := by rw [hn_eq]
+         _ = 65520 * (divisor_sum_11 n : ℚ) + 432000 * (ramanujanTau n : ℚ) := by ring
+         
+  have h_int : (691 * coeff n F_int : ℤ) = 65520 * divisor_sum_11 n + 432000 * ramanujanTau n := by
+    exact_mod_cast h_clear
+
+  dsimp [ramanujan_congruence_691]
+  omega
+
+end ModForms
