@@ -1,90 +1,102 @@
-import Mathlib.Data.Real.Basic
-import Mathlib.Data.ENNReal.Basic
-import Mathlib.Data.Fintype.Card
+import Mathlib.Combinatorics.SimpleGraph.Basic
+import Mathlib.Combinatorics.SimpleGraph.DegreeSum
+import Mathlib.Combinatorics.SimpleGraph.Coloring.Vertex
+import Mathlib.Combinatorics.SimpleGraph.Connectivity.Connected
 import Mathlib.Data.Finset.Basic
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Analysis.Normed.Lp.MeasurableSpace
-import Mathlib.Analysis.Convex.Basic
-import Mathlib.Analysis.Convex.Hull
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
-import Mathlib.MeasureTheory.Measure.Haar.InnerProductSpace
-import Mathlib.MeasureTheory.Measure.MeasureSpace
-import Mathlib.Tactic.Positivity
+import Mathlib.Data.Finset.Card
+import Mathlib.Data.Fintype.Basic
 import Mathlib.Tactic.Linarith
-
-open scoped BigOperators ENNReal
-open Classical
+import Mathlib.Tactic.Ring
 
 set_option linter.unusedSectionVars false
+set_option linter.unusedVariables false
+set_option linter.style.haveILetI false
+
+open Finset SimpleGraph
 
 /-!
-# Blichfeldt's Theorem in the Geometry of Numbers
+# Brooks' Theorem on Graph Colorings (1941)
 
-This module formalizes **Blichfeldt's Theorem** (Hans Frederick Blichfeldt, 1914),
-a fundamental principle in the geometry of numbers that generalizes Minkowski's Convex Body Theorem
-to arbitrary measurable sets and higher multiplicities.
+This module formalizes **Brooks' Theorem** (R. L. Brooks, 1941), a foundational result
+in graph theory and vertex coloring.
+
+## Mathematical Statement
+
+Let $G = (V, E)$ be a connected simple graph with maximum degree $\Delta(G) = \Delta \ge 1$.
+Then the chromatic number $\chi(G)$ of $G$ satisfies:
+$$\chi(G) \le \Delta$$
+**unless** $G$ is one of two exceptional families:
+1. $G$ is a complete graph $K_{\Delta + 1}$ (where $\chi(K_{\Delta + 1}) = \Delta + 1$).
+2. $\Delta = 2$ and $G$ is an odd cycle $C_{2k+1}$ (where $\chi(C_{2k+1}) = 3 = \Delta + 1$).
+
+For all other connected graphs (in particular, any graph with $\Delta \ge 3$ that is not a clique),
+$G$ can be properly colored with $\Delta$ colors.
+
+## Proof Techniques
+1. **Small-Graph Exact Colorability ($|V| \le \Delta + 1$):**
+   Any non-complete graph with $|V| \le \Delta + 1$ is $\Delta$-colorable.
+2. **Odd Cycle 2-Coloring Obstruction:**
+   Odd cycles $C_{2k+1}$ are not 2-colorable.
+3. **Lovász's Ordering Lemma (1975):**
+   Given a vertex ordering with shared non-adjacent bases and forward neighbors,
+   a greedy coloring uses at most $\Delta$ colors.
+
+## References
+* Brooks, R. L. (1941). *On colouring the nodes of a network*. Mathematical Proceedings of the Cambridge Philosophical Society, 37(2), 194–197.
+* Lovász, L. (1975). *Three short proofs in graph theory*. Journal of Combinatorial Theory, Series B, 19(3), 269–271.
+* Diestel, R. (2017). *Graph Theory*. 5th edition, Springer.
 -/
 
-variable {d : ℕ}
+namespace BrooksTheorem
 
-namespace Blichfeldt
+variable {V : Type*} [Fintype V] [DecidableEq V]
 
-/-- The $d$-dimensional Euclidean space $\mathbb{R}^d$. -/
-abbrev Space (d : ℕ) := EuclideanSpace ℝ (Fin d)
+/-- Maximum degree $\Delta(G)$ of a finite graph $G$. -/
+def maxDegree (G : SimpleGraph V) [DecidableRel G.Adj] : ℕ :=
+  Finset.univ.sup (fun v => G.degree v)
 
-/-- Predicate asserting that a vector in $\mathbb{R}^d$ has integer coordinates. -/
-def IsIntegerVector (v : Space d) : Prop :=
-  ∀ i : Fin d, ∃ z : ℤ, v i = (z : ℝ)
+/-- Predicate asserting that coloring `c` is a proper vertex coloring of `G`. -/
+def IsProperColoring (G : SimpleGraph V) {k : ℕ} (c : V → Fin k) : Prop :=
+  ∀ u v : V, G.Adj u v → c u ≠ c v
 
-/-- The standard fundamental domain (unit half-open cube) $[0, 1)^d \subset \mathbb{R}^d$. -/
-def unitCube (d : ℕ) : Set (Space d) :=
-  { x : Space d | ∀ i : Fin d, 0 ≤ x i ∧ x i < 1 }
+/-- Predicate asserting that graph `G` is `k`-colorable ($\chi(G) \le k$). -/
+def IsKColorable (G : SimpleGraph V) (k : ℕ) : Prop :=
+  ∃ c : V → Fin k, IsProperColoring G c
 
-/-- Lattice translate of a set by an integer vector $z$. -/
-def latticeShift (S : Set (Space d)) (z : Fin d → ℤ) : Set (Space d) :=
-  { x : Space d | ∃ s ∈ S, ∀ i : Fin d, x i = s i + (z i : ℝ) }
+/-- A graph is complete ($K_n$) if every pair of distinct vertices is adjacent. -/
+def IsCompleteGraph (G : SimpleGraph V) : Prop :=
+  ∀ u v : V, u ≠ v → G.Adj u v
 
-/-- Centrally symmetric set: $S = -S$. -/
-def IsCentrallySymmetric (S : Set (Space d)) : Prop :=
-  ∀ x ∈ S, -x ∈ S
+/-- A graph is an odd cycle $C_{2k+1}$. -/
+def IsOddCycle (G : SimpleGraph V) [DecidableRel G.Adj] : Prop :=
+  Odd (Fintype.card V) ∧ (∀ v : V, G.degree v = 2) ∧ G.Preconnected
 
-/--
-**Blichfeldt's Theorem (1914)**:
-Let $S \subset \mathbb{R}^d$ be a Lebesgue measurable set with volume strictly greater
-than an integer $k \ge 1$:
-$$\operatorname{vol}(S) > k$$
-Then there exist $k + 1$ distinct points $x_0, x_1, \dots, x_k \in S$ such that
-every pairwise difference $x_i - x_j$ is an integer lattice vector in $\mathbb{Z}^d$:
-$$x_i - x_j \in \mathbb{Z}^d \quad (orall i, j)$$
--/
-theorem blichfeldts_theorem (d : ℕ) (k : ℕ) (hk : 1 ≤ k) (S : Set (Space d))
-    (hS_meas : MeasurableSet S)
-    (hS_vol : (k : ℝ≥0∞) < MeasureTheory.volume S) :
-    ∃ (pts : Fin (k + 1) → Space d),
-      Function.Injective pts ∧
-      (∀ i : Fin (k + 1), pts i ∈ S) ∧
-      (∀ i j : Fin (k + 1), IsIntegerVector (pts i - pts j)) := sorry
+/-- **Brooks' Theorem for small graphs ($|V| \le \Delta + 1$):**
+    Any graph on at most $\Delta + 1$ vertices with $\Delta \ge 1$ that is not
+    a complete graph $K_{\Delta+1}$ is $\Delta$-colorable. -/
+theorem brooks_theorem_of_card_le_succ (G : SimpleGraph V) [DecidableRel G.Adj]
+    (h_deg_pos : 1 ≤ maxDegree G)
+    (h_card : Fintype.card V ≤ maxDegree G + 1)
+    (h_not_clique : ¬ (IsCompleteGraph G ∧ Fintype.card V = maxDegree G + 1)) :
+    IsKColorable G (maxDegree G) := sorry
 
-/--
-**Minkowski's First Convex Body Theorem (as a Corollary to Blichfeldt)**:
-Let $K \subset \mathbb{R}^d$ be a convex, centrally symmetric, measurable set with
-volume $\operatorname{vol}(K) > 2^d$. Then $K$ contains at least one non-zero
-integer lattice point $z \in \mathbb{Z}^d \setminus \{0\}$:
-$$K \cap (\mathbb{Z}^d \setminus \{0\}) 
-e \emptyset$$
--/
-theorem minkowski_convex_body_theorem (d : ℕ) (K : Set (Space d))
-    (hK_conv : Convex ℝ K)
-    (hK_symm : IsCentrallySymmetric K)
-    (hK_meas : MeasurableSet K)
-    (hK_vol : (2 : ℝ≥0∞) ^ d < MeasureTheory.volume K) :
-    ∃ z : Space d, z ∈ K ∧ z ≠ 0 ∧ IsIntegerVector z := sorry
+/-- An odd cycle is not 2-colorable (requires at least 3 colors). -/
+theorem odd_cycle_not_two_colorable (G : SimpleGraph V) [DecidableRel G.Adj]
+    (h_odd : IsOddCycle G) : ¬ IsKColorable G 2 := sorry
 
-/-- Specialization to dimension $d = 1$: Any measurable set of length $> 1$ on $\mathbb{R}$
-contains two points with integer distance. -/
-theorem blichfeldt_dim1 (S : Set (Space 1)) (hS_meas : MeasurableSet S)
-    (hS_vol : (1 : ℝ≥0∞) < MeasureTheory.volume S) :
-    ∃ x y : Space 1, x ∈ S ∧ y ∈ S ∧ x ≠ y ∧ IsIntegerVector (x - y) := sorry
+/-- **Lovász's Ordering Lemma (1975)**:
+    If a graph admits a Lovász triple ordering where $v_0 \not\sim v_1$, $v_0 \sim v_n$, $v_1 \sim v_n$,
+    and every intermediate vertex has a forward neighbor, then $G$ is $k$-colorable for any $k \ge \Delta(G)$. -/
+theorem colorable_of_lovasz_ordering (G : SimpleGraph V) [DecidableRel G.Adj]
+    (h_deg_pos : 1 ≤ maxDegree G)
+    (h_deg_bound : maxDegree G ≤ k)
+    (ord : Fin (Fintype.card V) ≃ V)
+    (hn : 3 ≤ Fintype.card V)
+    (h01 : ¬ G.Adj (ord ⟨0, by omega⟩) (ord ⟨1, by omega⟩))
+    (h0n : G.Adj (ord ⟨0, by omega⟩) (ord ⟨Fintype.card V - 1, by omega⟩))
+    (h1n : G.Adj (ord ⟨1, by omega⟩) (ord ⟨Fintype.card V - 1, by omega⟩))
+    (hfwd : ∀ (i : Fin (Fintype.card V)), 2 ≤ (i : ℕ) → (i : ℕ) < Fintype.card V - 1 →
+      ∃ (j : Fin (Fintype.card V)), (i : ℕ) < (j : ℕ) ∧ G.Adj (ord i) (ord j)) :
+    IsKColorable G k := sorry
 
-end Blichfeldt
+end BrooksTheorem
