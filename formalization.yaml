@@ -1,0 +1,63 @@
+version: "v0.4"
+
+project:
+  name: "The Alon–Boppana Spectral Lower Bound for Regular Graphs"
+  authors:
+    - "Sneed & Feed Formalization Team"
+  responsible_maintainers:
+    - "sneed-and-feed"
+  license: "CC0-1.0"
+  description: >-
+    A machine-checked Lean 4 formalization of the Alon–Boppana Theorem (1986) on the second largest eigenvalue
+    of d-regular graphs. Defines graph adjacency matrices, Rayleigh quotients, spherical shells, and variational
+    second eigenvalues. Formulates the finite diameter lower bound and Nilli's bound, proving the asymptotic
+    optimality of the Ramanujan spectral gap d - 2*sqrt(d-1). To the maintainers' knowledge, the theorem was
+    not found in an exact declaration name, docstring, and type signature search of the pinned Mathlib revision
+    (Mathlib v4.34.0-rc1).
+
+classification:
+  arxiv: [math.CO, math.SP]
+  msc2020: ["05C50", "15A18", "05C80"]
+
+sources:
+  - title: "Eigenvalues and expanders"
+    type: paper
+    authors:
+      - "Noga Alon"
+    relationship: formalizes
+  - title: "On the second eigenvalue of a graph"
+    type: paper
+    authors:
+      - "A. Nilli"
+    relationship: adapts
+  - title: "Ramanujan graphs"
+    type: paper
+    authors:
+      - "Alexander Lubotzky"
+      - "Ralph Phillips"
+      - "Peter Sarnak"
+    relationship: background
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Metric.lean"
+    relationship: builds-on
+    note: >-
+      Formalization builds on Mathlib's graph metric infrastructure (dist, diam) to define spherical shells
+      and evaluate distance-based test vectors for the Rayleigh quotient.
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
+        Lean LSP checking under maintainer direction and human verification.
+        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
+
+review:
+  status: self-assessed
+  reviewers:
+    - "sneed-and-feed maintainers"
+  notes: >-
+    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
+    while all definitions and theorem statements are completely specified. Solution verified through
+    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.
