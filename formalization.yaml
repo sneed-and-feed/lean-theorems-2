@@ -1,58 +1,58 @@
 version: "v0.4"
 
 project:
-  name: "The Ihara Zeta Function and Hashimoto Edge Adjacency Matrix"
+  name: "Jung's Theorem on Circumscribed Euclidean Spheres and Chebyshev Radii"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A complete Lean 4 formalization of the Hashimoto edge adjacency operator, dart projection matrices
-    (source, target, involution), and the algebraic foundation of the Ihara zeta function for finite graphs.
-    Proves exact matrix product identities connecting directed dart operators to vertex adjacency matrices and degree
-    diagonals. Mathlib contains definitions of simple graph darts and adjacency matrices; this formalization constructs
-    the full Hashimoto edge-adjacency operator algebra and dart involution calculus, verified absent from the core Mathlib
-    library (checked against Mathlib v4.34.0-rc1).
+    A machine-checked Lean 4 formalization of Jung's Theorem (1901) on the circumradius / Chebyshev radius
+    of bounded sets in d-dimensional Euclidean space. Formulates the enclosing ball predicate, circumradius infimum,
+    and Helly intersection reduction for closed balls via Mathlib's compact Helly theorem. Proves the circumradius
+    bound R(S) <= sqrt(d / (2(d+1))) * diam(S) and evaluates concrete specializations in dimensions 1, 2, and 3.
+    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type
+    signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.CO]
-  msc2020: ["05C50", "11M36", "15A15"]
+  arxiv: [math.MG]
+  msc2020: ["52A40", "52A35", "51M04"]
 
 sources:
-  - title: "On discrete subgroups of the two by two projective linear group over p-adic fields"
+  - title: "Über die kleinste Kugel, die eine räumliche Figur einschliesst"
     type: paper
     authors:
-      - "Yasutaka Ihara"
-    year: 1966
-    venue: "Journal of the Mathematical Society of Japan, 18(3), 219–235"
+      - "Heinrich Jung"
     relationship: formalizes
-  - title: "Zeta Functions of Finite Graphs and Representations of p-Adic Groups"
+  - title: "Helly's theorem and its relatives"
     type: paper
     authors:
-      - "Ki-ichiro Hashimoto"
-    year: 1989
-    venue: "Advanced Studies in Pure Mathematics, 15, 211–280"
+      - "Ludwig Danzer"
+      - "Branko Grünbaum"
+      - "Victor Klee"
     relationship: adapts
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Dart.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Convex/Radon.lean"
     relationship: builds-on
     note: >-
-      Builds on Mathlib's simple graph dart definitions and develops the full matrix operator algebra
-      for directed edge adjacencies and Hashimoto operators.
+      Formalization builds on Mathlib's Helly intersection theorem for compact convex sets
+      (Convex.helly_theorem_compact') to execute the geometric reduction from simplices to arbitrary bounded sets.
 
 automation:
   methods:
     - method: agent
       tool_setup: >-
-        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
-        and verified with zero custom axioms under standard Lean 4 kernel axioms.
+        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
+        Lean LSP checking under maintainer direction and human verification.
+        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
 
 review:
   status: self-assessed
   reviewers:
     - "sneed-and-feed maintainers"
   notes: >-
-    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
-    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.
+    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
+    while all definitions and theorem statements are completely specified. Solution verified through
+    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.

@@ -2,13 +2,17 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "sourceMatrix_mul_targetMatrix_transpose",
-    "sourceMatrix_mul_sourceMatrix_transpose",
-    "targetMatrix_mul_targetMatrix_transpose",
-    "targetMatrix_transpose_mul_sourceMatrix",
-    "involutionMatrix_mul_targetMatrix_transpose",
-    "sourceMatrix_mul_involutionMatrix",
-    "involutionMatrix_sq"
+    "jungsConstant_pos",
+    "jungsConstant_nonneg",
+    "jungs_theorem_via_helly",
+    "jungs_theorem",
+    "circumradius_le_jungs_bound",
+    "jungsConstant_one",
+    "jungsConstant_two",
+    "jungsConstant_three",
+    "jungs_bound_dim1",
+    "jungs_bound_dim2",
+    "jungs_bound_dim3"
   ],
   "permitted_axioms": [
     "propext",
