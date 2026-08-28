@@ -1,119 +1,98 @@
 import Mathlib.Data.Real.Basic
 import Mathlib.Data.Matrix.Basic
 import Mathlib.Data.Fintype.Card
+import Mathlib.Data.Fintype.Perm
 import Mathlib.Data.Finset.Card
 import Mathlib.Data.Finset.Basic
-import Mathlib.Combinatorics.SimpleGraph.Basic
-import Mathlib.Combinatorics.SimpleGraph.Metric
-import Mathlib.Combinatorics.SimpleGraph.Diam
-import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Analysis.Convex.Hull
+import Mathlib.Analysis.Convex.Combination
+import Mathlib.Analysis.Convex.Extreme
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.Positivity
 
-open scoped BigOperators Matrix Finset
+open scoped BigOperators Matrix
 open Classical
 
-set_option linter.unusedSectionVars false
+namespace BirkhoffVonNeumann
 
-/-!
-# The Alon–Boppana Spectral Lower Bound for Regular Graphs
+variable {n : ℕ}
 
-This module formalizes the **Alon–Boppana Theorem** (Noga Alon and Ravi Boppana, 1986)
-on the second largest eigenvalue of $d$-regular graphs.
--/
+/-- A square real matrix $M$ of size $n 	imes n$ is **doubly stochastic** if all its entries
+are non-negative and all its row sums and column sums equal $1$. -/
+def IsDoublyStochastic (M : Matrix (Fin n) (Fin n) ℝ) : Prop :=
+  (∀ i j, 0 ≤ M i j) ∧ (∀ i, ∑ j, M i j = 1) ∧ (∀ j, ∑ i, M i j = 1)
 
-variable {V : Type*} [Fintype V] [DecidableEq V]
+/-- The permutation matrix $P_\sigma$ associated to a permutation $\sigma \in S_n$.
+$(P_\sigma)_{i,j} = 1$ if $j = \sigma(i)$ and $0$ otherwise. -/
+def permutationMatrix (σ : Equiv.Perm (Fin n)) : Matrix (Fin n) (Fin n) ℝ :=
+  fun i j => if j = σ i then 1 else 0
 
-namespace AlonBoppana
+/-- The set of all $n 	imes n$ doubly stochastic matrices. -/
+def doublyStochasticSet (n : ℕ) : Set (Matrix (Fin n) (Fin n) ℝ) :=
+  { M | IsDoublyStochastic M }
 
-/-- The $0$-$1$ adjacency matrix of a simple graph $G$ over $\mathbb{R}$. -/
-def adjacencyMatrix (G : SimpleGraph V) [DecidableRel G.Adj] : Matrix V V ℝ :=
-  fun u v => if G.Adj u v then 1 else 0
+/-- The set of all $n 	imes n$ permutation matrices. -/
+def permutationMatrices (n : ℕ) : Set (Matrix (Fin n) (Fin n) ℝ) :=
+  { permutationMatrix σ | σ : Equiv.Perm (Fin n) }
 
-/-- Predicate stating that a simple graph is $d$-regular (every vertex has degree $d$). -/
-def isRegularOfDegree (G : SimpleGraph V) (d : ℕ) [DecidableRel G.Adj] : Prop :=
-  ∀ v : V, G.degree v = d
+/-- Every permutation matrix is doubly stochastic. -/
+theorem permutationMatrix_isDoublyStochastic (σ : Equiv.Perm (Fin n)) :
+    IsDoublyStochastic (permutationMatrix σ) := sorry
 
-/-- The all-ones vector $\mathbf{1} \in \mathbb{R}^V$. -/
-def allOnesVector (V : Type*) [Fintype V] : V → ℝ :=
-  fun _ => 1
+/-- The set of doubly stochastic matrices is convex. -/
+theorem convex_doublyStochastic (n : ℕ) : Convex ℝ (doublyStochasticSet n) := sorry
 
-/-- Standard Euclidean inner product on $\mathbb{R}^V$. -/
-def innerProduct (u v : V → ℝ) : ℝ :=
-  ∑ x : V, u x * v x
+/-- Hall's marriage condition holds for the row supports of any doubly stochastic matrix. -/
+theorem hall_condition_doublyStochastic (M : Matrix (Fin n) (Fin n) ℝ) (hM : IsDoublyStochastic M)
+    (S : Finset (Fin n)) :
+    S.card ≤ (S.biUnion (fun i => Finset.filter (fun j => 0 < M i j) Finset.univ)).card := sorry
 
-/-- The squared Euclidean $\ell^2$-norm $\|v\|^2 = \langle v, v angle$. -/
-def normSq (v : V → ℝ) : ℝ :=
-  innerProduct v v
-
-/-- Quadratic form of the adjacency matrix: $\langle v, A v angle = \sum_{u, v} v(u) A(u, w) v(w)$. -/
-def quadraticForm (G : SimpleGraph V) [DecidableRel G.Adj] (v : V → ℝ) : ℝ :=
-  ∑ u : V, ∑ w : V, v u * adjacencyMatrix G u w * v w
-
-/-- Rayleigh quotient $R(v) = rac{\langle v, A v angle}{\langle v, v angle}$ for $v 
-e 0$. -/
-noncomputable def rayleighQuotient (G : SimpleGraph V) [DecidableRel G.Adj] (v : V → ℝ) : ℝ :=
-  quadraticForm G v / normSq v
-
-/-- A vector $v \in \mathbb{R}^V$ is orthogonal to the all-ones vector $\mathbf{1}$ if $\sum_{x \in V} v(x) = 0$. -/
-def isOrthogonalToOnes (v : V → ℝ) : Prop :=
-  ∑ x : V, v x = 0
-
-/-- Adjacency matrix is symmetric for any simple graph. -/
-theorem adjacencyMatrix_symmetric (G : SimpleGraph V) [DecidableRel G.Adj] :
-    (adjacencyMatrix G)ᵀ = adjacencyMatrix G := sorry
-
-/-- For a $d$-regular graph, the all-ones vector is an eigenvector with eigenvalue $d$. -/
-theorem adjacencyMatrix_mul_ones (G : SimpleGraph V) [DecidableRel G.Adj] {d : ℕ}
-    (hreg : isRegularOfDegree G d) (u : V) :
-    (∑ w : V, adjacencyMatrix G u w * allOnesVector V w) = (d : ℝ) := sorry
-
-/-- The second largest eigenvalue $\lambda_2(G)$ defined variationally via the Rayleigh quotient on $\mathbf{1}^\perp$. -/
-noncomputable def secondEigenvalue (G : SimpleGraph V) [DecidableRel G.Adj] : ℝ :=
-  sSup { rayleighQuotient G v | (v : V → ℝ) (_ : v ≠ 0) (_ : isOrthogonalToOnes v) }
-
-/-- Spherical shell $S_k(x_0)$ of vertices at graph distance exactly $k$ from $x_0$. -/
-noncomputable def sphericalShell (G : SimpleGraph V) (x_0 : V) (k : ℕ) : Finset V :=
-  Finset.filter (fun v => G.dist x_0 v = k) Finset.univ
-
-/-- Spherical shells at distinct distances are disjoint. -/
-theorem sphericalShell_disjoint (G : SimpleGraph V) (x_0 : V) {j k : ℕ} (h : j ≠ k) :
-    Disjoint (sphericalShell G x_0 j) (sphericalShell G x_0 k) := sorry
-
-/-- The 0-th spherical shell contains only the base point $x_0$ (for connected graphs). -/
-theorem sphericalShell_zero (G : SimpleGraph V) (hconn : G.Connected) (x_0 : V) :
-    sphericalShell G x_0 0 = {x_0} := sorry
+/-- Every doubly stochastic matrix admits a permutation $\sigma \in S_n$ such that
+$M_{i, \sigma(i)} > 0$ for all $i$ (positive diagonal / Hall-König support matching). -/
+theorem exists_perm_positive_entries (M : Matrix (Fin n) (Fin n) ℝ) (hM : IsDoublyStochastic M) :
+    ∃ σ : Equiv.Perm (Fin n), ∀ i, 0 < M i (σ i) := sorry
 
 /--
-**Alon–Boppana Theorem (Finite Form)**:
-For any $d$-regular simple graph $G$ on $n$ vertices with diameter $D \ge 2$ and $d \ge 2$,
-the second largest eigenvalue $\lambda_2(G)$ satisfies:
-$$\lambda_2(G) \ge 2\sqrt{d - 1} \cdot \left(1 - rac{2}{D}ight) - rac{2}{D}$$
+**Birkhoff–von Neumann Theorem (1946/1953)**:
+Every doubly stochastic matrix is in the convex hull of permutation matrices.
+$$\mathcal{D}_n = \operatorname{Conv}(\mathcal{P}_n)$$
 -/
-theorem alon_boppana_bound (G : SimpleGraph V) [DecidableRel G.Adj] {d : ℕ}
-    (hd : 2 ≤ d) (hreg : isRegularOfDegree G d) (hconn : G.Connected)
-    (h_diam : 2 ≤ G.diam) :
-    2 * Real.sqrt (d - 1 : ℝ) * (1 - 2 / (G.diam : ℝ)) - 2 / (G.diam : ℝ) ≤ secondEigenvalue G := sorry
+theorem birkhoff_von_neumann_convex_hull (M : Matrix (Fin n) (Fin n) ℝ) (hM : IsDoublyStochastic M) :
+    M ∈ convexHull ℝ (permutationMatrices n) := sorry
+
+/-- A matrix is doubly stochastic if and only if it belongs to the convex hull of permutation matrices. -/
+theorem birkhoff_von_neumann_iff (M : Matrix (Fin n) (Fin n) ℝ) :
+    M ∈ convexHull ℝ (permutationMatrices n) ↔ IsDoublyStochastic M := sorry
 
 /--
-**Alon–Boppana Spectral Bound (Diameter Form / Nilli's Bound)**:
-For any $d$-regular graph $G$ with diameter $D$,
-$$\lambda_2(G) \ge 2\sqrt{d - 1} - rac{2\sqrt{d - 1} - 1}{\lfloor D / 2 floor}$$
+**Birkhoff–von Neumann Theorem (Explicit Convex Combination Form)**:
+Every doubly stochastic matrix is an explicit convex combination of permutation matrices:
+$$M = \sum_{\sigma \in S_n} c_\sigma P_\sigma, \quad c_\sigma \ge 0, \quad \sum_\sigma c_\sigma = 1$$
 -/
-theorem alon_boppana_nilli (G : SimpleGraph V) [DecidableRel G.Adj] {d : ℕ}
-    (hd : 2 ≤ d) (hreg : isRegularOfDegree G d) (hconn : G.Connected)
-    (h_diam : 4 ≤ G.diam) :
-    2 * Real.sqrt (d - 1 : ℝ) - (2 * Real.sqrt (d - 1 : ℝ) - 1) / ((G.diam / 2 : ℕ) : ℝ) ≤ secondEigenvalue G := sorry
+theorem birkhoff_von_neumann_convex_combination (M : Matrix (Fin n) (Fin n) ℝ)
+    (hM : IsDoublyStochastic M) :
+    ∃ (c : Equiv.Perm (Fin n) → ℝ), (∀ σ, 0 ≤ c σ) ∧ (∑ σ, c σ = 1) ∧
+      M = ∑ σ, c σ • permutationMatrix σ := sorry
 
-/-- Definition of a Ramanujan graph: A $d$-regular graph whose non-trivial eigenvalues
-satisfy $|\lambda| \le 2\sqrt{d-1}$. -/
-def IsRamanujan (G : SimpleGraph V) [DecidableRel G.Adj] (d : ℕ) : Prop :=
-  isRegularOfDegree G d ∧ secondEigenvalue G ≤ 2 * Real.sqrt (d - 1 : ℝ)
+/-- The extreme points of the doubly stochastic polytope $\mathcal{D}_n$ are exactly the permutation matrices. -/
+theorem extremePoints_doublyStochasticSet (n : ℕ) :
+    Set.extremePoints ℝ (doublyStochasticSet n) = permutationMatrices n := sorry
 
-/-- Ramanujan graphs achieve the optimal spectral gap up to $o(1)$. -/
-theorem ramanujan_spectral_gap (G : SimpleGraph V) [DecidableRel G.Adj] {d : ℕ}
-    (hR : IsRamanujan G d) :
-    (d : ℝ) - 2 * Real.sqrt (d - 1 : ℝ) ≤ (d : ℝ) - secondEigenvalue G := sorry
+/-- The support of a permutation matrix has cardinality exactly $n$. -/
+theorem permutationMatrix_card_matrixSupp (σ : Equiv.Perm (Fin n)) :
+    (Finset.filter (fun p : Fin n × Fin n => 0 < permutationMatrix σ p.1 p.2) Finset.univ).card = n := sorry
 
-end AlonBoppana
+/-- Any $n 	imes n$ doubly stochastic matrix has at least $n$ positive entries. -/
+theorem card_matrixSupp_ge_n (M : Matrix (Fin n) (Fin n) ℝ) (hM : IsDoublyStochastic M) :
+    n ≤ (Finset.filter (fun p : Fin n × Fin n => 0 < M p.1 p.2) Finset.univ).card := sorry
+
+/-- The support of any $n 	imes n$ matrix is bounded above by $n^2$. -/
+theorem matrixSupp_card_le_sq (M : Matrix (Fin n) (Fin n) ℝ) :
+    (Finset.filter (fun p : Fin n × Fin n => 0 < M p.1 p.2) Finset.univ).card ≤ n * n := sorry
+
+/-- A doubly stochastic matrix has all entries in $\{0, 1\}$ if and only if it is a permutation matrix. -/
+theorem isDoublyStochastic_and_entries_zero_one_iff (M : Matrix (Fin n) (Fin n) ℝ) :
+    (IsDoublyStochastic M ∧ ∀ i j, M i j = 0 ∨ M i j = 1) ↔ M ∈ permutationMatrices n := sorry
+
+end BirkhoffVonNeumann

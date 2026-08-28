@@ -1,49 +1,46 @@
 version: "v0.4"
 
 project:
-  name: "The Alon–Boppana Spectral Lower Bound for Regular Graphs"
+  name: "The Birkhoff–von Neumann Theorem on Doubly Stochastic Matrices"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A machine-checked Lean 4 formalization of the Alon–Boppana Theorem (1986) on the second largest eigenvalue
-    of d-regular graphs. Defines graph adjacency matrices, Rayleigh quotients, spherical shells, and variational
-    second eigenvalues. Formulates the finite diameter lower bound and Nilli's bound, proving the asymptotic
-    optimality of the Ramanujan spectral gap d - 2*sqrt(d-1). To the maintainers' knowledge, the theorem was
-    not found in an exact declaration name, docstring, and type signature search of the pinned Mathlib revision
-    (Mathlib v4.34.0-rc1).
+    A complete machine-checked Lean 4 formalization of the Birkhoff–von Neumann Theorem (1946/1953) on doubly stochastic matrices.
+    Proves that the Birkhoff polytope D_n of n x n doubly stochastic matrices is the convex hull of the set P_n of permutation matrices
+    (D_n = Conv(P_n)), and that the extreme points of D_n are precisely P_n. Formulates Hall's support condition, positive diagonal extraction,
+    and inductive support reduction without custom axioms. To the maintainers' knowledge, the theorem was not found in an exact declaration
+    name, docstring, and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.CO, math.SP]
-  msc2020: ["05C50", "15A18", "05C80"]
+  arxiv: [math.CO, math.FA]
+  msc2020: ["52B12", "15B51", "52A07"]
 
 sources:
-  - title: "Eigenvalues and expanders"
+  - title: "Tres observaciones sobre el algebra lineal"
     type: paper
     authors:
-      - "Noga Alon"
+      - "Garrett Birkhoff"
     relationship: formalizes
-  - title: "On the second eigenvalue of a graph"
+  - title: "A certain zero-sum two-person game equivalent to the optimal assignment problem"
     type: paper
     authors:
-      - "A. Nilli"
+      - "John von Neumann"
+    relationship: formalizes
+  - title: "On Representatives of Subsets"
+    type: paper
+    authors:
+      - "Philip Hall"
     relationship: adapts
-  - title: "Ramanujan graphs"
-    type: paper
-    authors:
-      - "Alexander Lubotzky"
-      - "Ralph Phillips"
-      - "Peter Sarnak"
-    relationship: background
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Metric.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Convex/Extreme.lean"
     relationship: builds-on
     note: >-
-      Formalization builds on Mathlib's graph metric infrastructure (dist, diam) to define spherical shells
-      and evaluate distance-based test vectors for the Rayleigh quotient.
+      Formalization builds on Mathlib's convex analysis and extreme points infrastructure (Set.extremePoints)
+      to establish the extreme point characterization of permutation matrices.
 
 automation:
   methods:
