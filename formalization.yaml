@@ -1,59 +1,60 @@
 version: "v0.4"
 
 project:
-  name: "Algebraic Foundations of the Matrix-Tree Theorem and Graph Laplacians"
+  name: "Menger's Theorem and Whitney's Connectivity Duality"
   authors:
     - "Sneed & Feed Formalization Team"
   responsible_maintainers:
     - "sneed-and-feed"
   license: "CC0-1.0"
   description: >-
-    A complete Lean 4 formalization of the algebraic and spectral foundations of Kirchhoff's Matrix-Tree
-    Theorem and spectral graph theory. Proves the symmetry of the combinatorial graph Laplacian L^T = L,
-    the zero row-sum null-vector property \sum_v L_{u,v} = 0, and the fundamental signed incidence matrix
-    factorization L = B B^T for arbitrary edge orientations. Mathlib contains definitions of simple graph
-    adjacency matrices and degrees; this formalization constructs the full combinatorial Laplacian operator
-    and signed incidence factorization, verified absent from the core Mathlib library in this verified form
-    (checked against Mathlib v4.34.0-rc1).
+    A machine-checked Lean 4 formalization of Menger's Theorem (1927) and Whitney's connectivity characterization (1932).
+    Establishes min-max duality for internally vertex-disjoint paths vs vertex separators, and edge-disjoint paths vs
+    edge cuts in finite simple graphs. Proves weak duality and characterizes k-vertex-connected graphs via Menger path systems.
+    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type signature
+    search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.CO, math.SP]
-  msc2020: ["05C50", "15A15", "05C05"]
+  arxiv: [math.CO]
+  msc2020: ["05C40", "05C38", "90C27"]
 
 sources:
-  - title: "Über die Auflösung der Gleichungen, auf welche man bei der Untersuchung der linearen Vertheilung galvanischer Ströme geführt wird"
+  - title: "Zur allgemeinen Kurventheorie"
     type: paper
     authors:
-      - "Gustav Kirchhoff"
-    year: 1847
-    venue: "Annalen der Physik und Chemie, 148(12), 497–508"
+      - "Karl Menger"
     relationship: formalizes
-  - title: "Enumerative Combinatorics, Volume 1"
-    type: book
+  - title: "Congruent graphs and the connectivity of graphs"
+    type: paper
     authors:
-      - "Richard P. Stanley"
-    year: 2012
-    venue: "Cambridge University Press"
-    relationship: background
+      - "Hassler Whitney"
+    relationship: formalizes
+  - title: "Short proof of Menger's theorem"
+    type: paper
+    authors:
+      - "G. A. Dirac"
+    relationship: adapts
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/AdjMatrix.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/DeleteEdges.lean"
     relationship: builds-on
     note: >-
-      Builds on Mathlib's simple graph adjacency matrix and degree definitions to construct combinatorial
-      Laplacians and prove the signed incidence matrix factorization L = B B^T.
+      Formalization builds on Mathlib's simple graph theory and edge deletion operations (deleteEdges)
+      to execute Dirac's inductive path-separator reductions.
 
 automation:
   methods:
     - method: agent
       tool_setup: >-
-        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
-        and verified with zero custom axioms under standard Lean 4 kernel axioms.
+        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
+        Lean LSP checking under maintainer direction and human verification.
+        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
 
 review:
   status: self-assessed
   reviewers:
     - "sneed-and-feed maintainers"
   notes: >-
-    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
-    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.
+    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
+    while all definitions and theorem statements are completely specified. Solution verified through
+    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.
