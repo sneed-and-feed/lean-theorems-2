@@ -3,9 +3,9 @@ version: "v0.4"
 project:
   name: "Sperner's Theorem on Antichains and the LYM Inequality"
   authors:
-    - "Sneed & Feed Formalization Team"
+    - "Noah Cohen"
   responsible_maintainers:
-    - "sneed-and-feed"
+    - "Noah Cohen"
   license: "CC0-1.0"
   description: >-
     A complete Lean 4 formalization of Sperner's Theorem on Antichains (1928), the Lubell–Yamamoto–Meshalkin
@@ -70,7 +70,7 @@ automation:
 review:
   status: self-assessed
   reviewers:
-    - "sneed-and-feed maintainers"
+    - "Noah Cohen"
   notes: >-
     Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
     are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.
