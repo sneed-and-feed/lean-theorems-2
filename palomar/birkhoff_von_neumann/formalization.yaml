@@ -34,6 +34,9 @@ sources:
     authors:
       - "Philip Hall"
     relationship: adapts
+    note: >-
+      Formalization adapts Hall's Marriage Theorem condition to extract positive diagonals from doubly
+      stochastic matrices for the Birkhoff inductive reduction.
 
 related_formalizations:
   - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Convex/Extreme.lean"

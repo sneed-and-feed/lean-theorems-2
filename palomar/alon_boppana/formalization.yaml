@@ -30,6 +30,9 @@ sources:
     authors:
       - "A. Nilli"
     relationship: adapts
+    note: >-
+      Formalization adapts Nilli's short topological and distance-partition Rayleigh quotient method to
+      establish the Alon–Boppana second eigenvalue lower bound.
   - title: "Ramanujan graphs"
     type: paper
     authors:

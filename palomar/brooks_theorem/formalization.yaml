@@ -34,6 +34,9 @@ sources:
     year: 1975
     venue: "Journal of Combinatorial Theory, Series B, 19(3), 269–271"
     relationship: adapts
+    note: >-
+      Formalization adapts Lovász's ordering and cycle-avoiding coloring reduction to establish Brooks' vertex
+      coloring bound chi(G) <= Delta(G).
 
 related_formalizations:
   - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Coloring/Vertex.lean"

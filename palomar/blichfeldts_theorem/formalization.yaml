@@ -30,6 +30,9 @@ sources:
     authors:
       - "Hermann Minkowski"
     relationship: adapts
+    note: >-
+      Formalization adapts Minkowski's convex body lattice point theorem as a geometric consequence of
+      Blichfeldt's modular quotient translation theorem.
 
 related_formalizations:
   - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/MeasureTheory/Measure/Lebesgue/Basic.lean"

@@ -17,7 +17,6 @@ import Formalization.JungsTheorem
 import Formalization.AlonBoppana
 import Formalization.MengersTheorem
 import Formalization.MacMahonsMasterTheorem
-import Formalization.ColorfulCaratheodory
 import Formalization.BlichfeldtsTheorem
 import Formalization.HoffmanSingleton
 import Formalization.RSKBijection

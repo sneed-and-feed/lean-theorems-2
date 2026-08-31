@@ -34,6 +34,9 @@ sources:
     year: 1989
     venue: "Advanced Studies in Pure Mathematics, 15, 211–280"
     relationship: adapts
+    note: >-
+      Formalization adapts Hashimoto's directed edge (dart) adjacency operator and Hashimoto matrix identities
+      for the Ihara–Sunada graph zeta function.
 
 related_formalizations:
   - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Dart.lean"

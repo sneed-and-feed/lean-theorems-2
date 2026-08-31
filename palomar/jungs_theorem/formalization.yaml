@@ -32,6 +32,9 @@ sources:
       - "Branko Grünbaum"
       - "Victor Klee"
     relationship: adapts
+    note: >-
+      Formalization adapts Danzer, Grünbaum, and Klee's Helly-type intersection techniques to deduce Jung's
+      minimal bounding sphere radius bound.
 
 related_formalizations:
   - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Convex/Radon.lean"

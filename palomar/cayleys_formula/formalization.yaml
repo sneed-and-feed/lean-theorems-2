@@ -30,6 +30,9 @@ sources:
     authors:
       - "Heinz Prüfer"
     relationship: adapts
+    note: >-
+      Formalization adapts Prüfer's bijective sequence encoding to establish Cayley's formula n^{n-2} for
+      labeled trees.
 
 related_formalizations:
   - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Acyclic.lean"

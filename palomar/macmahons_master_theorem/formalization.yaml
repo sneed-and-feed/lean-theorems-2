@@ -30,6 +30,9 @@ sources:
     authors:
       - "I. J. Good"
     relationship: adapts
+    note: >-
+      Formalization adapts Good's algebraic coefficient extraction and matrix inverse proof method for
+      MacMahon's Master Theorem.
 
 related_formalizations:
   - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/RingTheory/MvPowerSeries/Inverse.lean"

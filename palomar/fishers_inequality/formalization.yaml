@@ -35,6 +35,9 @@ sources:
     year: 1949
     venue: "Bulletin of the Calcutta Mathematical Society, 41, 106–107"
     relationship: adapts
+    note: >-
+      Formalization adapts Bose's linear algebraic incidence Gramian determinant computation (det(N N^T) > 0)
+      to deduce b >= v.
 
 related_formalizations:
   - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/LinearAlgebra/Matrix/Determinant/Basic.lean"

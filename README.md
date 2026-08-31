@@ -27,12 +27,11 @@ This repository provides machine-checked formalizations, certified proofs, and f
 | 17 | **Alon–Boppana Spectral Lower Bound** | [`alon_boppana_bound`](Formalization/AlonBoppana.lean), [`alon_boppana_nilli`](Formalization/AlonBoppana.lean), [`secondEigenvalue`](Formalization/AlonBoppana.lean), [`IsRamanujan`](Formalization/AlonBoppana.lean) | Spectral Graph Theory & Expanders | Alon (1986), Boppana (1986), Nilli (1991) | Scaffolded (Symmetry & gap verified; lacks Nilli spherical test vectors) |
 | 18 | **Menger's Theorem on Disjoint Paths & Cuts** | [`menger_vertex`](Formalization/MengersTheorem.lean), [`menger_edge`](Formalization/MengersTheorem.lean), [`menger_whitney`](Formalization/MengersTheorem.lean), [`weak_duality`](Formalization/MengersTheorem/Basic.lean) | Graph Connectivity & Network Optimization | Menger (1927), Whitney (1932), Dirac (1966) | **100% Verified (0 axioms) — Modular Package (`Formalization/MengersTheorem/`)** |
 | 19 | **MacMahon's Master Theorem** | [`macmahon_master_theorem`](Formalization/MacMahonsMasterTheorem.lean), [`macmahon_dim1`](Formalization/MacMahonsMasterTheorem.lean), [`detMacMahon`](Formalization/MacMahonsMasterTheorem.lean), [`invDetMacMahon`](Formalization/MacMahonsMasterTheorem.lean) | Enumerative Combinatorics & Formal Series | MacMahon (1915), Cartier & Foata (1969) | **100% Verified (0 axioms)** |
-| 20 | **Bárány's Colorful Carathéodory Theorem** | [`colorful_caratheodory_origin`](Formalization/ColorfulCaratheodory.lean), [`colorful_caratheodory_point`](Formalization/ColorfulCaratheodory.lean), [`caratheodory_classical_deduction`](Formalization/ColorfulCaratheodory.lean) | Discrete Geometry & Colorful Convexity | Bárány (1982), Carathéodory (1907) | Scaffolded (Classical deduction verified; lacks Bárány–Onn projection) |
-| 21 | **Blichfeldt's Theorem in Geometry of Numbers** | [`blichfeldts_theorem`](Formalization/BlichfeldtsTheorem.lean), [`minkowski_convex_body_theorem`](Formalization/BlichfeldtsTheorem.lean), [`blichfeldt_dim1`](Formalization/BlichfeldtsTheorem.lean) | Geometry of Numbers & Lattice Tiling | Blichfeldt (1914), Minkowski (1896) | Scaffolded (1D interval verified; lacks torus pigeonhole integration) |
-| 22 | **The Hoffman–Singleton Moore Graph Theorem** | [`hoffman_singleton_theorem`](Formalization/HoffmanSingleton.lean), [`classification_general`](Formalization/HoffmanSingleton.lean), [`certHoffmanSingletonIntegral`](Formalization/HoffmanSingleton.lean), [`s_divides_15`](Formalization/HoffmanSingleton.lean) | Spectral Graph Theory & Matrix Algebras | Hoffman & Singleton (1960) | **100% Verified (0 axioms)** |
-| 23 | **Robinson–Schensted–Knuth (RSK) Correspondence** | [`schensted_lis_theorem`](Formalization/RSKBijection.lean), [`greene_lds_theorem`](Formalization/RSKBijection.lean), [`rsk_sum_squares_eq_factorial`](Formalization/RSKBijection.lean), [`rsk_involution_fixed_points`](Formalization/RSKBijection.lean) | Algebraic Combinatorics & Young Tableaux | Schensted (1961), Knuth (1970), Greene (1974) | **100% Verified (0 axioms)** |
-| 24 | **The Birkhoff–von Neumann Theorem** | [`birkhoff_von_neumann_convex_hull`](Formalization/BirkhoffVonNeumann.lean), [`birkhoff_von_neumann_iff`](Formalization/BirkhoffVonNeumann.lean), [`birkhoff_von_neumann_convex_combination`](Formalization/BirkhoffVonNeumann.lean), [`extremePoints_doublyStochasticSet`](Formalization/BirkhoffVonNeumann.lean) | Convex Geometry & Polyhedral Combinatorics | Birkhoff (1946), von Neumann (1953) | **100% Verified (0 axioms)** |
-| 25 | **Stanley's $\mathfrak{sl}_2$ Proof of the Strong Sperner Property** | [`sperner_partition_poset`](Formalization/StanleySL2.lean), [`sperner_partition_poset_slice`](Formalization/StanleySL2.lean), [`rankSize_symm`](Formalization/StanleySL2.lean), [`rankSize_unimodal`](Formalization/StanleySL2.lean) | Algebraic Poset Theory & Lie Algebra Representations | Stanley (1980, 1982), Proctor (1982) | **100% Verified (0 axioms)** |
+| 20 | **Blichfeldt's Theorem in Geometry of Numbers** | [`blichfeldts_theorem`](Formalization/BlichfeldtsTheorem.lean), [`minkowski_convex_body_theorem`](Formalization/BlichfeldtsTheorem.lean), [`blichfeldt_dim1`](Formalization/BlichfeldtsTheorem.lean) | Geometry of Numbers & Lattice Tiling | Blichfeldt (1914), Minkowski (1896) | Scaffolded (1D interval verified; lacks torus pigeonhole integration) |
+| 21 | **The Hoffman–Singleton Moore Graph Theorem** | [`hoffman_singleton_theorem`](Formalization/HoffmanSingleton.lean), [`classification_general`](Formalization/HoffmanSingleton.lean), [`certHoffmanSingletonIntegral`](Formalization/HoffmanSingleton.lean), [`s_divides_15`](Formalization/HoffmanSingleton.lean) | Spectral Graph Theory & Matrix Algebras | Hoffman & Singleton (1960) | **100% Verified (0 axioms)** |
+| 22 | **Robinson–Schensted–Knuth (RSK) Correspondence** | [`schensted_lis_theorem`](Formalization/RSKBijection.lean), [`greene_lds_theorem`](Formalization/RSKBijection.lean), [`rsk_sum_squares_eq_factorial`](Formalization/RSKBijection.lean), [`rsk_involution_fixed_points`](Formalization/RSKBijection.lean) | Algebraic Combinatorics & Young Tableaux | Schensted (1961), Knuth (1970), Greene (1974) | **100% Verified (0 axioms)** |
+| 23 | **The Birkhoff–von Neumann Theorem** | [`birkhoff_von_neumann_convex_hull`](Formalization/BirkhoffVonNeumann.lean), [`birkhoff_von_neumann_iff`](Formalization/BirkhoffVonNeumann.lean), [`birkhoff_von_neumann_convex_combination`](Formalization/BirkhoffVonNeumann.lean), [`extremePoints_doublyStochasticSet`](Formalization/BirkhoffVonNeumann.lean) | Convex Geometry & Polyhedral Combinatorics | Birkhoff (1946), von Neumann (1953) | **100% Verified (0 axioms)** |
+| 24 | **Stanley's $\mathfrak{sl}_2$ Proof of the Strong Sperner Property** | [`sperner_partition_poset`](Formalization/StanleySL2.lean), [`sperner_partition_poset_slice`](Formalization/StanleySL2.lean), [`rankSize_symm`](Formalization/StanleySL2.lean), [`rankSize_unimodal`](Formalization/StanleySL2.lean) | Algebraic Poset Theory & Lie Algebra Representations | Stanley (1980, 1982), Proctor (1982) | **100% Verified (0 axioms)** |
 
 ---
 
@@ -216,16 +215,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 
 ---
 
-### 20. Bárány's Colorful Carathéodory Theorem
-* **Module:** [`Formalization/ColorfulCaratheodory.lean`](Formalization/ColorfulCaratheodory.lean)
-* **Theorems:** `colorful_caratheodory_origin`, `colorful_caratheodory_point`, `caratheodory_classical_deduction`, `colorful_caratheodory_dim1`, `colorful_caratheodory_dim2`
-* **Mathematical Statement:** For any $d+1$ subsets of points $S_0, S_1, \dots, S_d \subset \mathbb{R}^d$ such that $0 \in \mathrm{conv}(S_i)$ for each color $i \in \{0, 1, \dots, d\}$, there exists a colorful transversal $(x_0, x_1, \dots, x_d)$ with $x_i \in S_i$ such that:
-  $$0 \in \mathrm{conv}(\{x_0, x_1, \dots, x_d\})$$
-  with classical Carathéodory as the monochromatic corollary $S_0 = \dots = S_d = S$.
-
----
-
-### 21. Blichfeldt's Theorem in Geometry of Numbers
+### 20. Blichfeldt's Theorem in Geometry of Numbers
 * **Module:** [`Formalization/BlichfeldtsTheorem.lean`](Formalization/BlichfeldtsTheorem.lean)
 * **Theorems:** `blichfeldts_theorem`, `minkowski_convex_body_theorem`, `blichfeldt_dim1`
 * **Mathematical Statement:** For any Lebesgue measurable set $S \subset \mathbb{R}^d$ with volume $\mathrm{vol}(S) > k$ (for integer $k \ge 1$), there exist $k+1$ distinct points $x_0, x_1, \dots, x_k \in S$ such that all pairwise differences belong to the integer lattice $\mathbb{Z}^d$:
@@ -234,7 +224,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 
 ---
 
-### 22. The Hoffman–Singleton Moore Graph Classification Theorem
+### 21. The Hoffman–Singleton Moore Graph Classification Theorem
 * **Module:** [`Formalization/HoffmanSingleton.lean`](Formalization/HoffmanSingleton.lean)
 * **Theorems:** `hoffman_singleton_theorem`, `classification_general`, `classification_integral_params`, `s_divides_15`, `degree_from_s`, `moore_polynomial_identity`, `certDegree2`, `certDegree3`, `certDegree7`, `certDegree57`, `certPetersenIntegral`, `certHoffmanSingletonIntegral`, `certDegree57Integral`, `c5_spectral_trace`, `petersen_spectral_trace`, `hoffman_singleton_spectral_trace`, `degree_57_spectral_trace`
 * **Mathematical Statement:** The **Hoffman–Singleton Theorem (1960)** classifies the possible vertex degrees of Moore graphs of diameter 2 and girth 5. A $d$-regular graph with diameter 2 and girth 5 has $n = 1 + d^2$ vertices and its adjacency matrix satisfies $A^2 + A - (d - 1)I = J$. The eigenvalues on $1^\perp$ satisfy $\lambda^2 + \lambda - (d - 1) = 0$ with discriminant $\Delta = 4d - 3$. The trace identity $\operatorname{Tr}(A) = 0$ forces:
@@ -246,7 +236,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 
 ---
 
-### 23. The Robinson–Schensted–Knuth (RSK) Bijection and Tableaux Combinatorics
+### 22. The Robinson–Schensted–Knuth (RSK) Bijection and Tableaux Combinatorics
 * **Module:** [`Formalization/RSKBijection.lean`](Formalization/RSKBijection.lean)
 * **Theorems:** `schensted_lis_theorem`, `greene_lds_theorem`, `rsk_sum_squares_eq_factorial`, `rsk_involution_fixed_points`, `rsk_involution_symmetry`, `rskPerm`, `insertTableau`, `insertRow`, `rskInsertList_size`, `rskInsertList_head`
 * **Mathematical Statement:** The **RSK Correspondence** establishes a bijection between permutations and pairs of Standard Young Tableaux of identical shape $\lambda \vdash n$:
@@ -259,7 +249,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 
 ---
 
-### 24. The Birkhoff–von Neumann Theorem on Doubly Stochastic Matrices
+### 23. The Birkhoff–von Neumann Theorem on Doubly Stochastic Matrices
 * **Module:** [`Formalization/BirkhoffVonNeumann.lean`](Formalization/BirkhoffVonNeumann.lean)
 * **Theorems:** `birkhoff_von_neumann_convex_hull`, `birkhoff_von_neumann_iff`, `birkhoff_von_neumann_convex_combination`, `extremePoints_doublyStochasticSet`, `permutationMatrix_isDoublyStochastic`, `convex_doublyStochastic`, `hall_condition_doublyStochastic`, `exists_perm_positive_entries`, `card_matrixSupp_ge_n`, `isDoublyStochastic_and_entries_zero_one_iff`
 * **Mathematical Statement:** The **Birkhoff–von Neumann Theorem (1946, 1953)** establishes that the convex polytope $\mathcal{D}_n$ of $n \times n$ doubly stochastic matrices is the convex hull of the set $\mathcal{P}_n$ of permutation matrices:
@@ -270,7 +260,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 
 ---
 
-### 25. Stanley's $\mathfrak{sl}_2$ Representation Proof of the Strong Sperner Property for $L(m, n)$
+### 24. Stanley's $\mathfrak{sl}_2$ Representation Proof of the Strong Sperner Property for $L(m, n)$
 * **Module:** [`Formalization/StanleySL2.lean`](Formalization/StanleySL2.lean)
 * **Theorems:** `sperner_partition_poset`, `sperner_partition_poset_slice`, `rankSize_symm`, `rankSize_unimodal`, `rank_complement`, `middleRankLevel_is_maximal_slice`, `rankSize_one_row`, `stanleySL2Data_one_row`, `sl2_norm_sq_lower_bound`, `explicit_antichain_2_2`, `sl2Module_2_2`
 * **Mathematical Statement:** The **Stanley $\mathfrak{sl}_2$ Sperner Theorem (1980)** proves that the partition lattice $L(m, n)$ of Young diagrams fitting inside an $m \times n$ box possesses the Strong Sperner property:
@@ -284,9 +274,9 @@ This repository provides machine-checked formalizations, certified proofs, and f
 
 ## Palomar Registry Integration
 
-All 25 theorems in this repository are formatted and packaged as independent, self-contained submission targets for the **[Palomar Registry](https://submit.palomar-registry.org)**. Every formalization has a dedicated, immutable 40-character Git commit SHA with its corresponding `formalization.yaml` and `comparator.json` metadata active at repository root.
+All 24 theorems in this repository are formatted and packaged as independent, self-contained submission targets for the **[Palomar Registry](https://submit.palomar-registry.org)**. Every formalization has a dedicated, immutable 40-character Git commit SHA with its corresponding `formalization.yaml` and `comparator.json` metadata active at repository root.
 
-The complete master inventory of 25 theorems, dedicated commit SHAs, comparator configurations, and submission readiness states is tracked in **[`PALOMAR_CHECKLIST.md`](PALOMAR_CHECKLIST.md)**.
+The complete master inventory of 24 theorems, dedicated commit SHAs, comparator configurations, and submission readiness states is tracked in **[`PALOMAR_CHECKLIST.md`](PALOMAR_CHECKLIST.md)**.
 
 ### Submission Settings for submit.palomar-registry.org
 - **Comparator Path**: `comparator.json`
@@ -339,12 +329,11 @@ The complete master inventory of 25 theorems, dedicated commit SHAs, comparator 
 │   │   ├── EdgeMenger.lean               #     - Edge-disjoint systems & edge cuts
 │   │   └── Whitney.lean                  #     - Whitney's k-connectivity theorem
 │   ├── MacMahonsMasterTheorem.lean       # 19. MacMahon's Master Theorem (1915)
-│   ├── ColorfulCaratheodory.lean         # 20. Bárány's Colorful Carathéodory Theorem (1982)
-│   ├── BlichfeldtsTheorem.lean           # 21. Blichfeldt's Theorem in Geometry of Numbers (1914)
-│   ├── HoffmanSingleton.lean             # 22. The Hoffman–Singleton Moore Graph Classification Theorem (1960)
-│   ├── RSKBijection.lean                 # 23. Robinson–Schensted–Knuth (RSK) Bijection & Tableaux (1961)
-│   ├── BirkhoffVonNeumann.lean           # 24. The Birkhoff–von Neumann Theorem on Doubly Stochastic Matrices (1946)
-│   └── StanleySL2.lean                   # 25. Stanley's sl2 Proof of the Strong Sperner Property (1980)
+│   ├── BlichfeldtsTheorem.lean           # 20. Blichfeldt's Theorem in Geometry of Numbers (1914)
+│   ├── HoffmanSingleton.lean             # 21. The Hoffman–Singleton Moore Graph Classification Theorem (1960)
+│   ├── RSKBijection.lean                 # 22. Robinson–Schensted–Knuth (RSK) Bijection & Tableaux (1961)
+│   ├── BirkhoffVonNeumann.lean           # 23. The Birkhoff–von Neumann Theorem on Doubly Stochastic Matrices (1946)
+│   └── StanleySL2.lean                   # 24. Stanley's sl2 Proof of the Strong Sperner Property (1980)
 ├── Solution.lean                         # Clean wrapper re-exporting complete formalization solutions
 ├── lakefile.toml                         # Lake build system manifest
 ├── lean-toolchain                        # Pinned Lean 4 toolchain (leanprover/lean4:v4.34.0-rc1)
@@ -393,7 +382,6 @@ lake build Formalization.JungsTheorem
 lake build Formalization.AlonBoppana
 lake build Formalization.MengersTheorem
 lake build Formalization.MacMahonsMasterTheorem
-lake build Formalization.ColorfulCaratheodory
 lake build Formalization.BlichfeldtsTheorem
 lake build Formalization.HoffmanSingleton
 lake build Formalization.RSKBijection

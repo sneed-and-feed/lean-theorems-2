@@ -13,8 +13,20 @@ if (!(Test-Path $src)) {
     exit 1
 }
 
-$env:LEAN_NUM_THREADS = "2"
-$env:LEAN_MEMORY = "4096"
+# Memory & Process Sanitation for Windows Lean 4 / Lake
+# 1. Unset restrictive LEAN_MEMORY caps that cause out-of-memory panics & olean read failures
+$env:LEAN_MEMORY = $null
+if (-not $env:LEAN_NUM_THREADS) {
+    $env:LEAN_NUM_THREADS = "4"
+}
+
+# 2. Prune lingering lean.exe LSP worker processes to free virtual memory commit limit
+try {
+    Get-CimInstance Win32_Process -Filter "Name = 'lean.exe'" -ErrorAction SilentlyContinue | 
+        Where-Object { $_.CommandLine -match "--worker" } | 
+        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+} catch { }
+
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 Write-Host "====================================================" -ForegroundColor Cyan

@@ -30,6 +30,9 @@ sources:
     authors:
       - "Robert A. Proctor"
     relationship: adapts
+    note: >-
+      Formalization adapts Proctor's algebraic sl(2, C) poset representation framework to formalize raising
+      operator injectivity and the strong Sperner property on L(m, n).
 
 related_formalizations:
   - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Data/Fintype/Basic.lean"

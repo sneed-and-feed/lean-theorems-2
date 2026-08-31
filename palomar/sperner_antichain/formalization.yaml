@@ -35,6 +35,9 @@ sources:
     year: 1966
     venue: "Journal of Combinatorial Theory, 1(2), 299"
     relationship: adapts
+    note: >-
+      Formalization adapts Lubell's permutation counting argument for the LYM inequality to characterize
+      maximal antichains and middle-level slice equality.
   - title: "Logarithmic order of free distributive lattice"
     type: paper
     authors:

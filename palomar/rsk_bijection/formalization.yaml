@@ -35,11 +35,17 @@ sources:
     authors:
       - "Donald E. Knuth"
     relationship: adapts
+    note: >-
+      Formalization adapts Knuth's generalized tableau insertion correspondence (RSK algorithm) to matrices
+      with non-negative integer entries.
   - title: "An extension of Schensted's theorem"
     type: paper
     authors:
       - "Curtis Greene"
     relationship: adapts
+    note: >-
+      Formalization adapts Knuth's generalized tableau insertion correspondence (RSK algorithm) to matrices
+      with non-negative integer entries.
 
 related_formalizations:
   - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/GroupTheory/Perm/Basic.lean"
