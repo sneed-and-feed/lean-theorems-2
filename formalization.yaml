@@ -1,58 +1,63 @@
 version: "v0.4"
 
 project:
-  name: "Vizing's Theorem on Edge Colorings & König's Line Coloring Theorem"
+  name: "Menger's Theorem and Whitney's Connectivity Duality"
   authors:
     - "Noah Cohen"
   responsible_maintainers:
     - "Noah Cohen"
   license: "CC0-1.0"
   description: >-
-    A complete Lean 4 formalization of Vizing's Theorem (1964) and König's Line Coloring Theorem (1916)
-    in graph theory. Formalizes proper edge colorings, the chromatic index \chi'(G), partial edge colorings,
-    Kempe chains and alternating walks, Vizing fan recoloring operations, and proves that \Delta(G) <= \chi'(G) <= \Delta(G) + 1
-    for all finite simple graphs (the Class 1 / Class 2 dichotomy) and \chi'(G) = \Delta(G) for all bipartite graphs.
-    Mathlib contains vertex colorings; this formalization provides the complete edge coloring and chromatic index
-    theory, verified absent from the core Mathlib library in this verified form (checked against Mathlib v4.34.0-rc1).
+    A machine-checked Lean 4 formalization of Menger's Theorem (1927) and Whitney's connectivity characterization (1932).
+    Establishes min-max duality for internally vertex-disjoint paths vs vertex separators, and edge-disjoint paths vs
+    edge cuts in finite simple graphs. Proves weak duality and characterizes k-vertex-connected graphs via Menger path systems.
+    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type signature
+    search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
   arxiv: [math.CO]
-  msc2020: ["05C15"]
+  msc2020: ["05C40", "05C38", "90C27"]
 
 sources:
-  - title: "On an estimate of the chromatic class of a p-graph"
+  - title: "Zur allgemeinen Kurventheorie"
     type: paper
     authors:
-      - "Vadim G. Vizing"
-    year: 1964
-    venue: "Diskretny Analiz, 3, 25–30"
+      - "Karl Menger"
     relationship: formalizes
-  - title: "Über Graphen und ihre Anwendung auf Determinantentheorie und Mengenlehre"
+  - title: "Congruent graphs and the connectivity of graphs"
     type: paper
     authors:
-      - "Dénes König"
-    year: 1916
-    venue: "Mathematische Annalen, 77(4), 453–465"
+      - "Hassler Whitney"
     relationship: formalizes
+  - title: "Short proof of Menger's theorem"
+    type: paper
+    authors:
+      - "G. A. Dirac"
+    relationship: adapts
+    note: >-
+      Formalization adapts Dirac's inductive vertex-splitting and path-contraction proof to establish Menger's
+      connectivity duality theorem.
 
 related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Coloring/Vertex.lean"
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/DeleteEdges.lean"
     relationship: builds-on
     note: >-
-      Builds on Mathlib's simple graph theory and develops the entire proper edge coloring and chromatic index
-      framework including Kempe chains, alternating paths, and fan extensions.
+      Formalization builds on Mathlib's simple graph theory and edge deletion operations (deleteEdges)
+      to execute Dirac's inductive path-separator reductions.
 
 automation:
   methods:
     - method: agent
       tool_setup: >-
-        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
-        and verified with zero custom axioms under standard Lean 4 kernel axioms.
+        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
+        Lean LSP checking under maintainer direction and human verification.
+        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
 
 review:
   status: self-assessed
   reviewers:
     - "Noah Cohen"
   notes: >-
-    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
-    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.
+    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
+    while all definitions and theorem statements are completely specified. Solution verified through
+    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.

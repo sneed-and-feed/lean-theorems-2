@@ -56,7 +56,7 @@ than an integer $k \ge 1$:
 $$\operatorname{vol}(S) > k$$
 Then there exist $k + 1$ distinct points $x_0, x_1, \dots, x_k \in S$ such that
 every pairwise difference $x_i - x_j$ is an integer lattice vector in $\mathbb{Z}^d$:
-$$x_i - x_j \in \mathbb{Z}^d \quad (orall i, j)$$
+$$x_i - x_j \in \mathbb{Z}^d \quad (\forall i, j)$$
 -/
 theorem blichfeldts_theorem (d : ℕ) (k : ℕ) (hk : 1 ≤ k) (S : Set (Space d))
     (hS_meas : MeasurableSet S)

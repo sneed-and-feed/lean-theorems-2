@@ -23,7 +23,8 @@ set_option linter.unusedSectionVars false
 
 This module formalizes **MacMahon's Master Theorem** (Major Percy Alexander MacMahon, 1915),
 relating the coefficients of products of linear forms to the reciprocal determinant of a matrix:
-$$[X^s] \prod_{i=1}^n \left(\sum_{j=1}^n A_{ij} X_jight)^{s_i} = [X^s] rac{1}{\det(I_n - X A)}$$
+$$[X^s] \prod_{i=1}^n \left(\sum_{j=1}^n A_{ij} X_j
+ight)^{s_i} = [X^s] \frac{1}{\det(I_n - X A)}$$
 -/
 
 variable {R : Type*} [CommRing R] {n : ℕ}
@@ -67,7 +68,8 @@ For any $n 	imes n$ matrix $A \in M_{n 	imes n}(R)$ and any multi-index $s \in \
 the coefficient of $X^s = X_1^{s_1} \cdots X_n^{s_n}$ in the product of linear forms
 $\prod_{i=1}^n (\sum_{j=1}^n A_{ij} X_j)^{s_i}$ equals the coefficient of $X^s$ in the
 formal power series expansion of $\det(I_n - X A)^{-1}$:
-$$[X^s] \prod_{i=1}^n \left(\sum_{j=1}^n A_{ij} X_jight)^{s_i} = [X^s] rac{1}{\det(I_n - X A)}$$
+$$[X^s] \prod_{i=1}^n \left(\sum_{j=1}^n A_{ij} X_j
+ight)^{s_i} = [X^s] \frac{1}{\det(I_n - X A)}$$
 -/
 theorem macmahon_master_theorem (A : Matrix (Fin n) (Fin n) R) (s : Fin n → ℕ) :
     MvPolynomial.coeff (toFinsupp s) (prodLinearForms A s) =

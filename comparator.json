@@ -2,11 +2,11 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "SimpleGraph.edgeColorable_of_bipartite",
-    "SimpleGraph.edgeColorable_of_maxDegree_succ",
-    "SimpleGraph.vizings_theorem",
-    "SimpleGraph.vizing_classification",
-    "SimpleGraph.konig_edge_coloring"
+    "MengersTheorem.menger_vertex",
+    "MengersTheorem.menger_edge",
+    "MengersTheorem.menger_whitney",
+    "MengersTheorem.weak_duality",
+    "MengersTheorem.weak_duality_edge"
   ],
   "permitted_axioms": [
     "propext",

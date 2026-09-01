@@ -43,16 +43,16 @@ def allOnesVector (V : Type*) [Fintype V] : V → ℝ :=
 def innerProduct (u v : V → ℝ) : ℝ :=
   ∑ x : V, u x * v x
 
-/-- The squared Euclidean $\ell^2$-norm $\|v\|^2 = \langle v, v angle$. -/
+/-- The squared Euclidean $\ell^2$-norm $\|v\|^2 = \langle v, v 
+angle$. -/
 def normSq (v : V → ℝ) : ℝ :=
   innerProduct v v
 
-/-- Quadratic form of the adjacency matrix: $\langle v, A v angle = \sum_{u, v} v(u) A(u, w) v(w)$. -/
+/-- Quadratic form of the adjacency matrix: $\langle v, A v \rangle = \sum_{u, w} v(u) A(u, w) v(w)$. -/
 def quadraticForm (G : SimpleGraph V) [DecidableRel G.Adj] (v : V → ℝ) : ℝ :=
   ∑ u : V, ∑ w : V, v u * adjacencyMatrix G u w * v w
 
-/-- Rayleigh quotient $R(v) = rac{\langle v, A v angle}{\langle v, v angle}$ for $v 
-e 0$. -/
+/-- Rayleigh quotient $R(v) = \frac{\langle v, A v \rangle}{\langle v, v \rangle}$ for $v \neq 0$. -/
 noncomputable def rayleighQuotient (G : SimpleGraph V) [DecidableRel G.Adj] (v : V → ℝ) : ℝ :=
   quadraticForm G v / normSq v
 
@@ -89,7 +89,7 @@ theorem sphericalShell_zero (G : SimpleGraph V) (hconn : G.Connected) (x_0 : V) 
 **Alon–Boppana Theorem (Finite Form)**:
 For any $d$-regular simple graph $G$ on $n$ vertices with diameter $D \ge 2$ and $d \ge 2$,
 the second largest eigenvalue $\lambda_2(G)$ satisfies:
-$$\lambda_2(G) \ge 2\sqrt{d - 1} \cdot \left(1 - rac{2}{D}ight) - rac{2}{D}$$
+$$\lambda_2(G) \ge 2\sqrt{d - 1} \cdot \left(1 - \frac{2}{D}\right) - \frac{2}{D}$$
 -/
 theorem alon_boppana_bound (G : SimpleGraph V) [DecidableRel G.Adj] {d : ℕ}
     (hd : 2 ≤ d) (hreg : isRegularOfDegree G d) (hconn : G.Connected)
@@ -99,7 +99,7 @@ theorem alon_boppana_bound (G : SimpleGraph V) [DecidableRel G.Adj] {d : ℕ}
 /--
 **Alon–Boppana Spectral Bound (Diameter Form / Nilli's Bound)**:
 For any $d$-regular graph $G$ with diameter $D$,
-$$\lambda_2(G) \ge 2\sqrt{d - 1} - rac{2\sqrt{d - 1} - 1}{\lfloor D / 2 floor}$$
+$$\lambda_2(G) \ge 2\sqrt{d - 1} - \frac{2\sqrt{d - 1} - 1}{\lfloor D / 2 \rfloor}$$
 -/
 theorem alon_boppana_nilli (G : SimpleGraph V) [DecidableRel G.Adj] {d : ℕ}
     (hd : 2 ≤ d) (hreg : isRegularOfDegree G d) (hconn : G.Connected)
