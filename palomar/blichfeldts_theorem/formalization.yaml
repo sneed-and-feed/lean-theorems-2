@@ -34,11 +34,7 @@ sources:
       Formalization adapts Minkowski's convex body lattice point theorem as a geometric consequence of
       Blichfeldt's modular quotient translation theorem.
 
-related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/MeasureTheory/Measure/Lebesgue/Basic.lean"
-    relationship: builds-on
-    note: >-
-      Formalization builds on Mathlib's Lebesgue measure theory and Euclidean space Lp infrastructure.
+related_formalizations: []
 
 automation:
   methods:

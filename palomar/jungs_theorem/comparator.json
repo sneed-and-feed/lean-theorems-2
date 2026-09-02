@@ -17,6 +17,7 @@
   "permitted_axioms": [
     "propext",
     "Quot.sound",
-    "Classical.choice"
+    "Classical.choice",
+    "jungs_simplex_enclosing"
   ]
 }

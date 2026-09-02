@@ -2,11 +2,10 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "MengersTheorem.menger_vertex",
-    "MengersTheorem.menger_edge",
-    "MengersTheorem.menger_whitney",
-    "MengersTheorem.weak_duality",
-    "MengersTheorem.weak_duality_edge"
+    "TuransTheorem.mantels_theorem",
+    "TuransTheorem.turans_theorem_exact",
+    "TuransTheorem.turans_theorem",
+    "TuransTheorem.turans_uniqueness"
   ],
   "permitted_axioms": [
     "propext",

@@ -34,12 +34,7 @@ sources:
       Formalization adapts Good's algebraic coefficient extraction and matrix inverse proof method for
       MacMahon's Master Theorem.
 
-related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/RingTheory/MvPowerSeries/Inverse.lean"
-    relationship: builds-on
-    note: >-
-      Formalization builds on Mathlib's multivariate polynomial algebra and formal power series inversion
-      infrastructure (MvPowerSeries.invOfUnit) to establish the master generating function duality.
+related_formalizations: []
 
 automation:
   methods:

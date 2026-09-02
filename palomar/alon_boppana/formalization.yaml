@@ -41,12 +41,7 @@ sources:
       - "Peter Sarnak"
     relationship: background
 
-related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Metric.lean"
-    relationship: builds-on
-    note: >-
-      Formalization builds on Mathlib's graph metric infrastructure (dist, diam) to define spherical shells
-      and evaluate distance-based test vectors for the Rayleigh quotient.
+related_formalizations: []
 
 automation:
   methods:

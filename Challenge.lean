@@ -1,137 +1,111 @@
-import Mathlib.Data.Fintype.Card
-import Mathlib.Data.Finset.Card
-import Mathlib.Data.Finset.Basic
-import Mathlib.Data.Sym.Sym2
-import Mathlib.Order.Lattice.Nat
 import Mathlib.Combinatorics.SimpleGraph.Basic
-import Mathlib.Combinatorics.SimpleGraph.Finite
-import Mathlib.Combinatorics.SimpleGraph.Paths
-import Mathlib.Tactic.IntervalCases
-
-open scoped Finset
-open Classical
+import Mathlib.Combinatorics.SimpleGraph.Clique
+import Mathlib.Combinatorics.SimpleGraph.DegreeSum
+import Mathlib.Data.Finset.Basic
+import Mathlib.Data.Finset.Card
+import Mathlib.Data.Fintype.Basic
+import Mathlib.Data.Real.Basic
+import Mathlib.Tactic.Positivity
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Ring
 
 set_option linter.unusedSectionVars false
+set_option linter.unusedVariables false
+set_option linter.style.haveILetI false
+
+open Finset SimpleGraph
 
 /-!
-# Menger's Theorem on Disjoint Paths and Vertex Separators
+# Turán's Theorem in Extremal Graph Theory (1941)
 
-This module formalizes **Menger's Theorem** (Karl Menger, 1927), a foundational result
-in graph theory establishing min-max duality between disjoint paths and separators.
+This module formalizes **Turán's Theorem** (Pál Turán, 1941) and its foundational base case,
+**Mantel's Theorem** (W. Mantel, 1907), representing the starting point of extremal graph theory.
+
+## Mathematical Statement
+
+Let $G = (V, E)$ be a finite simple graph on $n = |V|$ vertices.
+If $G$ contains no complete subgraph of size $r + 1$ (i.e. $G$ is $K_{r+1}$-free, or $\omega(G) \le r$),
+then the number of edges in $G$ is at most the number of edges in the **Turán graph** $T(n, r)$:
+$$|E(G)| \le e(T(n, r)) = \frac{r - 1}{2r} (n^2 - (n \bmod r)^2) + \binom{n \bmod r}{2} \le \left(1 - \frac{1}{r}\right) \frac{n^2}{2}$$
+
+### 1. Mantel's Theorem (1907, $r = 2$)
+Any triangle-free graph on $n$ vertices has at most $\lfloor n^2 / 4 \rfloor$ edges:
+$$|E(G)| \le \frac{n^2}{4}$$
+with equality if and only if $G$ is the balanced complete bipartite graph $K_{\lfloor n/2 \rfloor, \lceil n/2 \rceil}$.
+
+### 2. Turán Graph $T(n, r)$
+The Turán graph $T(n, r)$ is the complete $r$-partite graph whose vertex set is partitioned into
+$r$ parts as equally sized as possible (each part has size $\lfloor n/r \rfloor$ or $\lceil n/r \rceil$).
+
+### 3. Turán Stability & Uniqueness
+A $K_{r+1}$-free graph achieving the maximal number of edges $e(T(n, r))$ is isomorphic
+to the complete $r$-partite Turán graph.
+
+## References
+* Turán, P. (1941). *Eine Extremalaufgabe aus der Graphentheorie*. Mat. Fiz. Lapok, 48, 436–452.
+* Mantel, W. (1907). *Vraagstuk XXVIII*. Wiskundige Opgaven, 10, 60–61.
+* Simonovits, M. (1968). *A method for solving extremal problems in graph theory*. Theory of Graphs, 279–319.
+* Aigner, M., & Ziegler, G. M. (2018). *Proofs from THE BOOK*. Springer.
 -/
+
+namespace TuransTheorem
 
 variable {V : Type*} [Fintype V] [DecidableEq V]
 
-namespace MengersTheorem
+/-- A graph `G` is `k`-clique-free if it contains no complete subgraph on `k` vertices. -/
+def IsCliqueFree (G : SimpleGraph V) (k : ℕ) : Prop :=
+  ∀ (s : Finset V), G.IsClique (s : Set V) → s.card < k
 
-/-- An $s\text{-}t$ simple path in a graph $G$, specified by its vertex list. -/
-structure STPath (G : SimpleGraph V) (s t : V) where
-  /-- The ordered sequence of vertices along the path -/
-  verts : List V
-  /-- Path starts at $s$ -/
-  head_eq : verts.head? = some s
-  /-- Path ends at $t$ -/
-  getLast_eq : verts.getLast? = some t
-  /-- Vertices along the path are distinct -/
-  nodup : verts.Nodup
-  /-- Consecutive vertices are adjacent in $G$ -/
-  adj_consec : ∀ i (h : i + 1 < verts.length),
-    G.Adj (verts.get ⟨i, by omega⟩) (verts.get ⟨i + 1, h⟩)
+/-- Predicate stating that `G` is triangle-free (contains no `K₃`). -/
+def IsTriangleFree (G : SimpleGraph V) : Prop :=
+  IsCliqueFree G 3
 
-/-- The interior (internal) vertices of an $s\text{-}t$ path: all vertices excluding $s$ and $t$. -/
-def innerVertices {G : SimpleGraph V} {s t : V} (p : STPath G s t) : Finset V :=
-  p.verts.toFinset \ {s, t}
+/-- Exact number of edges in the Turán graph $T(n, r)$. -/
+def turanEdgeCount (n r : ℕ) : ℕ :=
+  if r = 0 then 0 else
+  let q := n / r
+  let rem := n % r
+  Nat.choose rem 2 * (q + 1) * (q + 1) + Nat.choose (r - rem) 2 * q * q + rem * (r - rem) * (q + 1) * q
 
-/-- Two $s\text{-}t$ paths are internally vertex-disjoint if their interior vertices are disjoint. -/
-def AreInternallyDisjoint {G : SimpleGraph V} {s t : V} (p1 p2 : STPath G s t) : Prop :=
-  Disjoint (innerVertices p1) (innerVertices p2)
+/-- The standard continuous Turán upper bound $(1 - 1/r) n^2 / 2$. -/
+noncomputable def turanRealBound (n r : ℕ) : ℝ :=
+  if r = 0 then 0 else (1 - 1 / (r : ℝ)) * (n : ℝ)^2 / 2
 
-/-- A family $\mathcal{P}$ of $s\text{-}t$ paths is pairwise internally disjoint. -/
-def IsDisjointPathSystem {G : SimpleGraph V} {s t : V} (P : Finset (STPath G s t)) : Prop :=
-  ∀ p1 ∈ P, ∀ p2 ∈ P, p1 ≠ p2 → AreInternallyDisjoint p1 p2
+/-- **Mantel's Theorem (1907):**
+    Every triangle-free simple graph on `n` vertices has at most `n^2 / 4` edges. -/
+theorem mantels_theorem (G : SimpleGraph V) [DecidableRel G.Adj]
+    (h_free : IsTriangleFree G) :
+    (G.edgeFinset.card : ℝ) ≤ ((Fintype.card V : ℝ)^2) / 4 := sorry
 
-/-- An $s\text{-}t$ vertex separator: a set $S \subseteq V \setminus \{s, t\}$ intersecting\nevery $s\text{-}t$ path. -/
-def IsVertexSeparator (G : SimpleGraph V) (s t : V) (S : Finset V) : Prop :=
-  s ∉ S ∧ t ∉ S ∧ ∀ p : STPath G s t, ∃ v ∈ S, v ∈ innerVertices p
+/-- **Turán's Theorem (Exact Discrete Edge Count):**
+    `G.edgeFinset.card ≤ turanEdgeCount n r`. -/
+theorem turans_theorem_exact (G : SimpleGraph V) [DecidableRel G.Adj]
+    {r : ℕ} (hr : 1 ≤ r)
+    (h_free : IsCliqueFree G (r + 1)) :
+    G.edgeFinset.card ≤ turanEdgeCount (Fintype.card V) r := sorry
 
-/--
-**Weak Duality for Vertex Separators and Disjoint Paths**:
-For any family $\mathcal{P}$ of pairwise internally vertex-disjoint $s\text{-}t$ paths
-and any $s\text{-}t$ vertex separator $S$, the number of paths is at most the separator size:
-$$|\mathcal{P}| \le |S|$$
--/
-theorem weak_duality (G : SimpleGraph V) {s t : V} (P : Finset (STPath G s t)) (S : Finset V)
-    (hP : IsDisjointPathSystem P) (hS : IsVertexSeparator G s t S) :
-    P.card ≤ S.card := sorry
+/-- **Turán's Theorem (1941):**
+    Let `G` be a simple graph on `n` vertices with no complete subgraph of size `r + 1`.
+    Then the number of edges in `G` is at most the continuous Turán bound `(1 - 1/r) n^2 / 2`. -/
+theorem turans_theorem (G : SimpleGraph V) [DecidableRel G.Adj]
+    {r : ℕ} (hr : 2 ≤ r)
+    (h_free : IsCliqueFree G (r + 1)) :
+    (G.edgeFinset.card : ℝ) ≤ turanRealBound (Fintype.card V) r := sorry
 
-/-- The maximum number of pairwise internally vertex-disjoint $s\text{-}t$ paths. -/
-noncomputable def maxDisjointPaths (G : SimpleGraph V) (s t : V) : ℕ :=
-  sSup { n : ℕ | ∃ P : Finset (STPath G s t), IsDisjointPathSystem P ∧ P.card = n }
+/-- A graph `G` is a complete `r`-partite graph. -/
+def IsCompleteMultipartite (G : SimpleGraph V) (r : ℕ) : Prop :=
+  ∃ (parts : Fin r → Finset V),
+    (∀ i j, i ≠ j → Disjoint (parts i) (parts j)) ∧
+    (Finset.univ = Finset.biUnion Finset.univ parts) ∧
+    (∀ u v, G.Adj u v ↔ ∃ i j, i ≠ j ∧ u ∈ parts i ∧ v ∈ parts j)
 
-/-- The minimum size of an $s\text{-}t$ vertex separator. -/
-noncomputable def minVertexSeparator (G : SimpleGraph V) (s t : V) : ℕ :=
-  sInf { n : ℕ | ∃ S : Finset V, IsVertexSeparator G s t S ∧ S.card = n }
+/-- **Turán Uniqueness Theorem:**
+    A `K_{r+1}`-free graph achieves the maximal number of edges if and only if
+    it is isomorphic to the balanced complete `r`-partite Turán graph $T(n, r)$. -/
+theorem turans_uniqueness (G : SimpleGraph V) [DecidableRel G.Adj]
+    {r : ℕ} (hr : 2 ≤ r)
+    (h_free : IsCliqueFree G (r + 1))
+    (h_max : G.edgeFinset.card = turanEdgeCount (Fintype.card V) r) :
+    IsCompleteMultipartite G r := sorry
 
-/-- Two $s\text{-}t$ paths are edge-disjoint if they share no edges in $G$. -/
-def AreEdgeDisjoint {G : SimpleGraph V} {s t : V} (p1 p2 : STPath G s t) : Prop :=
-  ∀ i (hi : i + 1 < p1.verts.length) j (hj : j + 1 < p2.verts.length),
-    Sym2.mk (p1.verts.get ⟨i, by omega⟩) (p1.verts.get ⟨i + 1, hi⟩) ≠
-    Sym2.mk (p2.verts.get ⟨j, by omega⟩) (p2.verts.get ⟨j + 1, hj⟩)
-
-/-- A family of $s\text{-}t$ paths is pairwise edge-disjoint. -/
-def IsEdgeDisjointPathSystem {G : SimpleGraph V} {s t : V} (P : Finset (STPath G s t)) : Prop :=
-  ∀ p1 ∈ P, ∀ p2 ∈ P, p1 ≠ p2 → AreEdgeDisjoint p1 p2
-
-/-- An edge cut separating $s$ and $t$ is a set of edges $F \subseteq E(G)$ such that\nevery $s\text{-}t$ path in $G$ uses at least one edge in $F$. -/
-def IsEdgeSeparator (G : SimpleGraph V) (s t : V) (F : Finset (Sym2 V)) : Prop :=
-  ∀ p : STPath G s t, ∃ i, ∃ hi : i + 1 < p.verts.length,
-    Sym2.mk (p.verts.get ⟨i, by omega⟩) (p.verts.get ⟨i + 1, hi⟩) ∈ F
-
-/-- The maximum number of pairwise edge-disjoint $s\text{-}t$ paths in $G$. -/
-noncomputable def maxEdgeDisjointPaths (G : SimpleGraph V) (s t : V) : ℕ :=
-  sSup { n : ℕ | ∃ P : Finset (STPath G s t), IsEdgeDisjointPathSystem P ∧ P.card = n }
-
-/-- The minimum size of an $s\text{-}t$ edge separator in $G$. -/
-noncomputable def minEdgeSeparator (G : SimpleGraph V) (s t : V) : ℕ :=
-  sInf { n : ℕ | ∃ F : Finset (Sym2 V), IsEdgeSeparator G s t F ∧ F.card = n }
-
-/--
-Weak duality for edge-disjoint paths and edge cuts:
-For any edge-disjoint path system $\mathcal{P}$ and any edge cut $F$, $|\mathcal{P}| \le |F|$.
--/
-theorem weak_duality_edge (G : SimpleGraph V) {s t : V}
-    (P : Finset (STPath G s t)) (F : Finset (Sym2 V))
-    (hP : IsEdgeDisjointPathSystem P) (hF : IsEdgeSeparator G s t F) :
-    P.card ≤ F.card := sorry
-
-/-- A graph is $k$-connected if $|V| > k$ and removing fewer than $k$ vertices leaves $G$ connected. -/
-def IsKConnected (G : SimpleGraph V) (k : ℕ) : Prop :=
-  k < Fintype.card V ∧
-  ∀ S : Finset V, S.card < k →
-    ∀ u v : V, u ∉ S → v ∉ S → u ≠ v →
-      ∃ p : STPath G u v, Disjoint p.verts.toFinset S
-
-/-- **Menger's Theorem (Vertex Version, 1927)**:
-For any finite simple graph $G$ and distinct non-adjacent vertices $s, t \in V$,
-the maximum number of pairwise internally vertex-disjoint $s\text{-}t$ paths equals
-the minimum size of an $s\text{-}t$ vertex separator:
-$$\max |\mathcal{P}| = \min |S|$$ -/
-theorem menger_vertex (G : SimpleGraph V) (s t : V)
-    (hne : s ≠ t) (h_not_adj : ¬ G.Adj s t) :
-    maxDisjointPaths G s t = minVertexSeparator G s t := sorry
-
-/-- **Menger's Theorem (Edge Version)**:
-For any finite simple graph $G$ and distinct vertices $s \ne t$, the maximum number of
-pairwise edge-disjoint $s\text{-}t$ paths equals the minimum size of an $s\text{-}t$ edge cut:
-$$\max_{\text{edge-disjoint}} |\mathcal{P}| = \min_{\text{edge cut}} |F|$$ -/
-theorem menger_edge (G : SimpleGraph V) (s t : V) (hne : s ≠ t) :
-    maxEdgeDisjointPaths G s t = minEdgeSeparator G s t := sorry
-
-/-- **Whitney's Connectivity Theorem (1932)**:
-A graph $G$ on at least $k+1$ vertices is $k$-connected if and only if every pair
-of distinct non-adjacent vertices has at least $k$ pairwise internally vertex-disjoint paths. -/
-theorem menger_whitney (G : SimpleGraph V) (k : ℕ) (hk : 1 ≤ k) :
-    IsKConnected G k ↔
-      (k < Fintype.card V ∧
-       ∀ u v : V, u ≠ v → ¬ G.Adj u v → k ≤ maxDisjointPaths G u v) := sorry
-end MengersTheorem
+end TuransTheorem

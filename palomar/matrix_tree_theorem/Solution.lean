@@ -13,6 +13,7 @@ open Matrix Classical
 open scoped BigOperators
 
 set_option linter.unusedSectionVars false
+set_option linter.unusedVariables false
 set_option linter.unusedSimpArgs false
 set_option linter.deprecated false
 
@@ -210,7 +211,7 @@ lemma card_filter_mem_edgeSet_eq_degree (u : V) :
 
 /-- The fundamental factorization of the graph Laplacian: $L = B B^T$. -/
 theorem incidence_mul_transpose (ori : EdgeOrientation G)
-    (_h_edge_cover : ∀ u v, G.Adj u v → ∃! e : G.edgeSet,
+    (h_edge_cover : ∀ u v, G.Adj u v → ∃! e : G.edgeSet,
       (ori.source e = u ∧ ori.target e = v) ∨ (ori.source e = v ∧ ori.target e = u)) :
     incidenceMatrix G R ori * (incidenceMatrix G R ori)ᵀ = laplacianMatrix G R := by
   ext u v

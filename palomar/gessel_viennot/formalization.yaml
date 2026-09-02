@@ -43,12 +43,7 @@ sources:
     venue: "Cambridge University Press"
     relationship: background
 
-related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/LinearAlgebra/Matrix/Determinant/Basic.lean"
-    relationship: builds-on
-    note: >-
-      Builds on Mathlib's permutation sign and Leibniz matrix determinant formulas to establish
-      non-intersecting path counting identities.
+related_formalizations: []
 
 automation:
   methods:

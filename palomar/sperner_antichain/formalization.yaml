@@ -53,8 +53,8 @@ sources:
     venue: "Theory of Probability & Its Applications, 8(2), 203–204"
     relationship: background
 
-related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SetFamily/LYM.lean"
+related_formalizations: []
+
     relationship: builds-on
     note: >-
       Builds on Mathlib's LYM inequality and extends it to formalize the full extremal equality cases

@@ -1,63 +1,66 @@
 version: "v0.4"
 
 project:
-  name: "Menger's Theorem and Whitney's Connectivity Duality"
+  name: "Turán's Theorem in Extremal Graph Theory"
   authors:
     - "Noah Cohen"
   responsible_maintainers:
     - "Noah Cohen"
   license: "CC0-1.0"
   description: >-
-    A machine-checked Lean 4 formalization of Menger's Theorem (1927) and Whitney's connectivity characterization (1932).
-    Establishes min-max duality for internally vertex-disjoint paths vs vertex separators, and edge-disjoint paths vs
-    edge cuts in finite simple graphs. Proves weak duality and characterizes k-vertex-connected graphs via Menger path systems.
-    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type signature
-    search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+    A complete Lean 4 formalization of Turán's Theorem (1941), Mantel's Theorem (1907), the discrete and
+    continuous Turán edge bounds, and the full Turán uniqueness/stability characterization. Proves that any
+    K_{r+1}-free simple graph on n vertices has at most the number of edges in the complete r-partite Turán graph T(n, r),
+    and that equality holds if and only if G is isomorphic to T(n, r). Mathlib contains the Turán number upper bound;
+    this formalization establishes the exact polynomial equivalence between discrete and continuous edge bounds, Mantel's
+    theorem, and complete multipartite uniqueness, verified absent from the core Mathlib library in this comprehensive form
+    (checked against Mathlib v4.34.0-rc1).
 
 classification:
   arxiv: [math.CO]
-  msc2020: ["05C40", "05C38", "90C27"]
+  msc2020: ["05C35", "05C75"]
 
 sources:
-  - title: "Zur allgemeinen Kurventheorie"
+  - title: "Eine Extremalaufgabe aus der Graphentheorie"
     type: paper
     authors:
-      - "Karl Menger"
+      - "Pál Turán"
+    year: 1941
+    venue: "Matematikai és Fizikai Lapok, 48, 436–452"
     relationship: formalizes
-  - title: "Congruent graphs and the connectivity of graphs"
+  - title: "Vraagstuk XXVIII"
     type: paper
     authors:
-      - "Hassler Whitney"
+      - "W. Mantel"
+    year: 1907
+    venue: "Wiskundige Opgaven, 10, 60–61"
     relationship: formalizes
-  - title: "Short proof of Menger's theorem"
+  - title: "A method for solving extremal problems in graph theory"
     type: paper
     authors:
-      - "G. A. Dirac"
-    relationship: adapts
-    note: >-
-      Formalization adapts Dirac's inductive vertex-splitting and path-contraction proof to establish Menger's
-      connectivity duality theorem.
+      - "Miklós Simonovits"
+    year: 1968
+    venue: "Theory of Graphs, 279–319"
+    relationship: background
 
-related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/DeleteEdges.lean"
+related_formalizations: []
+
     relationship: builds-on
     note: >-
-      Formalization builds on Mathlib's simple graph theory and edge deletion operations (deleteEdges)
-      to execute Dirac's inductive path-separator reductions.
+      Builds on Mathlib's simple graph extremal Turán library and extends it to formalize discrete-continuous
+      polynomial identities, Mantel's theorem, and complete multipartite structural uniqueness.
 
 automation:
   methods:
     - method: agent
       tool_setup: >-
-        Formalized using an agentic Lean 4 workflow with automated proof golfing and interactive
-        Lean LSP checking under maintainer direction and human verification.
-        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
+        Formalized using an agentic Lean 4 workflow with interactive Lean LSP checking
+        and verified with zero custom axioms under standard Lean 4 kernel axioms.
 
 review:
   status: self-assessed
   reviewers:
     - "Noah Cohen"
   notes: >-
-    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
-    while all definitions and theorem statements are completely specified. Solution verified through
-    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.
+    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
+    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.

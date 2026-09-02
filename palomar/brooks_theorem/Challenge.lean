@@ -86,16 +86,15 @@ theorem odd_cycle_not_two_colorable (G : SimpleGraph V) [DecidableRel G.Adj]
 
 /-- **Lovász's Ordering Lemma (1975)**:
     If a graph admits a Lovász triple ordering where $v_0 \not\sim v_1$, $v_0 \sim v_n$, $v_1 \sim v_n$,
-    and every intermediate vertex has a forward neighbor, then $G$ is $k$-colorable for any $k \ge \Delta(G)$. -/
-theorem colorable_of_lovasz_ordering (G : SimpleGraph V) [DecidableRel G.Adj]
-    (h_deg_pos : 1 ≤ maxDegree G)
-    (h_deg_bound : maxDegree G ≤ k)
+    and every intermediate vertex has a forward neighbor, then $G$ is $k$-colorable for any $k \ge \Delta(G)$ with $k \ge 1$. -/
+theorem colorable_of_lovasz_ordering (G : SimpleGraph V) [DecidableRel G.Adj] {k : ℕ} (hk : 1 ≤ k)
+    (h_deg_k : maxDegree G ≤ k)
     (ord : Fin (Fintype.card V) ≃ V)
-    (hn : 3 ≤ Fintype.card V)
-    (h01 : ¬ G.Adj (ord ⟨0, by omega⟩) (ord ⟨1, by omega⟩))
-    (h0n : G.Adj (ord ⟨0, by omega⟩) (ord ⟨Fintype.card V - 1, by omega⟩))
-    (h1n : G.Adj (ord ⟨1, by omega⟩) (ord ⟨Fintype.card V - 1, by omega⟩))
-    (hfwd : ∀ (i : Fin (Fintype.card V)), 2 ≤ (i : ℕ) → (i : ℕ) < Fintype.card V - 1 →
+    (h_card : 3 ≤ Fintype.card V)
+    (h_not_adj_01 : ¬ G.Adj (ord ⟨0, by omega⟩) (ord ⟨1, by omega⟩))
+    (h_adj_0n : G.Adj (ord ⟨0, by omega⟩) (ord ⟨Fintype.card V - 1, by omega⟩))
+    (h_adj_1n : G.Adj (ord ⟨1, by omega⟩) (ord ⟨Fintype.card V - 1, by omega⟩))
+    (h_fwd : ∀ (i : Fin (Fintype.card V)), 2 ≤ (i : ℕ) → (i : ℕ) < Fintype.card V - 1 →
       ∃ (j : Fin (Fintype.card V)), (i : ℕ) < (j : ℕ) ∧ G.Adj (ord i) (ord j)) :
     IsKColorable G k := sorry
 

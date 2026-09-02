@@ -47,8 +47,8 @@ sources:
       Formalization adapts Knuth's generalized tableau insertion correspondence (RSK algorithm) to matrices
       with non-negative integer entries.
 
-related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/GroupTheory/Perm/Basic.lean"
+related_formalizations: []
+
     relationship: builds-on
     note: >-
       Formalization builds on Mathlib's symmetric group permutations (Equiv.Perm) and finite type cardinalities.

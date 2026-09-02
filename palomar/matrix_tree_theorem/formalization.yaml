@@ -36,12 +36,7 @@ sources:
     venue: "Cambridge University Press"
     relationship: background
 
-related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/AdjMatrix.lean"
-    relationship: builds-on
-    note: >-
-      Builds on Mathlib's simple graph adjacency matrix and degree definitions to construct combinatorial
-      Laplacians and prove the signed incidence matrix factorization L = B B^T.
+related_formalizations: []
 
 automation:
   methods:

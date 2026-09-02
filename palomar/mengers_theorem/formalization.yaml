@@ -38,12 +38,7 @@ sources:
       Formalization adapts Dirac's inductive vertex-splitting and path-contraction proof to establish Menger's
       connectivity duality theorem.
 
-related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/DeleteEdges.lean"
-    relationship: builds-on
-    note: >-
-      Formalization builds on Mathlib's simple graph theory and edge deletion operations (deleteEdges)
-      to execute Dirac's inductive path-separator reductions.
+related_formalizations: []
 
 automation:
   methods:

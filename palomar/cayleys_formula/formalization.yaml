@@ -34,12 +34,7 @@ sources:
       Formalization adapts Prüfer's bijective sequence encoding to establish Cayley's formula n^{n-2} for
       labeled trees.
 
-related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Acyclic.lean"
-    relationship: builds-on
-    note: >-
-      Formalization builds on Mathlib's simple graph theory and acyclic graph definitions (IsAcyclic, IsTree)
-      to formulate labeled tree structures and their bijective enumerations.
+related_formalizations: []
 
 automation:
   methods:

@@ -28,14 +28,12 @@ $$\chi : \{1, \dots, W(r, k)\} \to \{1, \dots, r\}$$
 there exists a **monochromatic arithmetic progression** of length $k$:
 $$\exists a, d \in \mathbb{N}, \quad d > 0 \quad \text{such that} \quad \chi(a) = \chi(a + d) = \chi(a + 2d) = \dots = \chi(a + (k - 1)d)$$
 
-## Proof Architecture (Multiple Van der Waerden & Color Focusing)
-1. **Double Induction (on $k$, then on $r$):**
-   The standard proof proceeds by strong induction on $k$, and an inner induction on $r$,
-   proving the stronger statement that for any $m \ge 1$, one can find "color-focused" fans of APs.
-2. **Product Coloring & Block Induction:**
-   Large intervals are partitioned into blocks of length $B$. An $r$-coloring of the universe induces
-   an $r^B$-coloring of the blocks. By induction on $k-1$, blocks contain monochromatic structures,
-   which are then extended to a full $k$-term monochromatic AP.
+## Proof Architecture
+1. **Finite Van der Waerden:**
+   Derived by reduction to the Hales–Jewett theorem on monochromatic combinatorial lines in high-dimensional cubes
+   (`Combinatorics.Line.exists_mono_in_high_dimension`), projecting combinatorial lines onto 1D arithmetic progressions.
+2. **Infinite Van der Waerden:**
+   Derived from the existence of monochromatic homothetic copies (`Combinatorics.exists_mono_homothetic_copy`).
 
 ## References
 * Van der Waerden, B. L. (1927). *Beweis einer Baudetschen Vermutung*. Nieuw Archief voor Wiskunde, 15, 212–216.
@@ -102,7 +100,7 @@ theorem van_der_waerden_infinite (r k : ℕ) (hr : 1 ≤ r) (hk : 1 ≤ k) (c : 
     ∃ (a d : ℕ), d > 0 ∧ ∀ i : Fin k, c (a + (i : ℕ) * d) = c a := sorry
 
 -- ============================================================================
--- Section 4: Color-Focused APs / Multiple Van der Waerden
+-- Section 4: Color-Focused APs
 -- ============================================================================
 
 /-- A color-focused fan of `m` arithmetic progressions of length `k` sharing a common endpoint. -/
@@ -110,9 +108,5 @@ def IsColorFocusedFan {r : ℕ} (c : ℕ → Fin r) (a : ℕ) (d : Fin m → ℕ
   (∀ j : Fin m, d j > 0) ∧
   (∀ j₁ j₂ : Fin m, j₁ ≠ j₂ → c (a + (k - 1) * d j₁) ≠ c (a + (k - 1) * d j₂)) ∧
   (∀ (j : Fin m) (i : Fin (k - 1)), c (a + (i : ℕ) * d j) = c a)
-
-/-- Multiple Van der Waerden Lemma (Gallai / Witt). -/
-theorem multiple_van_der_waerden (r k m : ℕ) (hr : 1 ≤ r) (hk : 1 ≤ k) (hm : 1 ≤ m) :
-    ∃ W : ℕ, 0 < W ∧ HasVDWProperty W r k := sorry
 
 end VanDerWaerden

@@ -38,12 +38,7 @@ sources:
       Formalization adapts Lovász's ordering and cycle-avoiding coloring reduction to establish Brooks' vertex
       coloring bound chi(G) <= Delta(G).
 
-related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/SimpleGraph/Coloring/Vertex.lean"
-    relationship: builds-on
-    note: >-
-      Builds on Mathlib's simple graph vertex coloring library and extends it to maximum degree bounds,
-      odd-cycle parity obstructions, and Lovász ordering greedy reductions.
+related_formalizations: []
 
 automation:
   methods:

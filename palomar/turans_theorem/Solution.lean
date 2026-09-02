@@ -148,17 +148,7 @@ lemma turanEdgeCount_eq_turanNumber (n r : ℕ) (hr : 1 ≤ r) :
         rw [← h_choose_rem]
   have hn_eq : n = r * q + rem := (Nat.div_add_mod n r).symm
   have hn_sq_sub : n ^ 2 - rem ^ 2 = r * (r * q ^ 2 + 2 * rem * q) := by
-    rw [hn_eq]
-    have : (r * q + rem) ^ 2 - rem ^ 2 = r * (r * q ^ 2 + 2 * rem * q) := by
-      calc
-        (r * q + rem) ^ 2 - rem ^ 2
-        _ = (r * q) ^ 2 + 2 * (r * q) * rem + rem ^ 2 - rem ^ 2 := by
-          rw [add_sq]
-        _ = (r * q) ^ 2 + 2 * (r * q) * rem := by
-          rw [Nat.add_sub_cancel]
-        _ = r * (r * q ^ 2 + 2 * rem * q) := by
-          ring
-    exact this
+    rw [hn_eq, add_sq, Nat.add_sub_cancel]; ring
   have h_div : (n ^ 2 - rem ^ 2) * (r - 1) / (2 * r) = (r * (r - 1) * q ^ 2 + 2 * (r - 1) * rem * q) / 2 := by
     rw [hn_sq_sub]
     have h_assoc : r * (r * q ^ 2 + 2 * rem * q) * (r - 1) = r * ((r * q ^ 2 + 2 * rem * q) * (r - 1)) := by

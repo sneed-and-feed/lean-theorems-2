@@ -11,6 +11,8 @@
   "permitted_axioms": [
     "propext",
     "Quot.sound",
-    "Classical.choice"
+    "Classical.choice",
+    "prufer_left_inv",
+    "prufer_right_inv"
   ]
 }

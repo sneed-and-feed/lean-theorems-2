@@ -28,14 +28,12 @@ $$\chi : \{1, \dots, W(r, k)\} \to \{1, \dots, r\}$$
 there exists a **monochromatic arithmetic progression** of length $k$:
 $$\exists a, d \in \mathbb{N}, \quad d > 0 \quad \text{such that} \quad \chi(a) = \chi(a + d) = \chi(a + 2d) = \dots = \chi(a + (k - 1)d)$$
 
-## Proof Architecture (Multiple Van der Waerden & Color Focusing)
-1. **Double Induction (on $k$, then on $r$):**
-   The standard proof proceeds by strong induction on $k$, and an inner induction on $r$,
-   proving the stronger statement that for any $m \ge 1$, one can find "color-focused" fans of APs.
-2. **Product Coloring & Block Induction:**
-   Large intervals are partitioned into blocks of length $B$. An $r$-coloring of the universe induces
-   an $r^B$-coloring of the blocks. By induction on $k-1$, blocks contain monochromatic structures,
-   which are then extended to a full $k$-term monochromatic AP.
+## Proof Architecture
+1. **Finite Van der Waerden:**
+   Derived by reduction to the Hales–Jewett theorem on monochromatic combinatorial lines in high-dimensional cubes
+   (`Combinatorics.Line.exists_mono_in_high_dimension`), projecting combinatorial lines onto 1D arithmetic progressions.
+2. **Infinite Van der Waerden:**
+   Derived from the existence of monochromatic homothetic copies (`Combinatorics.exists_mono_homothetic_copy`).
 
 ## References
 * Van der Waerden, B. L. (1927). *Beweis einer Baudetschen Vermutung*. Nieuw Archief voor Wiskunde, 15, 212–216.
@@ -79,31 +77,22 @@ def HasVDWProperty (W r k : ℕ) : Prop :=
 
 /-- Trivial base case: any coloring contains an AP of length 1 (a single point). -/
 theorem vdw_one (r : ℕ) (hr : 1 ≤ r) :
-    HasVDWProperty 1 r 1 := by
-  intro c
-  refine ⟨0, 1, by omega, ⟨by omega, ?_⟩⟩
-  intro ⟨i, hi⟩
-  have : i = 0 := by omega
-  subst this
-  rfl
+    HasVDWProperty 1 r 1 :=
+  fun _ => ⟨0, 1, by omega, ⟨by omega, fun ⟨0, _⟩ => rfl⟩⟩
 
 /-- Two-point base case (Pigeonhole Principle): W(r, 2) = r + 1. -/
 theorem vdw_two (r : ℕ) (hr : 1 ≤ r) :
     HasVDWProperty (r + 1) r 2 := by
   intro c
   obtain ⟨x, y, hne, heq⟩ := Fintype.exists_ne_map_eq_of_card_lt c (by simp)
-  have h_mono (u v : Fin (r + 1)) (hlt : (u : ℕ) < (v : ℕ)) (hcol : c u = c v) :
-      HasMonochromaticAP (r + 1) c 2 := by
-    refine ⟨(u : ℕ), (v : ℕ) - (u : ℕ), by omega, ⟨by omega, ?_⟩⟩
-    intro ⟨i, hi⟩
-    interval_cases i
-    · simp
-    · have hu : (⟨(u : ℕ), by omega⟩ : Fin (r + 1)) = u := Fin.ext rfl
-      have hv : (⟨(u : ℕ) + 1 * ((v : ℕ) - (u : ℕ)), by omega⟩ : Fin (r + 1)) = v := Fin.ext (by dsimp; omega)
-      simp only [hv, hu, hcol]
-  rcases lt_or_gt_of_ne (fun h => hne (Fin.ext h)) with h | h
-  · exact h_mono x y h heq
-  · exact h_mono y x h heq.symm
+  wlog h : (x : ℕ) < y
+  · exact this r hr c y x hne.symm heq.symm (by omega)
+  refine ⟨x, y - x, by omega, ⟨by omega, fun ⟨i, hi⟩ => ?_⟩⟩
+  interval_cases i
+  · congr 1; ext; simp
+  · have : (⟨(x : ℕ) + (y - x), by omega⟩ : Fin (r + 1)) = y := Fin.ext (by dsimp; omega)
+    have : (⟨(x : ℕ), by omega⟩ : Fin (r + 1)) = x := Fin.ext rfl
+    simp [*]
 
 -- ============================================================================
 -- Section 3: Van der Waerden Numbers & Main Theorems
@@ -165,7 +154,7 @@ theorem van_der_waerden_infinite (r k : ℕ) (hr : 1 ≤ r) (hk : 1 ≤ k) (c : 
   exact ⟨a, d, hd_pos, fun i => by simpa [h_col, nsmul_eq_mul, mul_comm, add_comm] using h i (Finset.mem_range.mpr i.isLt)⟩
 
 -- ============================================================================
--- Section 4: Color-Focused APs / Multiple Van der Waerden
+-- Section 4: Color-Focused APs
 -- ============================================================================
 
 /-- A color-focused fan of `m` arithmetic progressions of length `k` sharing a common endpoint. -/
@@ -188,10 +177,5 @@ lemma monochromatic_AP_of_color_focused_fan_max {r k : ℕ} (hr : 1 ≤ r) (hk :
   rcases lt_or_eq_of_le (Nat.le_pred_of_lt hi) with hlt | rfl
   · exact hd_focus j ⟨i, hlt⟩
   · exact hj
-
-/-- Multiple Van der Waerden Lemma (Gallai / Witt). -/
-theorem multiple_van_der_waerden (r k m : ℕ) (hr : 1 ≤ r) (hk : 1 ≤ k) (hm : 1 ≤ m) :
-    ∃ W : ℕ, 0 < W ∧ HasVDWProperty W r k := by
-  exact van_der_waerden_finite r k hr hk
 
 end VanDerWaerden

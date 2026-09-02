@@ -27,8 +27,8 @@ sources:
       - "Robert R. Singleton"
     relationship: formalizes
 
-related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Real/Sqrt.lean"
+related_formalizations: []
+
     relationship: builds-on
     note: >-
       Formalization builds on Mathlib's real square root and ring arithmetic tactics (linarith, linear_combination).

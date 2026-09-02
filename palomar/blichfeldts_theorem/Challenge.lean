@@ -71,8 +71,7 @@ theorem blichfeldts_theorem (d : ℕ) (k : ℕ) (hk : 1 ≤ k) (S : Set (Space d
 Let $K \subset \mathbb{R}^d$ be a convex, centrally symmetric, measurable set with
 volume $\operatorname{vol}(K) > 2^d$. Then $K$ contains at least one non-zero
 integer lattice point $z \in \mathbb{Z}^d \setminus \{0\}$:
-$$K \cap (\mathbb{Z}^d \setminus \{0\}) 
-e \emptyset$$
+$$K \cap (\mathbb{Z}^d \setminus \{0\}) \ne \emptyset$$
 -/
 theorem minkowski_convex_body_theorem (d : ℕ) (K : Set (Space d))
     (hK_conv : Convex ℝ K)

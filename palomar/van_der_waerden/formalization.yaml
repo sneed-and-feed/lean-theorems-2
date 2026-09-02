@@ -8,12 +8,13 @@ project:
     - "Noah Cohen"
   license: "CC0-1.0"
   description: >-
-    A complete Lean 4 formalization of Van der Waerden's Theorem on Arithmetic Progressions (1927),
-    including finite and infinite versions, small-case pigeonhole base cases, and the Multiple Van der Waerden
-    / Gallai–Witt color-focused fan property. Mathlib contains the Hales–Jewett theorem and homothetic copies;
-    this formalization builds an explicit arithmetic progression API and formalizes the finite Van der Waerden
-    property and color-focusing reduction directly, verified absent from the core Mathlib library in this API form
-    (checked against Mathlib v4.34.0-rc1).
+    A complete Lean 4 formalization of the one-dimensional Van der Waerden Theorem on
+    Arithmetic Progressions (1927), establishing both the finite version (for every r ≥ 1
+    colors and progression length k ≥ 1, there exists a finite bound W such that every
+    r-coloring of Fin W contains a monochromatic arithmetic progression of length k) and
+    the infinite version (every r-coloring of ℕ contains an arbitrary length-k monochromatic
+    arithmetic progression). The finite version is derived via combinatorial lines and
+    the Hales–Jewett theorem, and the infinite version via monochromatic homothetic copies.
 
 classification:
   arxiv: [math.CO]
@@ -37,12 +38,7 @@ sources:
     venue: "John Wiley & Sons"
     relationship: background
 
-related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Combinatorics/HalesJewett.lean"
-    relationship: builds-on
-    note: >-
-      Builds on Mathlib's Hales–Jewett theorem on combinatorial lines and lifts it to concrete
-      finite monochromatic arithmetic progression intervals with explicit step and length bounds.
+related_formalizations: []
 
 automation:
   methods:

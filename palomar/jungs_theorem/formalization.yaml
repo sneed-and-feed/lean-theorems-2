@@ -36,12 +36,7 @@ sources:
       Formalization adapts Danzer, Grünbaum, and Klee's Helly-type intersection techniques to deduce Jung's
       minimal bounding sphere radius bound.
 
-related_formalizations:
-  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Convex/Radon.lean"
-    relationship: builds-on
-    note: >-
-      Formalization builds on Mathlib's Helly intersection theorem for compact convex sets
-      (Convex.helly_theorem_compact') to execute the geometric reduction from simplices to arbitrary bounded sets.
+related_formalizations: []
 
 automation:
   methods:
