@@ -40,11 +40,6 @@ sources:
 
 related_formalizations: []
 
-    relationship: builds-on
-    note: >-
-      Builds on Mathlib's simple graph dart definitions and develops the full matrix operator algebra
-      for directed edge adjacencies and Hashimoto operators.
-
 automation:
   methods:
     - method: agent

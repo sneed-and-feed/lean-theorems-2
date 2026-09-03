@@ -8,6 +8,7 @@ import os
 import sys
 import json
 import re
+import yaml
 
 REQUIRED_FILES = ["comparator.json", "formalization.yaml", "Challenge.lean", "Solution.lean"]
 
@@ -46,7 +47,17 @@ def main() -> None:
     if not isinstance(theorem_names, list) or len(theorem_names) == 0:
         sys.exit("[FAIL] comparator.json must contain a non-empty 'theorem_names' array.")
 
-    # 3. Hermetic sandbox check: Challenge.lean must only import Mathlib
+    # 3. Validate formalization.yaml syntax and indentation
+    yaml_path = os.path.join(root_dir, "formalization.yaml")
+    with open(yaml_path, "r", encoding="utf-8") as f:
+        try:
+            yaml_data = yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            sys.exit(f"[FAIL] Invalid YAML in formalization.yaml: {e}")
+    if not isinstance(yaml_data, dict):
+        sys.exit("[FAIL] formalization.yaml must parse to a dictionary.")
+
+    # 4. Hermetic sandbox check: Challenge.lean must only import Mathlib
     chal_path = os.path.join(root_dir, "Challenge.lean")
     with open(chal_path, "r", encoding="utf-8") as f:
         chal_content = f.read()
@@ -56,7 +67,7 @@ def main() -> None:
         if s.startswith("import ") and not (s.startswith("import Mathlib") or s.startswith("import Lean")):
             sys.exit(f"[FAIL] Challenge.lean imports non-library module: {s}")
 
-    # 4. Axiom and proof hole check in Solution.lean
+    # 5. Axiom and proof hole check in Solution.lean
     sol_path = os.path.join(root_dir, "Solution.lean")
     with open(sol_path, "r", encoding="utf-8") as f:
         sol_content = f.read()
@@ -67,7 +78,7 @@ def main() -> None:
     if re.search(r"^\s*axiom\s+", sol_content, re.MULTILINE):
         sys.exit("[FAIL] Solution.lean introduces custom 'axiom' declarations.")
 
-    # 5. Check declaration presence in Challenge.lean and Solution (recursively resolving Formalization modules)
+    # 6. Check declaration presence in Challenge.lean and Solution (recursively resolving Formalization modules)
     visited_files = set()
 
     def load_module_and_submodules(mod_name: str) -> str:

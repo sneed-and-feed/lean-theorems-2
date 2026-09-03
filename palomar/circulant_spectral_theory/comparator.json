@@ -2,8 +2,10 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "cayleys_tree_formula",
-    "rooted_trees_count"
+    "circulant_mulVec_character",
+    "fourierMatrix_conjTranspose_mul",
+    "det_circulant",
+    "charpoly_circulant"
   ],
   "permitted_axioms": [
     "propext",

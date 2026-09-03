@@ -49,10 +49,6 @@ sources:
 
 related_formalizations: []
 
-    relationship: builds-on
-    note: >-
-      Formalization builds on Mathlib's symmetric group permutations (Equiv.Perm) and finite type cardinalities.
-
 automation:
   methods:
     - method: agent

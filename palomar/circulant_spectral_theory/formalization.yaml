@@ -1,0 +1,65 @@
+version: "v0.4"
+
+project:
+  name: "Spectral Theory of Circulant Matrices and Discrete Fourier Analysis"
+  authors:
+    - "Noah Cohen"
+  responsible_maintainers:
+    - "Noah Cohen"
+  license: "CC0-1.0"
+  description: >-
+    A complete machine-checked Lean 4 formalization of the spectral theory of circulant
+    matrices over the complex field ℂ, establishing the structural bridge between Mathlib's
+    Matrix.Circulant and the discrete Fourier transform ZMod.dft. Proves that characters
+    are simultaneous eigenvectors with DFT eigenvalues (circulant_mulVec_character),
+    establishes the orthogonality and non-degeneracy of the Fourier matrix
+    (fourierMatrix_conjTranspose_mul), and derives the exact product formulas for circulant
+    determinants (det_circulant) and characteristic polynomials (charpoly_circulant).
+    To the maintainers' knowledge, the theorem was not found in an exact declaration name,
+    docstring, and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+
+classification:
+  arxiv: [math.RA, math.CA, math.SP]
+  msc2020: ["15B05", "15A18", "42A16", "65T50"]
+
+sources:
+  - title: "Circulant Matrices"
+    type: book
+    authors:
+      - "Philip J. Davis"
+    year: 1979
+    venue: "John Wiley & Sons"
+    relationship: formalizes
+  - title: "Matrix Analysis"
+    type: book
+    authors:
+      - "Roger A. Horn"
+      - "Charles R. Johnson"
+    year: 2012
+    venue: "Cambridge University Press"
+    relationship: background
+
+related_formalizations:
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/LinearAlgebra/Matrix/Circulant.lean"
+    relationship: builds-on
+    note: "Builds on Mathlib's definition of circulant matrices."
+  - id: "https://github.com/leanprover-community/mathlib4/blob/master/Mathlib/Analysis/Fourier/ZMod.lean"
+    relationship: builds-on
+    note: "Connects with Mathlib's discrete Fourier transform on ZMod n."
+
+automation:
+  methods:
+    - method: agent
+      tool_setup: >-
+        Formalized using an agentic Lean 4 workflow powered by Google DeepMind Gemini models (Gemini Flash
+        agent pipeline via the Antigravity system) paired with Lean LSP MCP interactive tooling for proof
+        tactic exploration, AST comparison, and verification under maintainer direction and human oversight.
+        All declarations rely strictly on standard Lean 4 kernel axioms (propext, Quot.sound, Classical.choice).
+
+review:
+  status: self-assessed
+  reviewers:
+    - "Noah Cohen"
+  notes: >-
+    Challenge contains deliberate proof holes (:= sorry), with fully specified definitions and types.
+    Solution verified with 0 errors, 0 sorries, and standard kernel axioms.

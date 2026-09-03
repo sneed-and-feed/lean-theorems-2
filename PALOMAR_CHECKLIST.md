@@ -33,8 +33,8 @@ All 24 theorem packages have completed pre-flight verification audits.
 | **13** | **Jung's Theorem on Circumscribed Euclidean Spheres** | `jungs_theorem` | `e8dfe475169caae29da9285e99d2f0587a3d953a` | Convex & Metric Geometry / Discrete Geometry | 3 theorems |
 | **14** | **The Lindström–Gessel–Viennot (LGV) Lemma** | `gessel_viennot` | `e8dfe475169caae29da9285e99d2f0587a3d953a` | Enumerative Combinatorics / Determinantal Lattice Paths | 4 theorems |
 | **15** | **Cayley's Tree Formula and Prüfer Sequence Bijection** | `cayleys_formula` | `f7fd6e340dbf20387ca793a38ea8f37bc44367ef` | Enumerative Combinatorics / Graph Theory / Trees | 2 theorems |
-| **16** | **Spectral Theory of Circulant Matrices and Discrete Fourier Analysis** | `circulant_spectral_theory` | `pending` | Spectral Matrix Theory / Fourier Analysis | 4 theorems |
-| **17** | **The Hoffman–Singleton Moore Graph Classification Theorem** | `hoffman_singleton` | `a4e3977b9eb5f8492b3b9c9c3f8ee210d4836c9e` | Spectral Graph Theory / Strongly Regular Graphs / Moore Graphs | 17 theorems |
+| **16** | **Spectral Theory of Circulant Matrices and Discrete Fourier Analysis** | `circulant_spectral_theory` | `e1ba282ba3757bb5eae03e6b8e52732f32b53e45` | Spectral Matrix Theory / Fourier Analysis | 4 theorems |
+| **17** | **The Hoffman–Singleton Moore Graph Classification Theorem** | `hoffman_singleton` | `6834562ebef5c336e3feabc2470a6ca92b4869da` | Spectral Graph Theory / Strongly Regular Graphs / Moore Graphs | 17 theorems |
 
 ---
 

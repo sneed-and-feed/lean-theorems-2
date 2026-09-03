@@ -6,6 +6,7 @@ import Formalization.IharaZeta
 import Formalization.IharaBass
 import Formalization.PrefixSparsity
 import Formalization.CyclicShift
+import Formalization.CirculantSpectralTheory
 import Formalization.RamanujanTau
 import Formalization.MatrixTreeTheorem
 import Formalization.VizingsTheorem
