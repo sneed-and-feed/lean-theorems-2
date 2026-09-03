@@ -6,31 +6,34 @@ This repository provides machine-checked formalizations, certified proofs, and f
 
 ## Table of Formalized Modules and Theorems
 
-| # | Theorem / Topic | Primary Declaration(s) | Mathematical Domain | Reference | Status & Missing Prerequisites |
+The root build target [`Formalization.lean`](Formalization.lean) compiles the **17 fully verified Tier-1 suites** (100% machine-checked, 0 custom axioms, 0 `sorry`) and **4 high-value research scaffolds** (which cleanly isolate minimal unformalized topological/algebraic prerequisites into explicit axioms or hypotheses). Three decoupled modules (`PrefixSparsity`, `CyclicShift`, and `RSKBijection`) are retained in place within `Formalization/` for reference and historical audit integrity.
+
+| # | Theorem / Topic | Primary Declaration(s) | Mathematical Domain | Reference | Status & Mathematical Scope |
 | :---: | :--- | :--- | :--- | :--- | :--- |
 | 1 | **Sperner's Antichain Theorem & LYM Inequality** | [`sperners_antichain_theorem`](Formalization/SpernerAntichain.lean), [`lym_inequality`](Formalization/SpernerAntichain.lean), [`sperners_antichain_equality`](Formalization/SpernerAntichain.lean) | Extremal Combinatorics & Poset Theory | Sperner (1928), Lubell (1966), Yamamoto (1954) | **100% Verified (0 axioms)** |
 | 2 | **Van der Waerden's Theorem on Arithmetic Progressions** | [`van_der_waerden_finite`](Formalization/VanDerWaerden.lean), [`van_der_waerden_infinite`](Formalization/VanDerWaerden.lean) | Ramsey Theory & Additive Combinatorics | Van der Waerden (1927), Wiedijk #85 | **100% Verified (0 axioms)** |
 | 3 | **Turán's Theorem & Mantel's Theorem** | [`turans_theorem`](Formalization/TuransTheorem.lean), [`turans_theorem_exact`](Formalization/TuransTheorem.lean), [`mantels_theorem`](Formalization/TuransTheorem.lean), [`turans_uniqueness`](Formalization/TuransTheorem.lean) | Extremal Graph Theory | Turán (1941), Mantel (1907) | **100% Verified (0 axioms)** |
-| 4 | **Brooks' Theorem on Graph Colorings** | [`brooks_theorem`](Formalization/BrooksTheorem.lean), [`brooks_theorem_of_card_le_succ`](Formalization/BrooksTheorem.lean), [`colorable_of_lovasz_ordering`](Formalization/BrooksTheorem/Greedy.lean), [`lovasz_ordering_of_triple`](Formalization/BrooksTheorem/LovaszOrdering.lean) | Graph Theory & Vertex Chromatics | Brooks (1941), Lovász (1975) | **Modular Package (`Formalization/BrooksTheorem/`)** |
+| 4 | **Brooks' Theorem on Graph Colorings** | [`brooks_theorem`](Formalization/BrooksTheorem.lean), [`colorable_of_lovasz_ordering`](Formalization/BrooksTheorem/Greedy.lean), [`exists_lovasz_ordering`](Formalization/BrooksTheorem/LovaszOrdering.lean) | Graph Theory & Vertex Chromatics | Brooks (1941), Lovász (1975) | **Research Scaffold** (Greedy coloring from Lovász ordering verified; existence on 2-connected graphs isolated as 1 axiom) |
 | 5 | **Ihara Zeta Function & Hashimoto Adjacency** | [`HashimotoMatrix`](Formalization/IharaZeta.lean), [`sourceMatrix_mul_targetMatrix_transpose`](Formalization/IharaZeta.lean), [`involutionMatrix_sq`](Formalization/IharaZeta.lean), [`IharaZetaInvLHS`](Formalization/IharaZeta.lean) | Spectral Graph Theory & Zeta Functions | Ihara (1966), Serre (1977) | **100% Verified (0 axioms)** |
 | 6 | **Ihara-Bass Determinantal Formula** | [`ihara_bass_polynomial`](Formalization/IharaBass.lean), [`M_Bass_mul_N_Bass`](Formalization/IharaBass.lean), [`det_KL_Bass`](Formalization/IharaBass.lean), [`det_M_Bass`](Formalization/IharaBass.lean) | Algebraic Graph Theory & Block Determinants | Bass (1992), Hashimoto (1989) | **100% Verified (0 axioms)** |
-| 7 | **Prefix-Sharing & Sparsity on Trees** | [`sparsity_bound`](Formalization/PrefixSparsity.lean), [`fraction_eq_p_inv_r`](Formalization/PrefixSparsity.lean), [`card_shared_prefix`](Formalization/PrefixSparsity.lean), [`sparsity_p2_r3`](Formalization/PrefixSparsity.lean) | Tree Combinatorics & Branching Sparsity | Prefix Sharing & Tree Metric Sparsity | **100% Verified (0 axioms)** |
-| 8 | **Characteristic Polynomial of Cyclic Matrices** | [`charpoly_cyclicWeightMatrix`](Formalization/CyclicShift.lean), [`charpoly_shiftMatrix`](Formalization/CyclicShift.lean), [`det_upperBidiagonal`](Formalization/CyclicShift.lean) | Linear Algebra & Circulant Matrices | Cyclic Shifts & Bidiagonal Expansion | **100% Verified (0 axioms)** |
-| 9 | **Ramanujan Tau Congruence $\tau(n) \equiv \sigma_{11}(n) \pmod{691}$** | [`ramanujan_tau_congruence`](Formalization/RamanujanTau.lean), [`bernoulli_12_exact`](Formalization/RamanujanTau.lean), [`ramanujan_congruence_691`](Formalization/RamanujanTau.lean) | Modular Forms & Number Theory | Ramanujan (1916), Serre (1973) | **Modular Forms Hypothesis Reduction (Research Scaffold)** |
-| 10 | **Kirchhoff's Matrix-Tree Theorem** | [`matrix_tree_theorem`](Formalization/MatrixTreeTheorem.lean), [`laplacian_row_sum_zero`](Formalization/MatrixTreeTheorem.lean), [`laplacian_transpose_eq`](Formalization/MatrixTreeTheorem.lean), [`incidence_mul_transpose`](Formalization/MatrixTreeTheorem.lean) | Algebraic Graph Theory & Tree Enumeration | Kirchhoff (1847), Stanley (2012) | Scaffolded ($B B^T = L$ verified; lacks Binet–Cauchy determinants) |
-| 11 | **Vizing's Theorem & König's Line Coloring Theorem** | [`vizings_theorem`](Formalization/VizingsTheorem.lean), [`vizing_classification`](Formalization/VizingsTheorem.lean), [`konig_edge_coloring`](Formalization/VizingsTheorem.lean), [`edgeColorable_of_bipartite`](Formalization/VizingsTheorem.lean), [`edgeColorable_of_maxDegree_succ`](Formalization/VizingsTheorem.lean) | Graph Theory & Edge Colorings | Vizing (1964), König (1916) | **100% Verified (0 axioms) — Modular Package (`Formalization/VizingsTheorem/`)** |
+| 7 | **Prefix-Sharing & Sparsity on Trees** | [`sparsity_bound`](Formalization/PrefixSparsity.lean), [`fraction_eq_p_inv_r`](Formalization/PrefixSparsity.lean), [`card_shared_prefix`](Formalization/PrefixSparsity.lean) | Tree Combinatorics & Branching Sparsity | Prefix Sharing & Tree Metric Sparsity | Elementary finite function counting on complete $p$-ary trees ($1 - 1/p^r$; Decoupled from root build) |
+| 8 | **Characteristic Polynomial of Cyclic Matrices** | [`charpoly_cyclicWeightMatrix`](Formalization/CyclicShift.lean), [`charpoly_shiftMatrix`](Formalization/CyclicShift.lean), [`det_upperBidiagonal`](Formalization/CyclicShift.lean) | Linear Algebra & Circulant Matrices | Cyclic Shifts & Bidiagonal Expansion | Polynomial matrix algebra for weighted shift matrices over arbitrary commutative rings (Decoupled; superseded by row 17) |
+| 9 | **Ramanujan Tau Congruence mod 691** | [`ramanujan_tau_congruence`](Formalization/RamanujanTau.lean), [`bernoulli_12_exact`](Formalization/RamanujanTau.lean), [`ramanujan_congruence_691`](Formalization/RamanujanTau.lean) | Modular Forms & Number Theory | Ramanujan (1916), Serre (1973) | **Research Scaffold** (Exact Bernoulli value $B_{12} = -691/2730$ verified; congruence conditioned on modular forms space dimension $\dim M = 2$) |
+| 10 | **Kirchhoff's Matrix-Tree Theorem** | [`matrix_tree_theorem`](Formalization/MatrixTreeTheorem.lean), [`laplacian_row_sum_zero`](Formalization/MatrixTreeTheorem.lean), [`incidence_mul_transpose`](Formalization/MatrixTreeTheorem.lean) | Algebraic Graph Theory & Tree Enumeration | Kirchhoff (1847), Stanley (2012) | **Research Scaffold** (Incidence Gramian $B B^T = L$ verified; rectangular Binet–Cauchy determinant identity isolated as 2 axioms) |
+| 11 | **Vizing's Theorem & König's Line Coloring Theorem** | [`vizings_theorem`](Formalization/VizingsTheorem.lean), [`vizing_classification`](Formalization/VizingsTheorem.lean), [`konig_edge_coloring`](Formalization/VizingsTheorem.lean), [`edgeColorable_of_bipartite`](Formalization/VizingsTheorem.lean) | Graph Theory & Edge Colorings | Vizing (1964), König (1916) | **100% Verified (0 axioms) — Modular Package (`Formalization/VizingsTheorem/`)** |
 | 12 | **Fisher's Inequality for Block Designs** | [`fishers_inequality`](Formalization/FishersInequality.lean), [`gramian_eq`](Formalization/FishersInequality.lean), [`det_gramian`](Formalization/FishersInequality.lean), [`incidence_mul_transpose_apply`](Formalization/FishersInequality.lean) | Combinatorial Design Theory & Matrix Gramians | Fisher (1940), Bose (1949) | **100% Verified (0 axioms)** |
-| 13 | **Lindström–Gessel–Viennot (LGV) Lemma** | [`lindstrom_gessel_viennot`](Formalization/GesselViennot.lean), [`gessel_viennot_planar_dag`](Formalization/GesselViennot.lean), [`det_pathMatrix_eq_permutation_sum`](Formalization/GesselViennot.lean), [`intersecting_path_systems_sum_zero`](Formalization/GesselViennot.lean) | Algebraic Combinatorics & Lattice Paths | Lindström (1973), Gessel & Viennot (1985) | **100% Verified (0 axioms)** |
-| 14 | **Cayley's Tree Formula & Prüfer Sequences** | [`cayleys_tree_formula`](Formalization/CayleysFormula.lean), [`prufer_sequence_card`](Formalization/CayleysFormula.lean), [`pruferEquiv`](Formalization/CayleysFormula.lean), [`pruferCode`](Formalization/CayleysFormula.lean), [`pruferDecode`](Formalization/CayleysFormula.lean) | Enumerative Combinatorics & Graph Enumeration | Cayley (1889), Prüfer (1918) | **100% Verified (0 axioms) — Modular Package (`Formalization/CayleysFormula/`)** |
-| 15 | **Kőnig–Egerváry Duality Theorem** | [`konig_duality`](Formalization/KonigMatching.lean), [`weak_duality`](Formalization/KonigMatching.lean), [`matching_card_le_vertexCover_card`](Formalization/KonigMatching.lean), [`gallai_independence_vertex_cover`](Formalization/KonigMatching.lean), [`konig_independence_matching`](Formalization/KonigMatching.lean) | Combinatorial Optimization & Polyhedral Graphs | Kőnig (1931), Egerváry (1931), Gallai (1959) | **100% Verified (0 axioms)** |
-| 16 | **Jung's Theorem on Circumscribed Spheres** | [`jungs_theorem`](Formalization/JungsTheorem.lean), [`jungs_theorem_via_helly`](Formalization/JungsTheorem.lean), [`circumradius_le_jungs_bound`](Formalization/JungsTheorem.lean), [`jungsConstant_pos`](Formalization/JungsTheorem.lean) | Discrete Geometry & Convexity | Jung (1901), Danzer, Grünbaum, & Klee (1963) | **100% Verified (0 axioms)** |
-| 18 | **Menger's Theorem on Disjoint Paths & Cuts** | [`menger_vertex`](Formalization/MengersTheorem.lean), [`menger_edge`](Formalization/MengersTheorem.lean), [`menger_whitney`](Formalization/MengersTheorem.lean), [`weak_duality`](Formalization/MengersTheorem/Basic.lean) | Graph Connectivity & Network Optimization | Menger (1927), Whitney (1932), Dirac (1966) | **100% Verified (0 axioms) — Modular Package (`Formalization/MengersTheorem/`)** |
+| 13 | **Lindström–Gessel–Viennot (LGV) Lemma** | [`lindstrom_gessel_viennot`](Formalization/GesselViennot.lean), [`gessel_viennot_planar_dag`](Formalization/GesselViennot.lean), [`det_pathMatrix_eq_permutation_sum`](Formalization/GesselViennot.lean) | Algebraic Combinatorics & Lattice Paths | Lindström (1973), Gessel & Viennot (1985) | **100% Verified (0 axioms)** |
+| 14 | **Cayley's Tree Formula & Prüfer Sequences** | [`cayleys_tree_formula`](Formalization/CayleysFormula.lean), [`prufer_sequence_card`](Formalization/CayleysFormula.lean), [`pruferEquiv`](Formalization/CayleysFormula.lean) | Enumerative Combinatorics & Graph Enumeration | Cayley (1889), Prüfer (1918) | **100% Verified (0 axioms) — Modular Package (`Formalization/CayleysFormula/`)** |
+| 15 | **Kőnig–Egerváry Duality Theorem** | [`konig_duality`](Formalization/KonigMatching.lean), [`weak_duality`](Formalization/KonigMatching.lean), [`gallai_independence_vertex_cover`](Formalization/KonigMatching.lean) | Combinatorial Optimization & Polyhedral Graphs | Kőnig (1931), Egerváry (1931), Gallai (1959) | **100% Verified (0 axioms)** |
+| 16 | **Jung's Theorem on Circumscribed Spheres** | [`jungs_theorem`](Formalization/JungsTheorem.lean), [`jungs_theorem_via_helly`](Formalization/JungsTheorem.lean), [`circumradius_le_jungs_bound`](Formalization/JungsTheorem.lean) | Discrete Geometry & Convexity | Jung (1901), Danzer, Grünbaum, & Klee (1963) | **100% Verified (0 axioms)** |
+| 17 | **Spectral Theory of Circulant Matrices & Discrete Fourier Analysis** | [`circulant_mulVec_character`](Formalization/CirculantSpectralTheory.lean), [`fourierMatrix_conjTranspose_mul`](Formalization/CirculantSpectralTheory.lean), [`det_circulant`](Formalization/CirculantSpectralTheory.lean), [`charpoly_circulant`](Formalization/CirculantSpectralTheory.lean) | Spectral Matrix Theory & Fourier Analysis | Davis (1979) | **100% Verified (0 axioms)** (Fourier basis eigenvectors, unitary diagonalization, and determinant/charpoly formulas for `Matrix.Circulant`) |
+| 18 | **Menger's Theorem on Disjoint Paths & Cuts** | [`menger_vertex`](Formalization/MengersTheorem.lean), [`menger_edge`](Formalization/MengersTheorem.lean), [`menger_whitney`](Formalization/MengersTheorem.lean), [`weak_duality`](Formalization/MengersTheorem/Basic.lean) | Graph Connectivity & Network Optimization | Menger (1927), Whitney (1932), Dirac (1966) | **Research Scaffold** (Whitney vertex connectivity and cut duality verified; inductive path extraction from cuts isolated as 2 axioms) |
 | 19 | **MacMahon's Master Theorem** | [`macmahon_master_theorem`](Formalization/MacMahonsMasterTheorem.lean), [`detMacMahon`](Formalization/MacMahonsMasterTheorem.lean), [`invDetMacMahon`](Formalization/MacMahonsMasterTheorem.lean) | Enumerative Combinatorics & Formal Series | MacMahon (1915), Cartier & Foata (1969) | **100% Verified (0 axioms)** |
 | 20 | **Blichfeldt's Theorem in Geometry of Numbers** | [`blichfeldts_theorem`](Formalization/BlichfeldtsTheorem.lean), [`minkowski_convex_body_theorem`](Formalization/BlichfeldtsTheorem.lean), [`blichfeldt_dim1`](Formalization/BlichfeldtsTheorem.lean) | Geometry of Numbers & Lattice Tiling | Blichfeldt (1914), Minkowski (1896) | **100% Verified (0 axioms)** |
-| 21 | **The Hoffman–Singleton Moore Graph Theorem** | [`hoffman_singleton_theorem`](Formalization/HoffmanSingleton.lean), [`classification_general`](Formalization/HoffmanSingleton.lean), [`certHoffmanSingletonIntegral`](Formalization/HoffmanSingleton.lean), [`s_divides_15`](Formalization/HoffmanSingleton.lean) | Spectral Graph Theory & Matrix Algebras | Hoffman & Singleton (1960) | **100% Verified (0 axioms)** |
-| 22 | **Robinson–Schensted–Knuth (RSK) Correspondence** | [`schensted_lis_theorem`](Formalization/RSKBijection.lean), [`greene_lds_theorem`](Formalization/RSKBijection.lean), [`rsk_sum_squares_eq_factorial`](Formalization/RSKBijection.lean), [`rsk_involution_fixed_points`](Formalization/RSKBijection.lean) | Algebraic Combinatorics & Young Tableaux | Schensted (1961), Knuth (1970), Greene (1974) | **100% Verified (0 axioms)** |
-| 23 | **The Birkhoff–von Neumann Theorem** | [`birkhoff_von_neumann_convex_hull`](Formalization/BirkhoffVonNeumann.lean), [`birkhoff_von_neumann_iff`](Formalization/BirkhoffVonNeumann.lean), [`birkhoff_von_neumann_convex_combination`](Formalization/BirkhoffVonNeumann.lean), [`extremePoints_doublyStochasticSet`](Formalization/BirkhoffVonNeumann.lean) | Convex Geometry & Polyhedral Combinatorics | Birkhoff (1946), von Neumann (1953) | **100% Verified (0 axioms)** |
-| 24 | **Stanley's $\mathfrak{sl}(2)$ Proof of the Strong Sperner Property** | [`sperner_partition_poset`](Formalization/StanleySL2.lean), [`rankSize_symm`](Formalization/StanleySL2.lean), [`rankSize_unimodal`](Formalization/StanleySL2.lean) | Algebraic Poset Theory & Lie Algebra Representations | Stanley (1980, 1982), Proctor (1982) | **100% Verified (0 axioms)** |
+| 21 | **The Hoffman–Singleton Moore Graph Classification Theorem** | [`moore_is_srg`](Formalization/HoffmanSingleton.lean), [`moore_adjMatrix_eq`](Formalization/HoffmanSingleton.lean), [`moore_graph_degree_classification`](Formalization/HoffmanSingleton.lean), [`certHoffmanSingletonIntegral`](Formalization/HoffmanSingleton.lean) | Spectral Graph Theory & Strongly Regular Graphs | Hoffman & Singleton (1960) | **100% Verified (0 axioms)** (Graph-theoretic proof on `SimpleGraph`: strongly regular reduction, eigenvalue multiplicities, and degree classification $d \in \{2, 3, 7, 57\}$) |
+| 22 | **Robinson–Schensted–Knuth (RSK) Correspondence** | [`schensted_lis_theorem`](Formalization/RSKBijection.lean), [`greene_lds_theorem`](Formalization/RSKBijection.lean), [`rsk_sum_squares_eq_factorial`](Formalization/RSKBijection.lean) | Algebraic Combinatorics & Young Tableaux | Schensted (1961), Knuth (1970), Greene (1974) | Tableaux and bumping definitions formalized; main theorems are conditional reductions / hypothesis projections ($h \implies h$; Decoupled from root build) |
+| 23 | **The Birkhoff–von Neumann Theorem** | [`birkhoff_von_neumann_convex_hull`](Formalization/BirkhoffVonNeumann.lean), [`birkhoff_von_neumann_iff`](Formalization/BirkhoffVonNeumann.lean), [`birkhoff_von_neumann_convex_combination`](Formalization/BirkhoffVonNeumann.lean) | Convex Geometry & Polyhedral Combinatorics | Birkhoff (1946), von Neumann (1953) | **100% Verified (0 axioms)** |
+| 24 | Stanley's $\mathfrak{sl}(2)$ Proof of the Strong Sperner Property | [`sperner_partition_poset`](Formalization/StanleySL2.lean), [`rankSize_symm`](Formalization/StanleySL2.lean), [`rankSize_unimodal`](Formalization/StanleySL2.lean) | Algebraic Poset Theory & Lie Algebra Representations | Stanley (1980, 1982), Proctor (1982) | **100% Verified (0 axioms)** |
 
 ---
 
@@ -111,14 +114,24 @@ This repository provides machine-checked formalizations, certified proofs, and f
 ### 9. Ramanujan Tau Function & Congruence Modulo 691
 * **Module:** [`Formalization/RamanujanTau.lean`](Formalization/RamanujanTau.lean)
 * **Theorems:** `ramanujan_tau_congruence`, `bernoulli_12_exact`, `ramanujan_congruence_691`
-* **Mathematical Statement:** Formalization establishes the linear algebraic congruence reduction $\tau(n) \equiv \sigma_{11}(n) \pmod{691}$ assuming the modular forms span $M_{12}(\mathrm{SL}(2, \mathbb{Z})) = \mathbb{Q} E_{12} \oplus \mathbb{Q} \Delta$ and the existence of $E_{12}$ as explicit premises, alongside the exact machine verification of Bernoulli number $B_{12} = -691/2730$.
+* **Mathematical Statement:** Formalization establishes the linear algebraic congruence reduction:
+
+```math
+\tau(n) \equiv \sigma_{11}(n) \pmod{691}
+```
+
+conditioned on the modular forms decomposition $M_{12}(\mathrm{SL}(2, \mathbb{Z})) = \mathbb{Q} E_{12} \oplus \mathbb{Q} \Delta$ and the existence of eigenform $E_{12}$, alongside the exact machine verification of Bernoulli number $B_{12} = -691/2730$.
 
 ---
 
 ### 10. Kirchhoff's Matrix-Tree Theorem
 * **Module:** [`Formalization/MatrixTreeTheorem.lean`](Formalization/MatrixTreeTheorem.lean)
 * **Theorems:** `laplacian_apply_diag`, `laplacian_apply_offdiag`, `laplacian_row_sum_zero`, `laplacian_transpose_eq`, `incidence_mul_transpose`, `matrix_tree_theorem`
-* **Mathematical Statement:** For any finite connected graph $G$, the combinatorial Laplacian $L = D - A$ satisfies $L = B B^T$, $\sum_v L_{u, v} = 0$, and any reduced Laplacian minor satisfies $\det(L_{(r)}) = |\mathcal{T}(G)|$.
+* **Mathematical Statement:** For any finite connected graph $G$, the combinatorial Laplacian $L = D - A$ satisfies:
+
+```math
+L = B B^T, \quad \sum_v L_{u, v} = 0, \quad \det(L_{(r)}) = |\mathcal{T}(G)|
+```
 
 ---
 
@@ -130,7 +143,13 @@ This repository provides machine-checked formalizations, certified proofs, and f
   - `Bipartite.lean`: Shift steps along paths and König's Line Coloring Theorem for bipartite graphs (`edgeColorable_of_bipartite`).
   - `Fan.lean`: Vizing fan extensions and inductive coloring step (`exists_full_coloring`).
 * **Theorems:** `vizings_theorem`, `vizing_classification`, `edgeColorable_of_bipartite`, `edgeColorable_of_maxDegree_succ`, `konig_edge_coloring`
-* **Mathematical Statement:** For any finite bipartite graph $G$, König's Line Coloring Theorem establishes that $G$ is Class 1 $(\chi'(G) = \Delta(G))$, and for any general finite simple graph $G$, Vizing's Theorem establishes $\Delta(G) \le \chi'(G) \le \Delta(G) + 1$, classifying graphs into Class 1 ($\chi' = \Delta$) or Class 2 ($\chi' = \Delta + 1$). Fully verified in Lean 4 with **0 custom axioms and 0 sorries** via Vizing fan shifts, Kempe alternating chain uniqueness, and well-founded induction on uncolored edges.
+* **Mathematical Statement:** For any finite bipartite graph $G$, König's Line Coloring Theorem establishes that $G$ is Class 1 (with $\chi'(G) = \Delta(G)$), and for any general finite simple graph $G$, Vizing's Theorem establishes:
+
+```math
+\Delta(G) \le \chi'(G) \le \Delta(G) + 1
+```
+
+classifying graphs into Class 1 ($\chi' = \Delta$) or Class 2 ($\chi' = \Delta + 1$). Fully verified in Lean 4 with **0 custom axioms and 0 sorries** via Vizing fan shifts, Kempe alternating chain uniqueness, and well-founded induction on uncolored edges.
 
 ---
 
@@ -157,7 +176,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 * **Modular Package:** [`Formalization/CayleysFormula/`](Formalization/CayleysFormula)
   - `PruferEncode.lean`: `LabeledTree` structure and lemmas, `PruferSequence`, leaf filtering, and leaf-peeling encoding algorithm (`pruferCode`).
   - `PruferDecode.lean`: Inductive edge decoding algorithm (`decodeEdges`), connectivity, and tree reconstruction (`pruferDecode`, `pruferDecode_isTree`).
-  - `PruferInvariants.lean`: Induced neighbor and leaf properties, induced subtree reduction, and the Prüfer degree-count invariant ($\deg_{T[S]}(u) = 1 + \operatorname{count}(u, L)$).
+  - `PruferInvariants.lean`: Induced neighbor and leaf properties, induced subtree reduction, and the Prüfer degree-count invariant $\deg_{T[S]}(u) = 1 + \mathrm{count}(u, L)$.
   - `PruferBijections.lean`: Constructive proofs of the Prüfer inverse bijections (`prufer_right_inv` and `prufer_left_inv`) via master induction `validPeelIter_all`.
 * **Theorems:** `cayleys_tree_formula`, `prufer_sequence_card`, `pruferEquiv`, `pruferCode`, `pruferDecode`, `rooted_trees_count`, `cayley_n2`, `cayley_n3`, `cayley_n4`
 * **Mathematical Statement:** The number of labeled trees on $n \ge 2$ vertices is:
@@ -201,7 +220,11 @@ This repository provides machine-checked formalizations, certified proofs, and f
 ### 19. MacMahon's Master Theorem
 * **Module:** [`Formalization/MacMahonsMasterTheorem.lean`](Formalization/MacMahonsMasterTheorem.lean)
 * **Theorems:** `macmahon_master_theorem`, `detMacMahon_eq_sum_subdetCoeff`, `invOfUnit_one_eq_of_antidiagonal_eq_zero`
-* **Mathematical Statement:** For any $n \times n$ matrix $A = (a_{ij}) \in M_{n \times n}(R)$ over a commutative ring $R$ and any multi-index $s = (s_1, \dots, s_n) \in \mathbb{N}^n$, the coefficient of $X^s = X_1^{s_1} \cdots X_n^{s_n}$ in the product of linear forms $\prod_{i=1}^n (\sum_{j=1}^n a_{ij} X_j)^{s_i}$ equals the coefficient of $X^s$ in the formal power series expansion of the reciprocal determinant $\det(I_n - X A)^{-1}$:
+* **Mathematical Statement:** For any $n \times n$ matrix $A = (a_{ij}) \in M_{n \times n}(R)$ over a commutative ring $R$ and multi-index $s = (s_1, \dots, s_n) \in \mathbb{N}^n$, the coefficient of $X^s$ in the product of linear forms equals the coefficient in the formal reciprocal determinant:
+
+```math
+[X^s] \prod_{i=1}^n \left(\sum_{j=1}^n a_{ij} X_j\right)^{s_i} = [X^s] \det(I_n - X A)^{-1}
+```
   $$[X_1^{s_1} \cdots X_n^{s_n}] \prod_{i=1}^n \left( \sum_{j=1}^n a_{ij} X_j \right)^{s_i} = [X_1^{s_1} \cdots X_n^{s_n}] \frac{1}{\det(I_n - X A)}$$
   Fully verified in Lean 4 with **0 custom axioms and 0 sorries** via Cartier's support-restricted relation matrix (`macmahonRelMatrix'`), adjugate kernel projection, Leibniz minor expansion, and multivariate formal power series inversion uniqueness on `Finset.antidiagonal`.
 
@@ -222,8 +245,8 @@ This repository provides machine-checked formalizations, certified proofs, and f
 * **Mathematical Statement:** The **Hoffman–Singleton Theorem (1960)** classifies the possible vertex degrees of Moore graphs of diameter 2 and girth 5. A $d$-regular graph with diameter 2 and girth 5 has $n = 1 + d^2$ vertices and its adjacency matrix satisfies $A^2 + A - (d - 1)I = J$. The eigenvalues on $1^\perp$ satisfy $\lambda^2 + \lambda - (d - 1) = 0$ with discriminant $\Delta = 4d - 3$. The trace identity $\mathrm{Tr}(A) = 0$ forces:
   $$(m_1 - m_2) \sqrt{4d - 3} = d(d - 2)$$
   where $m_1, m_2$ are integer multiplicities summing to $d^2$. This integrality condition requires:
-  - If $m_1 = m_2$: $d = 2$ (the 5-cycle $C_5$, $n = 5$).
-  - If $m_1 \ne m_2$: $s = \sqrt{4d - 3} \in \{1, 3, 5, 15\}$, giving $d = 1$ (degenerate $K_2$), $d = 3$ (the Petersen graph, $n = 10$), $d = 7$ (the Hoffman–Singleton graph, $n = 50$), or $d = 57$ (potential Moore graph, $n = 3250$).
+  - If $m_1 = m_2$, then $d = 2$ (the 5-cycle graph $C(5)$ with $n = 5$).
+  - If $m_1 \ne m_2$, the discriminant $s = \sqrt{4d - 3} \in \{1, 3, 5, 15\}$ yields $d = 1$ (degenerate graph $K(2)$), $d = 3$ (Petersen graph, $n = 10$), $d = 7$ (Hoffman–Singleton graph, $n = 50$), or $d = 57$ (Moore graph, $n = 3250$).
   Thus, any non-trivial Moore graph of diameter 2 and girth 5 has degree $d \in \{2, 3, 7, 57\}$. Fully verified in Lean 4 with **0 custom axioms and 0 sorries**.
 
 ---
@@ -244,7 +267,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 ### 23. The Birkhoff–von Neumann Theorem on Doubly Stochastic Matrices
 * **Module:** [`Formalization/BirkhoffVonNeumann.lean`](Formalization/BirkhoffVonNeumann.lean)
 * **Theorems:** `birkhoff_von_neumann_convex_hull`, `birkhoff_von_neumann_iff`, `birkhoff_von_neumann_convex_combination`, `extremePoints_doublyStochasticSet`, `permutationMatrix_isDoublyStochastic`, `convex_doublyStochastic`, `hall_condition_doublyStochastic`, `exists_perm_positive_entries`, `card_matrixSupp_ge_n`, `isDoublyStochastic_and_entries_zero_one_iff`
-* **Mathematical Statement:** The **Birkhoff–von Neumann Theorem (1946, 1953)** establishes that the convex polytope $\mathcal{D}_n$ of $n \times n$ doubly stochastic matrices is the convex hull of the set $\mathcal{P}_n$ of permutation matrices:
+* **Mathematical Statement:** The **Birkhoff–von Neumann Theorem (1946, 1953)** establishes that the convex polytope $\mathcal{D}_n$ of $n \times n$ doubly stochastic matrices is the convex hull of its permutation matrices:
   $$\mathcal{D}_n = \mathrm{Conv}(\mathcal{P}_n)$$
   and the extreme points of $\mathcal{D}_n$ are precisely the permutation matrices:
   $$\mathrm{Ext}(\mathcal{D}_n) = \mathcal{P}_n$$
@@ -255,10 +278,10 @@ This repository provides machine-checked formalizations, certified proofs, and f
 ### 24. Stanley's $\mathfrak{sl}(2)$ Representation Proof of the Strong Sperner Property for $L(m, n)$
 * **Module:** [`Formalization/StanleySL2.lean`](Formalization/StanleySL2.lean)
 * **Theorems:** `sperner_partition_poset`, `rankSize_symm`, `rankSize_unimodal`, `rank_complement`, `middleRankLevel_is_maximal_slice`, `sl2_norm_sq_lower_bound`
-* **Mathematical Statement:** The **Stanley $\mathfrak{sl}(2)$ Sperner Theorem (1980)** proves that the partition lattice $L(m, n)$ of Young diagrams fitting inside an $m \times n$ box possesses the Strong Sperner property:
+* **Mathematical Statement:** Stanley's $\mathfrak{sl}(2)$ Sperner Theorem (1980) proves that the partition lattice $L(m, n)$ of Young diagrams fitting inside an $m \times n$ box possesses the Strong Sperner property:
   $$\max_{\mathcal{A} \text{ antichain}} |\mathcal{A}| = p_{\lfloor mn/2 \rfloor}(m, n)$$
-  - **Rank-Symmetry:** The partition complementation involution $\lambda^*_i = n - \lambda_{m - 1 - i}$ satisfies $|\lambda^*| = mn - |\lambda|$, proving $p_k(m, n) = p_{mn - k}(m, n)$.
-  - **Hard Lefschetz & Unimodality:** The Lie algebra $\mathfrak{sl}(2, \mathbb{C}) = \mathrm{span}\{E, F, H\}$ representation on $V = \bigoplus_k \mathbb{R}^{L_k(m, n)}$ satisfies $[E, F] = H$, proving the raising operator $E : V_k \to V_{k+1}$ is strictly injective for $2k < mn$, which establishes rank unimodality $p_0 \le p_1 \le \dots \le p_{\lfloor mn/2 \rfloor}$.
+  - **Rank-Symmetry:** The partition complementation involution $\lambda^\ast(i) = n - \lambda(m - 1 - i)$ satisfies $\lvert \lambda^\ast \rvert = mn - \lvert \lambda \rvert$, proving $p_k(m, n) = p_{mn - k}(m, n)$.
+  - **Hard Lefschetz & Unimodality:** The $\mathfrak{sl}(2, \mathbb{C})$ representation on $V = \bigoplus_k \mathbb{R}^{L_k(m, n)}$ satisfies $[E, F] = H$, proving raising operator injectivity and rank unimodality $p(0) \le p(1) \le \dots \le p(\lfloor mn/2 \rfloor)$.
   - **Strong Sperner Property:** Every rank slice is an antichain bounded by the middle level $p_{\lfloor mn/2 \rfloor}(m, n)$.
   Fully verified in Lean 4 with **0 custom axioms and 0 sorries**.
 
@@ -282,23 +305,23 @@ The complete master inventory of 23 theorems, dedicated commit SHAs, comparator 
 ```text
 .
 ├── Challenge.lean                        # Benchmark challenge interface for edge coloring & Vizing's theorem
-├── Formalization.lean                    # Root library module importing all 25 formalized modules
+├── Formalization.lean                    # Root library module importing 17 verified Tier-1 suites and 4 research scaffolds
 ├── Formalization/
 │   ├── SpernerAntichain.lean             # 1. Sperner's Theorem on Antichains & LYM Inequality (1928, 1966)
 │   ├── VanDerWaerden.lean                # 2. Van der Waerden's Theorem on Arithmetic Progressions (1927)
 │   ├── TuransTheorem.lean                # 3. Turán's Theorem & Mantel's Theorem (1941, 1907)
 │   ├── BrooksTheorem.lean                # 4. Brooks' Theorem on Graph Colorings (Master Interface)
-│   ├── BrooksTheorem/                    # 4. Modular Brooks Package
+│   ├── BrooksTheorem/                    # 4. Modular Brooks Package (Research Scaffold)
 │   │   ├── Basic.lean                    #     - Maximum degree & chromatic properties
 │   │   ├── OddCycles.lean                #     - Cliques & odd cycle obstructions
 │   │   ├── Greedy.lean                   #     - Greedy coloring & Lovász coloring engine
 │   │   └── LovaszOrdering.lean           #     - BFS distance trees & Lovász triple extraction
 │   ├── IharaZeta.lean                    # 5. Ihara Zeta Function & Hashimoto Matrix (1966)
 │   ├── IharaBass.lean                    # 6. Ihara-Bass Determinantal Formula (1992)
-│   ├── PrefixSparsity.lean               # 7. Combinatorial Prefix-Sharing & Sparsity on Trees
-│   ├── CyclicShift.lean                  # 8. Characteristic Polynomial of Cyclic Shift Matrices
-│   ├── RamanujanTau.lean                 # 9. Ramanujan Tau Modulo 691 Congruence (1916)
-│   ├── MatrixTreeTheorem.lean            # 10. Kirchhoff's Matrix-Tree Theorem (1847)
+│   ├── PrefixSparsity.lean               # 7. Combinatorial Prefix-Sharing & Sparsity on Trees (Decoupled)
+│   ├── CyclicShift.lean                  # 8. Characteristic Polynomial of Cyclic Shift Matrices (Decoupled)
+│   ├── RamanujanTau.lean                 # 9. Ramanujan Tau Modulo 691 Congruence (Research Scaffold)
+│   ├── MatrixTreeTheorem.lean            # 10. Kirchhoff's Matrix-Tree Theorem (Research Scaffold)
 │   ├── VizingsTheorem.lean               # 11. Vizing's Theorem on Edge Colorings (Master Interface)
 │   ├── VizingsTheorem/                   # 11. Modular Vizing Package
 │   │   ├── Basic.lean                    #     - Edge colorings & missing colors
@@ -315,7 +338,8 @@ The complete master inventory of 23 theorems, dedicated commit SHAs, comparator 
 │   │   └── PruferBijections.lean         #     - Constructive left and right inverse bijections
 │   ├── KonigMatching.lean                # 15. Kőnig–Egerváry Duality Theorem (1931)
 │   ├── JungsTheorem.lean                 # 16. Jung's Theorem on Circumscribed Spheres (1901)
-│   ├── MengersTheorem.lean               # 18. Menger's Theorem on Disjoint Paths (Master Interface)
+│   ├── CirculantSpectralTheory.lean      # 17. Circulant Spectral Theory & Discrete Fourier Analysis (1979)
+│   ├── MengersTheorem.lean               # 18. Menger's Theorem on Disjoint Paths (Master Interface, Research Scaffold)
 │   ├── MengersTheorem/                   # 18. Modular Menger Package
 │   │   ├── Basic.lean                    #     - STPath, vertex separators, & weak duality
 │   │   ├── VertexMenger.lean             #     - Edge deletion induction & vertex duality
@@ -324,7 +348,7 @@ The complete master inventory of 23 theorems, dedicated commit SHAs, comparator 
 │   ├── MacMahonsMasterTheorem.lean       # 19. MacMahon's Master Theorem (1915)
 │   ├── BlichfeldtsTheorem.lean           # 20. Blichfeldt's Theorem in Geometry of Numbers (1914)
 │   ├── HoffmanSingleton.lean             # 21. The Hoffman–Singleton Moore Graph Classification Theorem (1960)
-│   ├── RSKBijection.lean                 # 22. Robinson–Schensted–Knuth (RSK) Bijection & Tableaux (1961)
+│   ├── RSKBijection.lean                 # 22. Robinson–Schensted–Knuth (RSK) Bijection & Tableaux (Decoupled)
 │   ├── BirkhoffVonNeumann.lean           # 23. The Birkhoff–von Neumann Theorem on Doubly Stochastic Matrices (1946)
 │   └── StanleySL2.lean                   # 24. Stanley's sl2 Proof of the Strong Sperner Property (1980)
 ├── Solution.lean                         # Clean wrapper re-exporting complete formalization solutions

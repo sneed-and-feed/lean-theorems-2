@@ -1,7 +1,7 @@
 # Palomar Submission Master Priority Queue: Repo 2
 
 All 24 theorem packages have completed pre-flight verification audits.
-- **Tier-1 Verified Submission Queue**: 16 research-grade packages, 100% verified (0 custom axioms, 0 `sorry`), with dedicated immutable 40-character Git commit SHAs.
+- **Tier-1 Verified Submission Queue**: 17 research-grade packages, 100% verified (0 custom axioms, 0 `sorry`), with dedicated immutable 40-character Git commit SHAs.
 - **High-Value Research Scaffolds**: 4 advanced theorem packages with clearly isolated, minimal mathematical axioms/stubs representing deep unformalized prerequisites (`alon_boppana` pruned as redundant with Repo 3; `blichfeldts_theorem`, `jungs_theorem`, `gessel_viennot`, and `cayleys_formula` promoted to Tier-1).
 - **Retired Candidates**: 3 packages explicitly crossed off early due to elementary reductions, tautological projections, or naked scalar arithmetic (`cyclic_shift` un-retired and upgraded to `circulant_spectral_theory`).
 
