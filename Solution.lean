@@ -1,1 +1,1 @@
-import Formalization.HoffmanSingleton
+import Formalization.CirculantSpectralTheory
