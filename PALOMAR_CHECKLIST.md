@@ -42,7 +42,7 @@ All 23 theorem packages have completed pre-flight verification audits.
 | **1** | **Brooks' Theorem on Graph Colorings** | `brooks_theorem` | `1a515aed2661359caea61336c6ac338dedd8d6ec` | 1 axiom: `exists_lovasz_ordering` (2-connected DFS/BFS ordering) | 3 theorems |
 | **2** | **Algebraic Foundations of the Matrix-Tree Theorem** | `matrix_tree_theorem` | `aa6038156b35a8604179a199b619ebca4b0d3e33` | 2 axioms: Binet–Cauchy determinant expansions on Laplacians | 3 theorems |
 | **3** | **Menger's Theorem and Whitney's Connectivity Duality** | `mengers_theorem` | `8de37823496e5548d7a05b9d9952799101aef2f0` | 2 axioms: Max-flow min-cut path extraction inductions | 5 theorems |
-| **4** | **Cayley's Tree Formula and Prüfer Sequence Bijection** | `cayleys_formula` | `HEAD` | 1 axiom: `prufer_left_inv` (`prufer_right_inv` fully proven from first principles) | 5 theorems |
+| **4** | **Cayley's Tree Formula and Prüfer Sequence Bijection** | `cayleys_formula` | `2ef93482e49477b2304c122658fd5e5c51515f69` | 1 axiom: `prufer_left_inv` (`prufer_right_inv` fully proven from first principles) | 5 theorems |
 | **5** | **Ramanujan Tau Function and Congruence Modulo 691** | `ramanujan_tau` | `b621759da8099964bd50f49d57eef1c4b393058c` | Isolated modular forms hypothesis: `M_12_is_span` ($\dim M_{12} = 2$ over $\mathbb{Q}$) and `F_exists` (existence of weight-12 cusp/Eisenstein eigenform) | 3 theorems |
 
 ---
