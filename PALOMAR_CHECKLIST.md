@@ -18,7 +18,7 @@ All 24 theorem packages have completed pre-flight verification audits.
 
 | # | Theorem Title | Slug | Dedicated Commit SHA to Enter | Mathematical Domain | Verified Declarations |
 | :---: | :--- | :--- | :--- | :--- | :---: |
-| **1** | **Stanley's $\mathfrak{sl}_2$ Representation Proof of Strong Sperner for $L(m, n)$** | `stanley_sl2` | `31d6c9c2efc5992934bd52a8210655280e151827` | Lie Algebra Poset Theory / Lefschetz | 5 theorems |
+| **1** | **Stanley's $\mathfrak{sl}(2)$ Representation Proof of Strong Sperner for $L(m, n)$** | `stanley_sl2` | `31d6c9c2efc5992934bd52a8210655280e151827` | Lie Algebra Poset Theory / Lefschetz | 5 theorems |
 | **2** | **Vizing's Theorem on Edge Colorings & König's Line Coloring Theorem** | `vizings_theorem` | `bb2c7961330b22dde6b0321c21abbc907fcd69ef` | Graph Theory / Edge Chromatics | 8 theorems |
 | **3** | **The Birkhoff–von Neumann Theorem on Doubly Stochastic Matrices** | `birkhoff_von_neumann` | `5d9fa1f88ce796c19dc2b5f64d2cce50aebe7b8d` | Polyhedral Combinatorics / Matchings | 5 theorems |
 | **4** | **The Ihara–Bass Determinantal Formula for Graphs** | `ihara_bass` | `fa77e538f26eef2ddba4e050b1613642329624a6` | Algebraic Graph Theory / Block Schur | 2 theorems |

@@ -31,7 +31,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 | 21 | **The Hoffman–Singleton Moore Graph Theorem** | [`hoffman_singleton_theorem`](Formalization/HoffmanSingleton.lean), [`classification_general`](Formalization/HoffmanSingleton.lean), [`certHoffmanSingletonIntegral`](Formalization/HoffmanSingleton.lean), [`s_divides_15`](Formalization/HoffmanSingleton.lean) | Spectral Graph Theory & Matrix Algebras | Hoffman & Singleton (1960) | **100% Verified (0 axioms)** |
 | 22 | **Robinson–Schensted–Knuth (RSK) Correspondence** | [`schensted_lis_theorem`](Formalization/RSKBijection.lean), [`greene_lds_theorem`](Formalization/RSKBijection.lean), [`rsk_sum_squares_eq_factorial`](Formalization/RSKBijection.lean), [`rsk_involution_fixed_points`](Formalization/RSKBijection.lean) | Algebraic Combinatorics & Young Tableaux | Schensted (1961), Knuth (1970), Greene (1974) | **100% Verified (0 axioms)** |
 | 23 | **The Birkhoff–von Neumann Theorem** | [`birkhoff_von_neumann_convex_hull`](Formalization/BirkhoffVonNeumann.lean), [`birkhoff_von_neumann_iff`](Formalization/BirkhoffVonNeumann.lean), [`birkhoff_von_neumann_convex_combination`](Formalization/BirkhoffVonNeumann.lean), [`extremePoints_doublyStochasticSet`](Formalization/BirkhoffVonNeumann.lean) | Convex Geometry & Polyhedral Combinatorics | Birkhoff (1946), von Neumann (1953) | **100% Verified (0 axioms)** |
-| 24 | **Stanley's $\mathfrak{sl}_2$ Proof of the Strong Sperner Property** | [`sperner_partition_poset`](Formalization/StanleySL2.lean), [`rankSize_symm`](Formalization/StanleySL2.lean), [`rankSize_unimodal`](Formalization/StanleySL2.lean) | Algebraic Poset Theory & Lie Algebra Representations | Stanley (1980, 1982), Proctor (1982) | **100% Verified (0 axioms)** |
+| 24 | **Stanley's $\mathfrak{sl}(2)$ Proof of the Strong Sperner Property** | [`sperner_partition_poset`](Formalization/StanleySL2.lean), [`rankSize_symm`](Formalization/StanleySL2.lean), [`rankSize_unimodal`](Formalization/StanleySL2.lean) | Algebraic Poset Theory & Lie Algebra Representations | Stanley (1980, 1982), Proctor (1982) | **100% Verified (0 axioms)** |
 
 ---
 
@@ -60,7 +60,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 ### 3. Turán's Theorem & Mantel's Theorem
 * **Module:** [`Formalization/TuransTheorem.lean`](Formalization/TuransTheorem.lean)
 * **Theorems:** `turans_theorem`, `turans_theorem_exact`, `mantels_theorem`, `turans_uniqueness`
-* **Mathematical Statement:** If a simple graph $G$ on $n$ vertices is $K_{r+1}$-free ($\omega(G) \le r$), then:
+* **Mathematical Statement:** If a simple graph $G$ on $n$ vertices is $K_{r+1}$-free $(\omega(G) \le r)$, then:
   $$|E(G)| \le e(T(n, r)) \le \left(1 - \frac{1}{r}\right) \frac{n^2}{2}$$
   with equality holding if and only if $G \cong T(n, r)$ (the complete multipartite Turán graph).
 
@@ -112,7 +112,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 ### 9. Ramanujan Tau Function & Congruence Modulo 691
 * **Module:** [`Formalization/RamanujanTau.lean`](Formalization/RamanujanTau.lean)
 * **Theorems:** `ramanujan_tau_congruence`, `bernoulli_12_exact`, `ramanujan_congruence_691`
-* **Mathematical Statement:** Formalization establishes the linear algebraic congruence reduction $\tau(n) \equiv \sigma_{11}(n) \pmod{691}$ assuming the modular forms span $M_{12}(\mathrm{SL}_2(\mathbb{Z})) = \mathbb{Q} E_{12} \oplus \mathbb{Q} \Delta$ and the existence of $E_{12}$ as explicit premises, alongside the exact machine verification of Bernoulli number $B_{12} = -691/2730$.
+* **Mathematical Statement:** Formalization establishes the linear algebraic congruence reduction $\tau(n) \equiv \sigma_{11}(n) \pmod{691}$ assuming the modular forms span $M_{12}(\mathrm{SL}(2, \mathbb{Z})) = \mathbb{Q} E_{12} \oplus \mathbb{Q} \Delta$ and the existence of $E_{12}$ as explicit premises, alongside the exact machine verification of Bernoulli number $B_{12} = -691/2730$.
 
 ---
 
@@ -131,7 +131,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
   - `Bipartite.lean`: Shift steps along paths and König's Line Coloring Theorem for bipartite graphs (`edgeColorable_of_bipartite`).
   - `Fan.lean`: Vizing fan extensions and inductive coloring step (`exists_full_coloring`).
 * **Theorems:** `vizings_theorem`, `vizing_classification`, `edgeColorable_of_bipartite`, `edgeColorable_of_maxDegree_succ`, `konig_edge_coloring`
-* **Mathematical Statement:** For any finite bipartite graph $G$, König's Line Coloring Theorem establishes that $G$ is Class 1 ($\chi'(G) = \Delta(G)$), and for any general finite simple graph $G$, Vizing's Theorem establishes $\Delta(G) \le \chi'(G) \le \Delta(G) + 1$, classifying graphs into Class 1 ($\chi' = \Delta$) or Class 2 ($\chi' = \Delta + 1$). Fully verified in Lean 4 with **0 custom axioms and 0 sorries** via Vizing fan shifts, Kempe alternating chain uniqueness, and well-founded induction on uncolored edges.
+* **Mathematical Statement:** For any finite bipartite graph $G$, König's Line Coloring Theorem establishes that $G$ is Class 1 $(\chi'(G) = \Delta(G))$, and for any general finite simple graph $G$, Vizing's Theorem establishes $\Delta(G) \le \chi'(G) \le \Delta(G) + 1$, classifying graphs into Class 1 ($\chi' = \Delta$) or Class 2 ($\chi' = \Delta + 1$). Fully verified in Lean 4 with **0 custom axioms and 0 sorries** via Vizing fan shifts, Kempe alternating chain uniqueness, and well-founded induction on uncolored edges.
 
 ---
 
@@ -227,7 +227,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 ### 21. The Hoffman–Singleton Moore Graph Classification Theorem
 * **Module:** [`Formalization/HoffmanSingleton.lean`](Formalization/HoffmanSingleton.lean)
 * **Theorems:** `hoffman_singleton_theorem`, `classification_general`, `classification_integral_params`, `s_divides_15`, `degree_from_s`, `moore_polynomial_identity`, `certDegree2`, `certDegree3`, `certDegree7`, `certDegree57`, `certPetersenIntegral`, `certHoffmanSingletonIntegral`, `certDegree57Integral`, `c5_spectral_trace`, `petersen_spectral_trace`, `hoffman_singleton_spectral_trace`, `degree_57_spectral_trace`
-* **Mathematical Statement:** The **Hoffman–Singleton Theorem (1960)** classifies the possible vertex degrees of Moore graphs of diameter 2 and girth 5. A $d$-regular graph with diameter 2 and girth 5 has $n = 1 + d^2$ vertices and its adjacency matrix satisfies $A^2 + A - (d - 1)I = J$. The eigenvalues on $1^\perp$ satisfy $\lambda^2 + \lambda - (d - 1) = 0$ with discriminant $\Delta = 4d - 3$. The trace identity $\operatorname{Tr}(A) = 0$ forces:
+* **Mathematical Statement:** The **Hoffman–Singleton Theorem (1960)** classifies the possible vertex degrees of Moore graphs of diameter 2 and girth 5. A $d$-regular graph with diameter 2 and girth 5 has $n = 1 + d^2$ vertices and its adjacency matrix satisfies $A^2 + A - (d - 1)I = J$. The eigenvalues on $1^\perp$ satisfy $\lambda^2 + \lambda - (d - 1) = 0$ with discriminant $\Delta = 4d - 3$. The trace identity $\mathrm{Tr}(A) = 0$ forces:
   $$(m_1 - m_2) \sqrt{4d - 3} = d(d - 2)$$
   where $m_1, m_2$ are integer multiplicities summing to $d^2$. This integrality condition requires:
   - If $m_1 = m_2$: $d = 2$ (the 5-cycle $C_5$, $n = 5$).
@@ -240,9 +240,9 @@ This repository provides machine-checked formalizations, certified proofs, and f
 * **Module:** [`Formalization/RSKBijection.lean`](Formalization/RSKBijection.lean)
 * **Theorems:** `schensted_lis_theorem`, `greene_lds_theorem`, `rsk_sum_squares_eq_factorial`, `rsk_involution_fixed_points`, `rsk_involution_symmetry`, `rskPerm`, `insertTableau`, `insertRow`, `rskInsertList_size`, `rskInsertList_head`
 * **Mathematical Statement:** The **RSK Correspondence** establishes a bijection between permutations and pairs of Standard Young Tableaux of identical shape $\lambda \vdash n$:
-  $$\operatorname{RSK} : \mathfrak{S}_n \xrightarrow{\cong} \coprod_{\lambda \vdash n} (\mathrm{SYT}(\lambda) \times \mathrm{SYT}(\lambda))$$
-  - **Schensted's Theorem (1961):** The length of the first row $\lambda_1 = \operatorname{row}_1(P(\pi))$ equals the length of the Longest Increasing Subsequence $\operatorname{LIS}(\pi)$.
-  - **Greene's Theorem (1974):** The length of the first column $\lambda'_1 = \operatorname{col}_1(P(\pi))$ equals the length of the Longest Decreasing Subsequence $\operatorname{LDS}(\pi)$.
+  $$\mathrm{RSK} : \mathfrak{S}_n \xrightarrow{\cong} \coprod_{\lambda \vdash n} (\mathrm{SYT}(\lambda) \times \mathrm{SYT}(\lambda))$$
+  - **Schensted's Theorem (1961):** The length of the first row $\lambda_1 = \mathrm{row}_1(P(\pi))$ equals the length of the Longest Increasing Subsequence $\mathrm{LIS}(\pi)$.
+  - **Greene's Theorem (1974):** The length of the first column $\lambda'_1 = \mathrm{col}_1(P(\pi))$ equals the length of the Longest Decreasing Subsequence $\mathrm{LDS}(\pi)$.
   - **Frobenius Identity:** $\sum_{\lambda \vdash n} (f^\lambda)^2 = n!$.
   - **Involution Theorem:** $P(\pi^{-1}) = Q(\pi)$ and $Q(\pi^{-1}) = P(\pi)$; $\pi$ is an involution ($\pi^2 = \mathrm{id}$) if and only if $P(\pi) = Q(\pi)$.
   Fully verified in Lean 4 with **0 custom axioms and 0 sorries**.
@@ -253,20 +253,20 @@ This repository provides machine-checked formalizations, certified proofs, and f
 * **Module:** [`Formalization/BirkhoffVonNeumann.lean`](Formalization/BirkhoffVonNeumann.lean)
 * **Theorems:** `birkhoff_von_neumann_convex_hull`, `birkhoff_von_neumann_iff`, `birkhoff_von_neumann_convex_combination`, `extremePoints_doublyStochasticSet`, `permutationMatrix_isDoublyStochastic`, `convex_doublyStochastic`, `hall_condition_doublyStochastic`, `exists_perm_positive_entries`, `card_matrixSupp_ge_n`, `isDoublyStochastic_and_entries_zero_one_iff`
 * **Mathematical Statement:** The **Birkhoff–von Neumann Theorem (1946, 1953)** establishes that the convex polytope $\mathcal{D}_n$ of $n \times n$ doubly stochastic matrices is the convex hull of the set $\mathcal{P}_n$ of permutation matrices:
-  $$\mathcal{D}_n = \operatorname{Conv}(\mathcal{P}_n)$$
+  $$\mathcal{D}_n = \mathrm{Conv}(\mathcal{P}_n)$$
   and the extreme points of $\mathcal{D}_n$ are precisely the permutation matrices:
-  $$\operatorname{Ext}(\mathcal{D}_n) = \mathcal{P}_n$$
-  The constructive proof formalizes Hall's condition on row supports to extract positive diagonal permutations (`exists_perm_positive_entries`), constructs the reduced matrix $M' = \frac{1}{1 - \theta}(M - \theta P_\sigma)$, and applies strong induction on the support size $|\operatorname{supp}(M)|$. Fully verified in Lean 4 with **0 custom axioms and 0 sorries**.
+  $$\mathrm{Ext}(\mathcal{D}_n) = \mathcal{P}_n$$
+  The constructive proof formalizes Hall's condition on row supports to extract positive diagonal permutations (`exists_perm_positive_entries`), constructs the reduced matrix $M' = \frac{1}{1 - \theta}(M - \theta P_\sigma)$, and applies strong induction on the support size $|\mathrm{supp}(M)|$. Fully verified in Lean 4 with **0 custom axioms and 0 sorries**.
 
 ---
 
-### 24. Stanley's $\mathfrak{sl}_2$ Representation Proof of the Strong Sperner Property for $L(m, n)$
+### 24. Stanley's $\mathfrak{sl}(2)$ Representation Proof of the Strong Sperner Property for $L(m, n)$
 * **Module:** [`Formalization/StanleySL2.lean`](Formalization/StanleySL2.lean)
 * **Theorems:** `sperner_partition_poset`, `rankSize_symm`, `rankSize_unimodal`, `rank_complement`, `middleRankLevel_is_maximal_slice`, `sl2_norm_sq_lower_bound`
-* **Mathematical Statement:** The **Stanley $\mathfrak{sl}_2$ Sperner Theorem (1980)** proves that the partition lattice $L(m, n)$ of Young diagrams fitting inside an $m \times n$ box possesses the Strong Sperner property:
+* **Mathematical Statement:** The **Stanley $\mathfrak{sl}(2)$ Sperner Theorem (1980)** proves that the partition lattice $L(m, n)$ of Young diagrams fitting inside an $m \times n$ box possesses the Strong Sperner property:
   $$\max_{\mathcal{A} \text{ antichain}} |\mathcal{A}| = p_{\lfloor mn/2 \rfloor}(m, n)$$
   - **Rank-Symmetry:** The partition complementation involution $\lambda^*_i = n - \lambda_{m - 1 - i}$ satisfies $|\lambda^*| = mn - |\lambda|$, proving $p_k(m, n) = p_{mn - k}(m, n)$.
-  - **Hard Lefschetz & Unimodality:** The Lie algebra $\mathfrak{sl}_2(\mathbb{C}) = \operatorname{span}\{E, F, H\}$ representation on $V = \bigoplus_k \mathbb{R}^{L_k(m, n)}$ satisfies $[E, F] = H$, proving the raising operator $E : V_k \to V_{k+1}$ is strictly injective for $2k < mn$, which establishes rank unimodality $p_0 \le p_1 \le \dots \le p_{\lfloor mn/2 \rfloor}$.
+  - **Hard Lefschetz & Unimodality:** The Lie algebra $\mathfrak{sl}(2, \mathbb{C}) = \mathrm{span}\{E, F, H\}$ representation on $V = \bigoplus_k \mathbb{R}^{L_k(m, n)}$ satisfies $[E, F] = H$, proving the raising operator $E : V_k \to V_{k+1}$ is strictly injective for $2k < mn$, which establishes rank unimodality $p_0 \le p_1 \le \dots \le p_{\lfloor mn/2 \rfloor}$.
   - **Strong Sperner Property:** Every rank slice is an antichain bounded by the middle level $p_{\lfloor mn/2 \rfloor}(m, n)$.
   Fully verified in Lean 4 with **0 custom axioms and 0 sorries**.
 
