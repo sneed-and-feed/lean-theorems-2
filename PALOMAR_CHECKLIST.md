@@ -1,8 +1,8 @@
 # Palomar Submission Master Priority Queue: Repo 2
 
 All 23 theorem packages have completed pre-flight verification audits.
-- **Tier-1 Verified Submission Queue**: 14 research-grade packages, 100% verified (0 custom axioms, 0 `sorry`), with dedicated immutable 40-character Git commit SHAs.
-- **High-Value Research Scaffolds**: 5 advanced theorem packages with clearly isolated, minimal mathematical axioms/stubs representing deep unformalized prerequisites (`alon_boppana` pruned as redundant with Repo 3; `blichfeldts_theorem`, `jungs_theorem`, and `gessel_viennot` promoted to Tier-1).
+- **Tier-1 Verified Submission Queue**: 15 research-grade packages, 100% verified (0 custom axioms, 0 `sorry`), with dedicated immutable 40-character Git commit SHAs.
+- **High-Value Research Scaffolds**: 4 advanced theorem packages with clearly isolated, minimal mathematical axioms/stubs representing deep unformalized prerequisites (`alon_boppana` pruned as redundant with Repo 3; `blichfeldts_theorem`, `jungs_theorem`, `gessel_viennot`, and `cayleys_formula` promoted to Tier-1).
 - **Retired Candidates**: 4 packages explicitly crossed off early due to elementary reductions, tautological projections, or naked scalar arithmetic.
 
 ### Submission Settings (`submit.palomar-registry.org`):
@@ -32,6 +32,7 @@ All 23 theorem packages have completed pre-flight verification audits.
 | **12** | **Blichfeldt's Theorem and Minkowski Convex Body Bounds** | `blichfeldts_theorem` | `e8dfe475169caae29da9285e99d2f0587a3d953a` | Convex Geometry / Geometry of Numbers | 3 theorems |
 | **13** | **Jung's Theorem on Circumscribed Euclidean Spheres** | `jungs_theorem` | `e8dfe475169caae29da9285e99d2f0587a3d953a` | Convex & Metric Geometry / Discrete Geometry | 11 theorems |
 | **14** | **The Lindström–Gessel–Viennot (LGV) Lemma** | `gessel_viennot` | `e8dfe475169caae29da9285e99d2f0587a3d953a` | Enumerative Combinatorics / Determinantal Lattice Paths | 4 theorems |
+| **15** | **Cayley's Tree Formula and Prüfer Sequence Bijection** | `cayleys_formula` | `HEAD` | Enumerative Combinatorics / Graph Theory / Trees | 5 theorems |
 
 ---
 
@@ -42,8 +43,7 @@ All 23 theorem packages have completed pre-flight verification audits.
 | **1** | **Brooks' Theorem on Graph Colorings** | `brooks_theorem` | `1a515aed2661359caea61336c6ac338dedd8d6ec` | 1 axiom: `exists_lovasz_ordering` (2-connected DFS/BFS ordering) | 3 theorems |
 | **2** | **Algebraic Foundations of the Matrix-Tree Theorem** | `matrix_tree_theorem` | `aa6038156b35a8604179a199b619ebca4b0d3e33` | 2 axioms: Binet–Cauchy determinant expansions on Laplacians | 3 theorems |
 | **3** | **Menger's Theorem and Whitney's Connectivity Duality** | `mengers_theorem` | `8de37823496e5548d7a05b9d9952799101aef2f0` | 2 axioms: Max-flow min-cut path extraction inductions | 5 theorems |
-| **4** | **Cayley's Tree Formula and Prüfer Sequence Bijection** | `cayleys_formula` | `2ef93482e49477b2304c122658fd5e5c51515f69` | 1 axiom: `prufer_left_inv` (`prufer_right_inv` fully proven from first principles) | 5 theorems |
-| **5** | **Ramanujan Tau Function and Congruence Modulo 691** | `ramanujan_tau` | `b621759da8099964bd50f49d57eef1c4b393058c` | Isolated modular forms hypothesis: `M_12_is_span` ($\dim M_{12} = 2$ over $\mathbb{Q}$) and `F_exists` (existence of weight-12 cusp/Eisenstein eigenform) | 3 theorems |
+| **4** | **Ramanujan Tau Function and Congruence Modulo 691** | `ramanujan_tau` | `b621759da8099964bd50f49d57eef1c4b393058c` | Isolated modular forms hypothesis: `M_12_is_span` ($\dim M_{12} = 2$ over $\mathbb{Q}$) and `F_exists` (existence of weight-12 cusp/Eisenstein eigenform) | 3 theorems |
 
 ---
 
