@@ -29,9 +29,9 @@ All 23 theorem packages have completed pre-flight verification audits.
 | **9** | **Sperner's Theorem on Antichains and the LYM Inequality** | `sperner_antichain` | `0af07933dff2383f04d810032c143d452a992e7d` | Extremal Combinatorics / Posets | 7 theorems |
 | **10** | **Turán's Theorem in Extremal Graph Theory & Mantel's Theorem** | `turans_theorem` | `912b99dc4256e8f88f789e6312e2e2d6a2306dd3` | Extremal Graph Theory / Turán Graphs | 8 theorems |
 | **11** | **Van der Waerden's Theorem on Arithmetic Progressions** | `van_der_waerden` | `f425e8014abfd8e25362845c170f56b92aa19607` | Ramsey Theory / Additive Combinatorics | 2 theorems |
-| **12** | **Blichfeldt's Theorem and Minkowski Convex Body Bounds** | `blichfeldts_theorem` | `HEAD` | Convex Geometry / Geometry of Numbers | 3 theorems |
-| **13** | **Jung's Theorem on Circumscribed Euclidean Spheres** | `jungs_theorem` | `HEAD` | Convex & Metric Geometry / Discrete Geometry | 11 theorems |
-| **14** | **The Lindström–Gessel–Viennot (LGV) Lemma** | `gessel_viennot` | `HEAD` | Enumerative Combinatorics / Determinantal Lattice Paths | 4 theorems |
+| **12** | **Blichfeldt's Theorem and Minkowski Convex Body Bounds** | `blichfeldts_theorem` | `e8dfe475169caae29da9285e99d2f0587a3d953a` | Convex Geometry / Geometry of Numbers | 3 theorems |
+| **13** | **Jung's Theorem on Circumscribed Euclidean Spheres** | `jungs_theorem` | `e8dfe475169caae29da9285e99d2f0587a3d953a` | Convex & Metric Geometry / Discrete Geometry | 11 theorems |
+| **14** | **The Lindström–Gessel–Viennot (LGV) Lemma** | `gessel_viennot` | `e8dfe475169caae29da9285e99d2f0587a3d953a` | Enumerative Combinatorics / Determinantal Lattice Paths | 4 theorems |
 
 ---
 
