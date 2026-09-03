@@ -353,17 +353,14 @@ lemma edist_eq_two_of_diam_two {V : Type*} {G : SimpleGraph V}
   have hle : G.edist u v ≤ 2 := hediam ▸ edist_le_ediam
   have hne0 : G.edist u v ≠ 0 := mt edist_eq_zero_iff.mp hne
   have hne1 : G.edist u v ≠ 1 := mt edist_eq_one_iff_adj.mp hna
-  generalize hx : G.edist u v = x at hle hne0 hne1 ⊢
-  cases x with
-  | top =>
-    have : (⊤ : ℕ∞) ≤ 2 := hx ▸ hle
-    revert this; decide
+  cases hx : G.edist u v with
+  | top => rw [hx] at hle; revert hle; decide
   | coe d =>
-    have hle' : d ≤ 2 := by exact_mod_cast hle
-    have hne0' : d ≠ 0 := by intro h; apply hne0; exact_mod_cast h
-    have hne1' : d ≠ 1 := by intro h; apply hne1; exact_mod_cast h
-    have : d = 2 := by omega
-    exact_mod_cast this
+    rw [hx] at hle hne0 hne1
+    have : d ≤ 2 := by exact_mod_cast hle
+    have : d ≠ 0 := by intro h; apply hne0; exact_mod_cast h
+    have : d ≠ 1 := by intro h; apply hne1; exact_mod_cast h
+    exact_mod_cast (by omega : d = 2)
 
 lemma card_commonNeighbors_eq_zero_of_girth_ge_4 {V : Type*} [Fintype V] [DecidableEq V]
     {G : SimpleGraph V} [DecidableRel G.Adj] (hg : 4 ≤ G.girth) {u v : V} (huv : G.Adj u v) :
@@ -379,47 +376,34 @@ lemma card_commonNeighbors_eq_one_of_diam_two_girth_five {V : Type*} [Fintype V]
     {u v : V} (hne : u ≠ v) (hna : ¬ G.Adj u v) :
     Fintype.card (G.commonNeighbors u v) = 1 := by
   have h2 : G.edist u v = 2 := edist_eq_two_of_diam_two hdiam hne hna
-  have hne_cn : (G.commonNeighbors u v).Nonempty := (edist_eq_two_iff.mp h2).2.2
-  obtain ⟨w0, hw0⟩ := hne_cn
+  obtain ⟨w0, hw0⟩ := (edist_eq_two_iff.mp h2).2.2
   have hsub : ∀ w ∈ G.commonNeighbors u v, w = w0 := by
     intro w hw
     by_contra h_ne
     rw [mem_commonNeighbors] at hw hw0
-    have hg_le : 5 ≤ G.girth := by rw [hgirth]
-    exact no_four_cycle_of_girth_ge_5 hg_le hne h_ne hw.1 hw.2.symm hw0.2 hw0.1.symm
-  have : (G.commonNeighbors u v : Set V) = {w0} := by
-    ext x
-    simp only [Set.mem_singleton_iff]
-    exact ⟨fun hx => hsub x hx, fun hx => hx ▸ hw0⟩
-  rw [Fintype.card_congr (Equiv.setCongr this)]
-  simp
+    exact no_four_cycle_of_girth_ge_5 (by rw [hgirth]) hne h_ne hw.1 hw.2.symm hw0.2 hw0.1.symm
+  rw [Fintype.card_eq_one_iff]
+  exact ⟨⟨w0, hw0⟩, fun ⟨w, hw⟩ => Subtype.ext (hsub w hw)⟩
 
 lemma card_eq_moore_of_srg {V : Type*} [Fintype V] [DecidableEq V]
     {G : SimpleGraph V} [DecidableRel G.Adj] (d : ℕ) (hdiam : G.diam = 2)
     (hsrg : G.IsSRGWith (Fintype.card V) d 0 1) (hd : d ≥ 2) :
     Fintype.card V = 1 + d ^ 2 := by
   have : Nontrivial V := nontrivial_of_diam_ne_zero (by rw [hdiam]; decide)
-  have hpos : 0 < Fintype.card V := Fintype.card_pos
   obtain ⟨v⟩ := (inferInstance : Nonempty V)
   have h_deg : G.degree v = d := hsrg.regular v
   have h_sub : G.neighborFinset v ⊆ Finset.univ.erase v := by
-    intro w hw
-    simp only [mem_neighborFinset] at hw
-    simp [hw.ne.symm]
+    intro w hw; simp only [mem_neighborFinset] at hw; simp [hw.ne.symm]
   have h_le : d ≤ Fintype.card V - 1 := by
     rw [← h_deg, ← card_neighborFinset_eq_degree]
     have := Finset.card_le_card h_sub
     rwa [Finset.card_erase_of_mem (Finset.mem_univ v), Finset.card_univ] at this
-  have hp := hsrg.param_eq G hpos
-  have h_card_ge : d + 1 ≤ Fintype.card V := by omega
-  have h_d_ge : 1 ≤ d := by omega
+  have hp := hsrg.param_eq G Fintype.card_pos
   change d * (d - 1) = (Fintype.card V - (d + 1)) * 1 at hp
   rw [mul_one] at hp
   have hp_int : ((d * (d - 1) : ℕ) : ℤ) = ((Fintype.card V - (d + 1) : ℕ) : ℤ) := by rw [hp]
-  rw [Nat.cast_mul, Nat.cast_sub h_d_ge, Nat.cast_sub h_card_ge, Nat.cast_add] at hp_int
-  have hp' : (Fintype.card V : ℤ) = 1 + (d : ℤ) ^ 2 := by
-    linear_combination -hp_int
-  exact_mod_cast hp'
+  rw [Nat.cast_mul, Nat.cast_sub (by omega), Nat.cast_sub (by omega), Nat.cast_add] at hp_int
+  exact_mod_cast (by linear_combination -hp_int : (Fintype.card V : ℤ) = 1 + (d : ℤ) ^ 2)
 
 /-- A regular graph of diameter 2 and girth 5 is strongly regular with parameters `(1 + d², d, 0, 1)`. -/
 theorem moore_is_srg {V : Type*} [Fintype V] [DecidableEq V] {G : SimpleGraph V} [DecidableRel G.Adj]
@@ -456,11 +440,9 @@ theorem moore_adjMatrix_eq {V : Type*} [Fintype V] [DecidableEq V] {G : SimpleGr
   rw [compl_adjMatrix_eq_adjMatrix_compl] at hc
   change (1 : Matrix V V ℝ) i j + A i j + Gᶜ.adjMatrix ℝ i j = (Matrix.of (fun _ _ => 1) : Matrix V V ℝ) i j at hc
   simp only [Matrix.add_apply, Matrix.smul_apply, of_apply, Matrix.sub_apply, one_apply] at hc h1 ⊢
-  obtain rfl | hij := eq_or_ne i j
-  · simp only [↓reduceIte, nsmul_eq_mul, mul_one, smul_eq_mul, zero_smul, one_smul, add_zero] at h1 hc ⊢
-    linarith
-  · simp only [hij, ↓reduceIte, nsmul_eq_mul, mul_zero, smul_eq_mul, zero_smul, one_smul, add_zero] at h1 hc ⊢
-    linarith
+  rcases eq_or_ne i j with rfl | hij
+  · simp only [↓reduceIte, nsmul_eq_mul, mul_one, smul_eq_mul, zero_smul, one_smul, add_zero] at h1 hc ⊢; linarith
+  · simp only [hij, ↓reduceIte, nsmul_eq_mul, mul_zero, smul_eq_mul, zero_smul, one_smul, add_zero] at h1 hc ⊢; linarith
 
 theorem eigenvalue_quadratic_of_orthogonal {V : Type*} [Fintype V] [DecidableEq V] {A : Matrix V V ℝ} {d : ℝ}
     (hA_eq : A ^ 2 + A - (d - 1) • (1 : Matrix V V ℝ) = Matrix.of (fun _ _ => 1))
@@ -485,11 +467,7 @@ theorem eigenvalue_quadratic_of_orthogonal {V : Type*} [Fintype V] [DecidableEq 
     ring
   rw [h_eval] at h_mul
   obtain ⟨i, hi⟩ := Function.ne_iff.mp hv_ne
-  have h_entry := congr_fun h_mul i
-  simp only [Pi.smul_apply, smul_eq_mul, Pi.zero_apply] at h_entry
-  cases mul_eq_zero.mp h_entry with
-  | inl h => exact h
-  | inr h => exact (hi h).elim
+  exact (mul_eq_zero.mp (congr_fun h_mul i)).resolve_right hi
 
 theorem moore_adjMatrix_trace_zero {V : Type*} [Fintype V] [DecidableEq V] {G : SimpleGraph V} [DecidableRel G.Adj] :
     Matrix.trace (G.adjMatrix ℝ) = 0 := by
@@ -545,11 +523,8 @@ theorem roots_quadratic (d s μ : ℝ) (hs : s ^ 2 = 4 * d - 3)
     (hμ : μ ^ 2 + μ - (d - 1) = 0) :
     μ = mooreEigenvalue1 s ∨ μ = mooreEigenvalue2 s := by
   have h_fact : (μ - mooreEigenvalue1 s) * (μ - mooreEigenvalue2 s) = 0 := by
-    unfold mooreEigenvalue1 mooreEigenvalue2
-    linear_combination hμ - hs / 4
-  rcases mul_eq_zero.mp h_fact with h | h
-  · left; linarith
-  · right; linarith
+    unfold mooreEigenvalue1 mooreEigenvalue2; linear_combination hμ - hs / 4
+  rcases mul_eq_zero.mp h_fact with h | h <;> [left; right] <;> linarith
 
 lemma nat_eq_one_of_sq_eq_one {d : ℕ} (h : d ^ 2 = 1) : d = 1 := by
   nlinarith
@@ -640,13 +615,8 @@ lemma inner_one_eq_dotProduct {V : Type*} [Fintype V]
 
 lemma eigenvectorBasis_ofLp_ne_zero {V : Type*} [Fintype V] [DecidableEq V]
     {A : Matrix V V ℝ} (hA : A.IsHermitian) (i : V) :
-    (hA.eigenvectorBasis i).ofLp ≠ 0 := by
-  intro h
-  have : hA.eigenvectorBasis i = 0 := by
-    ext k
-    change (hA.eigenvectorBasis i).ofLp k = 0
-    rw [h, Pi.zero_apply]
-  exact hA.eigenvectorBasis.orthonormal.ne_zero i this
+    (hA.eigenvectorBasis i).ofLp ≠ 0 :=
+  fun h => hA.eigenvectorBasis.orthonormal.ne_zero i (WithLp.ofLp_injective (p := 2) h)
 
 theorem moore_spectral_multiplicities {V : Type*} [Fintype V] [DecidableEq V]
     {G : SimpleGraph V} [DecidableRel G.Adj] (d : ℕ) (h_reg : G.IsRegularOfDegree d)
@@ -754,37 +724,25 @@ theorem moore_spectral_multiplicities {V : Type*} [Fintype V] [DecidableEq V]
       · exact (h_ne_d heq).elim
       · exact hq
     exact roots_quadratic (d : ℝ) s (hA.eigenvalues i) hs_sq h_quad
-  set S1 := W.filter (fun i => hA.eigenvalues i = mooreEigenvalue1 s)
-  set S2 := W.filter (fun i => hA.eigenvalues i ≠ mooreEigenvalue1 s)
-  have h_disj : Disjoint S1 S2 := disjoint_filter.mpr fun _ _ h1 h2 => h2 h1
-  have h_union : S1 ∪ S2 = W := by
-    ext x
-    simp only [S1, S2, mem_union, mem_filter]
-    tauto
+  set S1 := W.filter (fun i => hA.eigenvalues i = mooreEigenvalue1 s) with hS1
+  set S2 := W.filter (fun i => hA.eigenvalues i ≠ mooreEigenvalue1 s) with hS2
   have hm_sum : #S1 + #S2 = d ^ 2 := by
-    rw [← card_union_of_disjoint h_disj, h_union, hW_card]
+    rw [hS1, hS2, card_filter_add_card_filter_not, hW_card]
   have h_S2_vals : ∀ i ∈ S2, hA.eigenvalues i = mooreEigenvalue2 s := by
     intro i hi
-    have hi_W : i ∈ W := (mem_filter.mp hi).1
-    have hi_ne1 : hA.eigenvalues i ≠ mooreEigenvalue1 s := (mem_filter.mp hi).2
-    rcases h_roots_W i hi_W with h1 | h2
-    · exact (hi_ne1 h1).elim
+    rcases h_roots_W i (mem_filter.mp hi).1 with h1 | h2
+    · exact ((mem_filter.mp hi).2 h1).elim
     · exact h2
+  have h_sum_W : ∑ i ∈ W, hA.eigenvalues i = (#S1 : ℝ) * mooreEigenvalue1 s + (#S2 : ℝ) * mooreEigenvalue2 s := by
+    have h1 : ∑ i ∈ S1, hA.eigenvalues i = (#S1 : ℝ) * mooreEigenvalue1 s := by
+      rw [sum_congr rfl (fun x hx => (mem_filter.mp hx).2), sum_const, nsmul_eq_mul]
+    have h2 : ∑ i ∈ S2, hA.eigenvalues i = (#S2 : ℝ) * mooreEigenvalue2 s := by
+      rw [sum_congr rfl (fun x hx => h_S2_vals x hx), sum_const, nsmul_eq_mul]
+    rw [← h1, ← h2, hS1, hS2, sum_filter_add_sum_filter_not]
   have h_trace_eig : Matrix.trace A = ∑ i : V, hA.eigenvalues i := hA.trace_eq_sum_eigenvalues
   have h_trace_zero : Matrix.trace A = 0 := moore_adjMatrix_trace_zero
   have h_sum_split : ∑ i : V, hA.eigenvalues i = hA.eigenvalues i0 + ∑ i ∈ W, hA.eigenvalues i := by
     rw [hW, (Finset.add_sum_erase univ hA.eigenvalues (Finset.mem_univ i0)).symm]
-  have h_sum_W : ∑ i ∈ W, hA.eigenvalues i = (#S1 : ℝ) * mooreEigenvalue1 s + (#S2 : ℝ) * mooreEigenvalue2 s := by
-    rw [← h_union, sum_union h_disj]
-    have h1 : ∑ i ∈ S1, hA.eigenvalues i = (#S1 : ℝ) * mooreEigenvalue1 s := by
-      have : ∑ i ∈ S1, hA.eigenvalues i = ∑ i ∈ S1, mooreEigenvalue1 s :=
-        sum_congr rfl (fun x hx => (mem_filter.mp hx).2)
-      rw [this, sum_const, nsmul_eq_mul]
-    have h2 : ∑ i ∈ S2, hA.eigenvalues i = (#S2 : ℝ) * mooreEigenvalue2 s := by
-      have : ∑ i ∈ S2, hA.eigenvalues i = ∑ i ∈ S2, mooreEigenvalue2 s :=
-        sum_congr rfl (fun x hx => h_S2_vals x hx)
-      rw [this, sum_const, nsmul_eq_mul]
-    rw [h1, h2]
   have h_trace_eval : (d : ℝ) + (#S1 : ℝ) * mooreEigenvalue1 s + (#S2 : ℝ) * mooreEigenvalue2 s = 0 := by
     rw [← h_trace_zero, h_trace_eig, h_sum_split, hi0, h_sum_W, add_assoc]
   refine ⟨#S1, #S2, hm_sum, h_trace_eval⟩
@@ -841,26 +799,18 @@ theorem moore_graph_degree_classification {V : Type*} (G : SimpleGraph V) [Finty
       obtain ⟨z, hz_q, hz_sq⟩ := rat_sq_eq_int hq_sq
       have hz_real : (z : ℝ) = s := by
         have : ((z : ℚ) : ℝ) = (q : ℝ) := congrArg (fun x : ℚ => (x : ℝ)) hz_q
-        rw [hq_real] at this
-        push_cast at this
-        exact this
-      have hs_gt0 : s > 0 := by
-        have : 4 * (d : ℝ) - 3 > 0 := by linarith
-        exact Real.sqrt_pos.mpr this
+        push_cast at this; rwa [hq_real] at this
       have hz_pos : z > 0 := by
-        have : (z : ℝ) > 0 := hz_real.symm ▸ hs_gt0
+        have : (z : ℝ) > 0 := hz_real.symm ▸ Real.sqrt_pos.mpr (by linarith)
         exact_mod_cast this
       set s_nat : ℕ := z.toNat with hs_nat_def
       have hs_nat_eq : (s_nat : ℤ) = z := Int.toNat_of_nonneg (by omega)
       have hs_nat_pos : s_nat > 0 := by omega
       have hs_nat_sq : (s_nat : ℤ) ^ 2 = 4 * (d : ℤ) - 3 := by rw [hs_nat_eq, hz_sq]
       have hk_prod : k * (s_nat : ℤ) = (d : ℤ) * ((d : ℤ) - 2) := by
-        have h_q_mul : (k : ℚ) * (z : ℚ) = (d : ℚ) * ((d : ℚ) - 2) := by
-          rw [hz_q, hq_def, mul_div_cancel₀ _ hk_q]
-        have h_z_cast : (k : ℚ) * (z : ℤ) = (d : ℤ) * ((d : ℤ) - 2) := by exact_mod_cast h_q_mul
-        have h_int : (k * z : ℚ) = (((d : ℤ) * ((d : ℤ) - 2) : ℤ) : ℚ) := by exact_mod_cast h_q_mul
-        have h_final : k * z = (d : ℤ) * ((d : ℤ) - 2) := by exact_mod_cast h_int
-        rw [hs_nat_eq, h_final]
+        exact_mod_cast (by
+          rw [hs_nat_eq, hz_q, hq_def, mul_div_cancel₀ _ hk_q]; push_cast; rfl :
+          (k * (s_nat : ℤ) : ℚ) = ((d * (d - 2) : ℤ) : ℚ))
       exact ⟨s_nat, k, hs_nat_pos, hs_nat_sq, hk_prod⟩
   exact hoffman_singleton_theorem d hd h_cases
 
