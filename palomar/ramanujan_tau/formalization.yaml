@@ -12,7 +12,7 @@ project:
     B_{12} = -691/2730. The formalization establishes the linear algebraic congruence modulo 691 reduction
     \tau(n) \equiv \sigma_{11}(n) \pmod{691} assuming the 2-dimensional modular forms span of M_{12}
     (M_12_is_span) and existence of the weight-12 Eisenstein modular form E_{12} / integer eigenform F
-    (F_exists) as explicit premises, in accordance with AP-01/AP-07/AP-28 disclosure standards.
+    (F_exists) as explicit premises.
 
 classification:
   arxiv: [math.NT]
@@ -55,7 +55,6 @@ review:
   notes: >-
     Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
     are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.
-    Truthfully discloses that the congruence theorem establishes the linear algebraic congruence modulo 691
-    reduction assuming the modular forms span of M_{12} and existence of E_{12} as explicit premises
-    (AP-01/AP-07/AP-28).
+    The formalization documents that the congruence theorem establishes the linear algebraic congruence modulo 691
+    reduction assuming the modular forms span of M_{12} and existence of E_{12} as explicit premises.
 
