@@ -7,8 +7,18 @@ import Mathlib.Tactic.LinearCombination
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.NormNum
 import Mathlib.Tactic.IntervalCases
+import Mathlib.Combinatorics.SimpleGraph.Basic
+import Mathlib.Combinatorics.SimpleGraph.AdjMatrix
+import Mathlib.Combinatorics.SimpleGraph.StronglyRegular
+import Mathlib.Combinatorics.SimpleGraph.LapMatrix
+import Mathlib.Combinatorics.SimpleGraph.Girth
+import Mathlib.Combinatorics.SimpleGraph.Diam
+import Mathlib.Analysis.Matrix.Spectrum
+import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Data.Rat.Lemmas
+import Mathlib.Data.Nat.GCD.Basic
 
-open Real
+open Real SimpleGraph Matrix Finset
 
 
 /-!
@@ -111,5 +121,24 @@ theorem hoffman_singleton_spectral_trace :
 /-- Spectrum of the potential degree 57 Moore graph (d = 57, n = 3250). -/
 theorem degree_57_spectral_trace :
     (57 : ℝ) + 1729 * mooreEigenvalue1 15 + 1520 * mooreEigenvalue2 15 = 0 := sorry
+
+/-- A regular graph of diameter 2 and girth 5 is strongly regular with parameters `(1 + d², d, 0, 1)`. -/
+theorem moore_is_srg {V : Type*} [Fintype V] [DecidableEq V] {G : SimpleGraph V} [DecidableRel G.Adj]
+    (d : ℕ) (h_reg : G.IsRegularOfDegree d)
+    (hdiam : G.diam = 2) (hgirth : G.girth = 5) (hd : d ≥ 2) :
+    G.IsSRGWith (1 + d ^ 2) d 0 1 := sorry
+
+theorem moore_adjMatrix_eq {V : Type*} [Fintype V] [DecidableEq V] {G : SimpleGraph V} [DecidableRel G.Adj]
+    (d : ℕ) (hsrg : G.IsSRGWith (1 + d ^ 2) d 0 1) :
+    let A : Matrix V V ℝ := G.adjMatrix ℝ
+    A ^ 2 + A - ((d : ℝ) - 1) • (1 : Matrix V V ℝ) = Matrix.of (fun _ _ => 1) := sorry
+
+/-- **The Hoffman–Singleton Theorem (Graph Carrier Formulation)**:
+Any regular graph of degree `d ≥ 2` with diameter 2 and girth 5 must have degree
+`d = 2` (5-cycle `C₅`), `d = 3` (Petersen graph), `d = 7` (Hoffman–Singleton graph),
+or possibly `d = 57`. -/
+theorem moore_graph_degree_classification {V : Type*} (G : SimpleGraph V) [Fintype V] [DecidableEq V] [DecidableRel G.Adj]
+    (h_reg : G.IsRegularOfDegree d) (h_diam : G.diam = 2) (h_girth : G.girth = 5) (hd : d ≥ 2) :
+    d = 2 ∨ d = 3 ∨ d = 7 ∨ d = 57 := sorry
 
 end HoffmanSingleton

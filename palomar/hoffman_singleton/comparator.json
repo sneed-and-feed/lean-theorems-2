@@ -15,7 +15,10 @@
     "HoffmanSingleton.c5_spectral_trace",
     "HoffmanSingleton.petersen_spectral_trace",
     "HoffmanSingleton.hoffman_singleton_spectral_trace",
-    "HoffmanSingleton.degree_57_spectral_trace"
+    "HoffmanSingleton.degree_57_spectral_trace",
+    "HoffmanSingleton.moore_is_srg",
+    "HoffmanSingleton.moore_adjMatrix_eq",
+    "HoffmanSingleton.moore_graph_degree_classification"
   ],
   "permitted_axioms": [
     "propext",

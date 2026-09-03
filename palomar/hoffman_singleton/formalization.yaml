@@ -8,12 +8,13 @@ project:
     - "Noah Cohen"
   license: "CC0-1.0"
   description: >-
-    A complete machine-checked Lean 4 formalization of the Hoffman–Singleton Theorem (1960).
-    Classifies all possible degrees of regular Moore graphs with diameter 2 and girth 5, proving that the degree
-    must belong to {2, 3, 7, 57}. Formalizes the spectral quadratic eigenvalue equation, trace nullity identity,
-    and integrality divisibility condition s | 15 with explicit certificate instances for C5, Petersen,
-    Hoffman-Singleton, and degree 57. To the maintainers' knowledge, the theorem was not found in an exact
-    declaration name, docstring, and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+    A complete machine-checked Lean 4 formalization of the Hoffman–Singleton Theorem (1960) on authentic SimpleGraph carriers.
+    Establishes the metric-to-strongly-regular bridge proving that any d-regular graph G of diameter 2 and girth 5 is strongly
+    regular with parameters (1 + d², d, 0, 1) and satisfies the adjacency matrix equation A² + A - (d - 1)I = J.
+    Deduces the spectral decomposition, trace nullity, and multiplicities on EuclideanSpace ℝ V, and proves the complete
+    degree classification theorem: any regular graph of degree d ≥ 2 with diameter 2 and girth 5 must have d ∈ {2, 3, 7, 57}.
+    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type signature search
+    of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
   arxiv: [math.CO, math.SP]
@@ -28,10 +29,6 @@ sources:
     relationship: formalizes
 
 related_formalizations: []
-
-    relationship: builds-on
-    note: >-
-      Formalization builds on Mathlib's real square root and ring arithmetic tactics (linarith, linear_combination).
 
 automation:
   methods:
