@@ -6,10 +6,6 @@ import Formalization.VizingsTheorem.Fan
 open scoped BigOperators
 open Classical
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedSimpArgs false
-set_option linter.unusedVariables false
-
 /-!
 # Vizing's Theorem on Edge Colorings & König's Line Coloring Theorem
 

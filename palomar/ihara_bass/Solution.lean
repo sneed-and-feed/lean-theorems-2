@@ -6,7 +6,6 @@ import Formalization.IharaBass
 open Matrix
 open scoped Matrix
 
-set_option linter.unusedSectionVars false
 
 variable {V : Type*} [Fintype V] [DecidableEq V]
 variable (G : SimpleGraph V) [DecidableRel G.Adj]

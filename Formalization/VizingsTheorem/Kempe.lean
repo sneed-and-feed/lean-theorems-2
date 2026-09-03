@@ -5,10 +5,6 @@ import Mathlib.Combinatorics.SimpleGraph.Walk.Basic
 open scoped BigOperators
 open Classical
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedSimpArgs false
-set_option linter.unusedVariables false
-
 /-!
 # Kempe Chains and Kempe Swaps
 
@@ -57,8 +53,10 @@ def kempeGraph (α β : Fin k) : SimpleGraph V where
   symm := ⟨fun _ _ ⟨h, hc⟩ => ⟨h.symm, by rwa [colorOf_symm]⟩⟩
   loopless := ⟨fun x ⟨h, _⟩ => h.ne rfl⟩
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma kempeGraph_le (α β : Fin k) : c.kempeGraph α β ≤ G := fun _ _ h => h.1
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma kempe_color_eq_of_reachable (α β : Fin k) (u : V) (e : G.edgeSet) (v₀ : V) (hv₀ : v₀ ∈ (e : Sym2 V))
     (hreach : (c.kempeGraph α β).Reachable u v₀) :
     (if inComponent (c.kempeGraph α β) u (e : Sym2 V) then swapColor α β (c.color e) else c.color e) =
@@ -81,6 +79,7 @@ lemma kempe_color_eq_of_reachable (α β : Fin k) (u : V) (e : G.edgeSet) (v₀ 
       dsimp [colorOf] at hc
       rw [hc, swapColor_some_other α β col h1 h2]
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma kempe_color_eq_of_not_reachable (α β : Fin k) (u : V) (e : G.edgeSet) (v₀ : V) (hv₀ : v₀ ∈ (e : Sym2 V))
     (hnreach : ¬ (c.kempeGraph α β).Reachable u v₀) :
     (if inComponent (c.kempeGraph α β) u (e : Sym2 V) then swapColor α β (c.color e) else c.color e) =
@@ -110,6 +109,7 @@ noncomputable def kempeSwap (α β : Fin k) (u : V) : PartialEdgeColoring G k wh
       rw [kempe_color_eq_of_not_reachable c α β u e₂ v₀ hv2 hreach] at h2
       exact c.proper hne ⟨v₀, hv1, hv2⟩ h1 h2
 
+omit [DecidableEq V] in
 lemma uncoloredEdges_kempeSwap (α β : Fin k) (u : V) :
     (c.kempeSwap α β u).uncoloredEdges = c.uncoloredEdges := by
   ext e
@@ -117,6 +117,7 @@ lemma uncoloredEdges_kempeSwap (α β : Fin k) (u : V) :
   dsimp [kempeSwap]
   split_ifs <;> simp [swapColor_eq_none_iff]
 
+omit [DecidableEq V] in
 lemma kempeSwap_missing_u (α β : Fin k) (u : V) (hα : α ∈ c.missingColors u) :
     β ∈ (c.kempeSwap α β u).missingColors u := by
   rw [mem_missingColors_iff] at hα ⊢
@@ -128,6 +129,7 @@ lemma kempeSwap_missing_u (α β : Fin k) (u : V) (hα : α ∈ c.missingColors 
   rw [swapColor_involutive, swapColor_some_right] at h_inv
   exact hα w hw h_inv
 
+omit [DecidableEq V] in
 lemma kempeSwap_missing_v (α β : Fin k) (u v : V) (hnreach : ¬ (c.kempeGraph α β).Reachable u v)
     (hβ : β ∈ c.missingColors v) :
     β ∈ (c.kempeSwap α β u).missingColors v := by
@@ -137,6 +139,7 @@ lemma kempeSwap_missing_v (α β : Fin k) (u v : V) (hnreach : ¬ (c.kempeGraph 
   rw [kempe_color_eq_of_not_reachable c α β u ⟨s(v, w), hw⟩ v (Sym2.mem_mk_left v w) hnreach]
   exact hβ w hw
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma kempeSwap_colorOf_none (α β : Fin k) (u v : V) (hadj : G.Adj u v)
     (hnreach : ¬ (c.kempeGraph α β).Reachable u v)
     (h_none : c.colorOf u v hadj = none) :
@@ -145,6 +148,7 @@ lemma kempeSwap_colorOf_none (α β : Fin k) (u v : V) (hadj : G.Adj u v)
   rw [kempe_color_eq_of_not_reachable c α β u ⟨s(u, v), hadj⟩ v (Sym2.mem_mk_right u v) hnreach]
   exact h_none
 
+omit [DecidableEq V] in
 lemma kempeSwap_missing_of_reachable (α β : Fin k) (u v : V) (hreach : (c.kempeGraph α β).Reachable u v)
     (hβ : β ∈ c.missingColors v) :
     α ∈ (c.kempeSwap α β u).missingColors v := by
@@ -157,6 +161,7 @@ lemma kempeSwap_missing_of_reachable (α β : Fin k) (u v : V) (hreach : (c.kemp
   rw [swapColor_involutive, swapColor_some_left] at h_inv
   exact hβ w hw h_inv
 
+omit [DecidableEq V] in
 lemma kempeSwap_missing_of_ne (α β γ : Fin k) (u v : V) (h1 : γ ≠ α) (h2 : γ ≠ β)
     (hγ : γ ∈ c.missingColors v) :
     γ ∈ (c.kempeSwap α β u).missingColors v := by
@@ -170,6 +175,7 @@ lemma kempeSwap_missing_of_ne (α β γ : Fin k) (u v : V) (h1 : γ ≠ α) (h2 
     exact hγ w hw h_inv
   · exact hγ w hw
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma kempeSwap_colorOf_of_ne (α β γ : Fin k) (u v w : V) (hadj : G.Adj v w)
     (h1 : γ ≠ α) (h2 : γ ≠ β) (hc : c.colorOf v w hadj = some γ) :
     (c.kempeSwap α β u).colorOf v w hadj = some γ := by
@@ -179,6 +185,7 @@ lemma kempeSwap_colorOf_of_ne (α β γ : Fin k) (u v w : V) (hadj : G.Adj v w)
     rw [hc, swapColor_some_other α β γ h1 h2]
   · exact hc
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma kempeSwap_colorOf_alpha (α β : Fin k) (u w : V) (hadj : G.Adj u w)
     (hc : c.colorOf u w hadj = some β) :
     (c.kempeSwap α β u).colorOf u w hadj = some α := by
@@ -187,6 +194,7 @@ lemma kempeSwap_colorOf_alpha (α β : Fin k) (u w : V) (hadj : G.Adj u w)
   dsimp [colorOf] at hc
   rw [hc, swapColor_some_right]
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma kempeSwap_color_none (α β : Fin k) (u : V) (e : G.edgeSet) (h : c.color e = none) :
     (c.kempeSwap α β u).color e = none := by
   dsimp [kempeSwap]; split_ifs <;> simp [swapColor, h]
@@ -207,6 +215,7 @@ def FirstColor (α β : Fin k) : {x y : V} → (c.kempeGraph α β).Walk x y →
 lemma otherColor_involutive (α β col : Fin k) (_ : col = α ∨ col = β) :
     otherColor α β (otherColor α β col) = col := Equiv.swap_apply_self α β col
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma isAlternating_of_isPath {α β : Fin k} (hne : α ≠ β) :
     ∀ {x y : V} (p : (c.kempeGraph α β).Walk x y) (col : Fin k),
       p.IsPath → (col = α ∨ col = β) →
@@ -252,6 +261,7 @@ lemma isAlternating_of_isPath {α β : Fin k} (hne : α ≠ β) :
         · simpa [otherColor, hne] using hcolβ
         · exact (h_col_ne hcolβ).elim
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma last_edge_alternating {α β : Fin k} :
     ∀ {x y : V} (p : (c.kempeGraph α β).Walk x y) (col : Fin k),
       c.IsAlternating α β p col → (col = α ∨ col = β) → p.length > 0 →
@@ -266,17 +276,18 @@ lemma last_edge_alternating {α β : Fin k} :
     refine ⟨z, hz_adj, ?_⟩
     have hcases : p'.length % 2 = 0 ∨ p'.length % 2 = 1 := by omega
     rcases hcases with h0 | h1
-    · have hlen1 : (Walk.cons h2 p').length % 2 = 1 := by simp [h0]; omega
-      have hlen2 : (Walk.cons h (Walk.cons h2 p')).length % 2 = 0 := by simp [h0]; omega
+    · have hlen1 : (Walk.cons h2 p').length % 2 = 1 := by simp only [Walk.length]; omega
+      have hlen2 : (Walk.cons h (Walk.cons h2 p')).length % 2 = 0 := by simp only [Walk.length]; omega
       rw [hlen1] at hz_col
       rw [hlen2]
       simpa [otherColor_involutive _ _ _ hcol] using hz_col
-    · have hlen1 : (Walk.cons h2 p').length % 2 = 0 := by simp [h1]; omega
-      have hlen2 : (Walk.cons h (Walk.cons h2 p')).length % 2 = 1 := by simp [h1]; omega
+    · have hlen1 : (Walk.cons h2 p').length % 2 = 0 := by simp only [Walk.length]; omega
+      have hlen2 : (Walk.cons h (Walk.cons h2 p')).length % 2 = 1 := by simp only [Walk.length]; omega
       rw [hlen1] at hz_col
       rw [hlen2]
       simpa [otherColor_involutive _ _ _ hcol] using hz_col
 
+omit [Fintype V] [DecidableRel G.Adj] in
 lemma alternating_walk_eq {α β : Fin k} :
     ∀ {x y₁ y₂ : V} (p₁ : (c.kempeGraph α β).Walk x y₁) (p₂ : (c.kempeGraph α β).Walk x y₂) (col : Fin k),
       (col = α ∨ col = β) → c.IsAlternating α β p₁ col → c.IsAlternating α β p₂ col →
@@ -305,6 +316,7 @@ lemma alternating_walk_eq {α β : Fin k} :
       · simpa [h0, this, otherColor_involutive _ _ _ hcol] using hend2 w hw
       · simpa [h1, this, otherColor_involutive _ _ _ hcol] using hend2 w hw
 
+omit [DecidableEq V] in
 lemma kempe_walk_parity_end {u v : V} {α β : Fin k} (hne : α ≠ β) (p : (c.kempeGraph α β).Walk u v)
     (hp : p.IsPath) (hfirst : c.FirstColor α β p β) (hv : β ∈ c.missingColors v) : p.length % 2 = 0 := by
   by_contra h_odd

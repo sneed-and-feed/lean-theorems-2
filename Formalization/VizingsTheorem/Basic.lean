@@ -8,10 +8,6 @@ import Mathlib.Data.Finset.Basic
 open scoped BigOperators
 open Classical
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedSimpArgs false
-set_option linter.unusedVariables false
-
 /-!
 # Vizing's Theorem — Basic Definitions and Setup
 
@@ -24,9 +20,11 @@ variable (G : SimpleGraph V) [DecidableRel G.Adj]
 
 namespace SimpleGraph
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma mk_edge_symm {u v : V} (h : G.Adj v u) :
     (⟨s(v, u), h⟩ : G.edgeSet) = ⟨s(u, v), h.symm⟩ := Subtype.ext Sym2.eq_swap
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma mk_edge_inj_neighbor {u v w : V} (hv : G.Adj u v) (hw : G.Adj u w) :
     (⟨s(u, v), hv⟩ : G.edgeSet) = ⟨s(u, w), hw⟩ ↔ v = w := by
   constructor
@@ -38,10 +36,12 @@ lemma mk_edge_inj_neighbor {u v w : V} (hv : G.Adj u v) (hw : G.Adj u w) :
     · exact (hv.ne rfl).elim
   · rintro rfl; rfl
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma mk_edge_ne_neighbor {u v w : V} (hv : G.Adj u v) (hw : G.Adj u w) (h : v ≠ w) :
     (⟨s(u, v), hv⟩ : G.edgeSet) ≠ ⟨s(u, w), hw⟩ := fun heq =>
   h ((mk_edge_inj_neighbor G hv hw).mp heq)
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma edge_eq_of_mem (e : G.edgeSet) (v : V) (hv : v ∈ (e : Sym2 V)) :
     ∃ (w : V) (h : G.Adj v w), e = ⟨s(v, w), h⟩ := by
   rcases e with ⟨e_val, he_prop⟩
@@ -72,6 +72,7 @@ def IsEdgeColorable (k : ℕ) : Prop := Nonempty (EdgeColoring G k)
 needed to properly color the edges of $G$. -/
 noncomputable def chromaticIndex : ℕ := sInf {k : ℕ | IsEdgeColorable G k}
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 theorem edgeColorable_card_edgeSet [Fintype G.edgeSet] :
     IsEdgeColorable G (Fintype.card G.edgeSet) :=
   ⟨⟨Fintype.equivFin G.edgeSet, fun _ _ hne _ heq => hne ((Fintype.equivFin G.edgeSet).injective heq)⟩⟩
@@ -122,6 +123,7 @@ def empty : PartialEdgeColoring G k where
 /-- The color assigned to adjacent vertices $u$ and $v$ (if colored). -/
 def colorOf (u v : V) (h : G.Adj u v) : Option (Fin k) := c.color ⟨s(u, v), h⟩
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma colorOf_symm (u v : V) (h : G.Adj u v) : c.colorOf v u h.symm = c.colorOf u v h := by
   dsimp [colorOf]; rw [mk_edge_symm G h]
 
@@ -132,12 +134,15 @@ def usedColors (v : V) : Finset (Fin k) :=
 /-- The set of colors missing at vertex $v$. -/
 def missingColors (v : V) : Finset (Fin k) := Finset.univ \ c.usedColors v
 
+omit [DecidableEq V] in
 @[simp] theorem mem_usedColors_iff (v : V) (col : Fin k) :
     col ∈ c.usedColors v ↔ ∃ (w : V) (h : G.Adj v w), c.colorOf v w h = some col := by simp [usedColors]
 
+omit [DecidableEq V] in
 @[simp] theorem mem_missingColors_iff (v : V) (col : Fin k) :
     col ∈ c.missingColors v ↔ ∀ (w : V) (h : G.Adj v w), c.colorOf v w h ≠ some col := by simp [missingColors]
 
+omit [Fintype V] [DecidableRel G.Adj] in
 lemma colorOf_inj_neighbor (u v w : V) (hv : G.Adj u v) (hw : G.Adj u w) (col : Fin k)
     (h1 : c.colorOf u v hv = some col) (h2 : c.colorOf u w hw = some col) : v = w := by
   by_contra hne
@@ -151,10 +156,12 @@ lemma colorOf_inj_neighbor (u v w : V) (hv : G.Adj u v) (hw : G.Adj u w) (col : 
 noncomputable def neighborOfColor (u : V) (col : Fin k) : V :=
   if h : col ∈ c.usedColors u then Classical.choose (c.mem_usedColors_iff u col |>.mp h) else u
 
+omit [DecidableEq V] in
 lemma neighborOfColor_spec (u : V) {col : Fin k} (h : col ∈ c.usedColors u) :
     ∃ h' : G.Adj u (c.neighborOfColor u col), c.colorOf u (c.neighborOfColor u col) h' = some col := by
   dsimp [neighborOfColor]; split_ifs; exact Classical.choose_spec (c.mem_usedColors_iff u col |>.mp h)
 
+omit [DecidableEq V] in
 lemma neighborOfColor_inj (u : V) : Set.InjOn (c.neighborOfColor u) (c.usedColors u : Set (Fin k)) := by
   intro c1 hc1 c2 hc2 heq
   obtain ⟨h1, hc1'⟩ := c.neighborOfColor_spec u (Finset.mem_coe.mp hc1)
@@ -163,6 +170,7 @@ lemma neighborOfColor_inj (u : V) : Set.InjOn (c.neighborOfColor u) (c.usedColor
   have he : (⟨s(u, c.neighborOfColor u c1), h1⟩ : G.edgeSet) = ⟨s(u, c.neighborOfColor u c2), h2⟩ := by ext; simp [heq]
   exact Option.some.inj (hc1'.symm.trans (he ▸ hc2'))
 
+omit [DecidableEq V] in
 theorem card_usedColors_le_degree (u : V) : (c.usedColors u).card ≤ G.degree u := by
   have h_maps : Set.MapsTo (c.neighborOfColor u) (c.usedColors u : Set (Fin k)) (G.neighborFinset u : Set V) := by
     intro col hcol; obtain ⟨h', -⟩ := c.neighborOfColor_spec u (Finset.mem_coe.mp hcol)
@@ -193,6 +201,7 @@ theorem card_usedColors_lt_of_uncolored {u v : V} (h : G.Adj u v) (h_none : c.co
   have h3 := G.degree_le_maxDegree u
   omega
 
+omit [DecidableEq V] in
 lemma missingColors_nonempty_of_card_lt {u : V} (hlt : (c.usedColors u).card < k) :
     (c.missingColors u).Nonempty := by
   rw [missingColors, Finset.nonempty_iff_ne_empty, ne_eq, Finset.sdiff_eq_empty_iff_subset]
@@ -205,6 +214,7 @@ theorem exists_missingColor_of_uncolored {u v : V} (h : G.Adj u v) (h_none : c.c
     (h_max : G.maxDegree ≤ k) : (c.missingColors u).Nonempty :=
   c.missingColors_nonempty_of_card_lt (c.card_usedColors_lt_of_uncolored h h_none h_max)
 
+omit [DecidableEq V] in
 theorem exists_missingColor_of_maxDegree_lt {u : V} (h_max : G.maxDegree < k) :
     (c.missingColors u).Nonempty := by
   have hdeg := c.card_usedColors_le_degree u

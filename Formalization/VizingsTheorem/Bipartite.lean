@@ -3,10 +3,6 @@ import Formalization.VizingsTheorem.Kempe
 open scoped BigOperators
 open Classical
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedSimpArgs false
-set_option linter.unusedVariables false
-
 /-!
 # Bipartite Edge Colorings and König's Theorem Foundation
 
@@ -146,6 +142,7 @@ lemma shiftStep_colorOf_of_ne (u v w y z : V) (huv : G.Adj u v) (huw : G.Adj u w
     (c.shiftStep u v w huv huw col h_col h_miss).colorOf y z hyz = c.colorOf y z hyz := by
   dsimp [colorOf, shiftStep]; simp [h_ne1, h_ne2]
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma bipartite_walk_length (b : V → Bool) (hb : ∀ x y, G.Adj x y → b y = !b x)
     (H : SimpleGraph V) (hH : H ≤ G) :
     ∀ {x y : V} (p : H.Walk x y), b y = if p.length % 2 = 1 then !b x else b x
@@ -161,6 +158,7 @@ lemma bipartite_walk_length (b : V → Bool) (hb : ∀ x y, G.Adj x y → b y = 
     · have : (p.length + 1) % 2 = 0 := by omega
       simp [h1, this]
 
+omit [DecidableEq V] in
 /--
 In any bipartite graph ($G.\text{Colorable } 2$), if $u v$ is an uncolored edge, no alternating
 $(\alpha, \beta)$ path in the Kempe subgraph can connect $u$ and $v$.

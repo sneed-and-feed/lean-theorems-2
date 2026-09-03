@@ -11,8 +11,6 @@ import Mathlib.Tactic.IntervalCases
 open scoped Finset
 open Classical
 
-set_option linter.unusedSectionVars false
-
 /-!
 # Menger's Theorem — Basic Definitions and Path Systems
 
@@ -27,7 +25,7 @@ This module establishes foundational definitions and lemmas for Menger's Theorem
 - Foundational existence and separator lemmas (`exists_innerVertex_of_not_adj`, `univ_sdiff_isVertexSeparator`, etc.).
 -/
 
-variable {V : Type*} [Fintype V] [DecidableEq V]
+variable {V : Type*}
 
 namespace MengersTheorem
 
@@ -45,10 +43,6 @@ structure STPath (G : SimpleGraph V) (s t : V) where
   adj_consec : ∀ i (h : i + 1 < verts.length),
     G.Adj (verts.get ⟨i, by omega⟩) (verts.get ⟨i + 1, h⟩)
 
-/-- The interior (internal) vertices of an $s\text{-}t$ path: all vertices excluding $s$ and $t$. -/
-def innerVertices {G : SimpleGraph V} {s t : V} (p : STPath G s t) : Finset V :=
-  p.verts.toFinset \ {s, t}
-
 /-- Convert an `STPath` in a subgraph to an `STPath` in the ambient graph. -/
 def STPath.ofLe {G G' : SimpleGraph V} {s t : V} (h : G ≤ G') (p : STPath G s t) : STPath G' s t where
   verts := p.verts
@@ -60,10 +54,6 @@ def STPath.ofLe {G G' : SimpleGraph V} {s t : V} (h : G ≤ G') (p : STPath G s 
 @[simp]
 lemma STPath.ofLe_verts {G G' : SimpleGraph V} {s t : V} (h : G ≤ G') (p : STPath G s t) :
     (STPath.ofLe h p).verts = p.verts := rfl
-
-@[simp]
-lemma STPath.ofLe_innerVertices {G G' : SimpleGraph V} {s t : V} (h : G ≤ G') (p : STPath G s t) :
-    innerVertices (STPath.ofLe h p) = innerVertices p := rfl
 
 lemma STPath.ofLe_injective {G G' : SimpleGraph V} {s t : V} (h : G ≤ G') :
     Function.Injective (STPath.ofLe (s := s) (t := t) h) := by
@@ -121,12 +111,6 @@ def STPath.mk1 {G : SimpleGraph V} {s t : V} (hadj : G.Adj s t) : STPath G s t w
 lemma STPath.mk1_verts {G : SimpleGraph V} {s t : V} (hadj : G.Adj s t) :
     (STPath.mk1 hadj).verts = [s, t] := rfl
 
-@[simp]
-lemma STPath.mk1_innerVertices {G : SimpleGraph V} {s t : V} (hadj : G.Adj s t) :
-    innerVertices (STPath.mk1 hadj) = ∅ := by
-  ext x
-  simp [innerVertices]
-
 /-- Construct an $s\text{-}t$ path of length 2 through a common neighbor $u$. -/
 def STPath.mk2 {G : SimpleGraph V} {s t : V} (u : V)
     (hsu : G.Adj s u) (hut : G.Adj u t) (hne_st : s ≠ t) : STPath G s t where
@@ -142,21 +126,6 @@ def STPath.mk2 {G : SimpleGraph V} {s t : V} (u : V)
     interval_cases i
     · exact hsu
     · exact hut
-
-@[simp]
-lemma STPath.mk2_innerVertices {G : SimpleGraph V} {s t : V} (u : V)
-    (hsu : G.Adj s u) (hut : G.Adj u t) (hne_st : s ≠ t) :
-    innerVertices (STPath.mk2 u hsu hut hne_st) = {u} := by
-  ext x
-  simp only [innerVertices, STPath.mk2, Finset.mem_sdiff, Finset.mem_insert, List.mem_toFinset,
-    List.mem_cons, List.not_mem_nil, or_false, Finset.mem_singleton, not_or]
-  constructor
-  · rintro ⟨(rfl | rfl | rfl), hx1, hx2⟩
-    · exact (hx1 rfl).elim
-    · rfl
-    · exact (hx2 rfl).elim
-  · rintro rfl
-    refine ⟨Or.inr (Or.inl rfl), hsu.ne.symm, hut.ne⟩
 
 /-- Construct an $s\text{-}t$ path of length 3 through $x$ and $y$. -/
 def STPath.mk3 {G : SimpleGraph V} {s t : V} (x y : V)
@@ -175,6 +144,39 @@ def STPath.mk3 {G : SimpleGraph V} {s t : V} (x y : V)
     · exact hsx
     · exact hxy
     · exact hyt
+
+section DecEq
+
+variable [DecidableEq V]
+
+/-- The interior (internal) vertices of an $s\text{-}t$ path: all vertices excluding $s$ and $t$. -/
+def innerVertices {G : SimpleGraph V} {s t : V} (p : STPath G s t) : Finset V :=
+  p.verts.toFinset \ {s, t}
+
+@[simp]
+lemma STPath.ofLe_innerVertices {G G' : SimpleGraph V} {s t : V} (h : G ≤ G') (p : STPath G s t) :
+    innerVertices (STPath.ofLe h p) = innerVertices p := rfl
+
+@[simp]
+lemma STPath.mk1_innerVertices {G : SimpleGraph V} {s t : V} (hadj : G.Adj s t) :
+    innerVertices (STPath.mk1 hadj) = ∅ := by
+  ext x
+  simp [innerVertices]
+
+@[simp]
+lemma STPath.mk2_innerVertices {G : SimpleGraph V} {s t : V} (u : V)
+    (hsu : G.Adj s u) (hut : G.Adj u t) (hne_st : s ≠ t) :
+    innerVertices (STPath.mk2 u hsu hut hne_st) = {u} := by
+  ext x
+  simp only [innerVertices, STPath.mk2, Finset.mem_sdiff, Finset.mem_insert, List.mem_toFinset,
+    List.mem_cons, List.not_mem_nil, or_false, Finset.mem_singleton, not_or]
+  constructor
+  · rintro ⟨(rfl | rfl | rfl), hx1, hx2⟩
+    · exact (hx1 rfl).elim
+    · rfl
+    · exact (hx2 rfl).elim
+  · rintro rfl
+    refine ⟨Or.inr (Or.inl rfl), hsu.ne.symm, hut.ne⟩
 
 @[simp]
 lemma STPath.mk3_innerVertices {G : SimpleGraph V} {s t : V} (x y : V)
@@ -438,7 +440,7 @@ lemma exists_innerVertex_of_not_adj (G : SimpleGraph V) {s t : V}
         have h_b_in : b ∈ a :: b :: c :: tl3 := by simp
         exact ⟨h_b_in, h_b_ne_s, h_b_ne_t⟩
 
-lemma univ_sdiff_isVertexSeparator (G : SimpleGraph V) (s t : V)
+lemma univ_sdiff_isVertexSeparator [Fintype V] (G : SimpleGraph V) (s t : V)
     (hne : s ≠ t) (h_not_adj : ¬ G.Adj s t) :
     IsVertexSeparator G s t (Finset.univ \ {s, t}) := by
   refine ⟨by simp, by simp, ?_⟩
@@ -448,6 +450,8 @@ lemma univ_sdiff_isVertexSeparator (G : SimpleGraph V) (s t : V)
   simp only [Finset.mem_sdiff, Finset.mem_univ, true_and, Finset.mem_insert, Finset.mem_singleton, not_or]
   simp only [innerVertices, Finset.mem_sdiff, Finset.mem_insert, Finset.mem_singleton, not_or] at hv
   exact ⟨hv.2.1, hv.2.2⟩
+
+end DecEq
 
 lemma edgeFinset_card_eq (G : SimpleGraph V) (h1 h2 : Fintype G.edgeSet) :
     (@SimpleGraph.edgeFinset V G h1).card = (@SimpleGraph.edgeFinset V G h2).card := by

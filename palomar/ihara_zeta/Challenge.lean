@@ -5,7 +5,6 @@ import Mathlib.Combinatorics.SimpleGraph.Finite
 import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
 import Mathlib.Algebra.Polynomial.AlgebraMap
 
-set_option linter.unusedSectionVars false
 
 open Polynomial Matrix
 

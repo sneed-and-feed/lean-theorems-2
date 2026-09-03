@@ -3,10 +3,6 @@ import Formalization.BrooksTheorem.OddCycles
 import Formalization.BrooksTheorem.Greedy
 import Formalization.BrooksTheorem.LovaszOrdering
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-set_option linter.style.haveILetI false
-
 open Finset SimpleGraph
 
 /-!

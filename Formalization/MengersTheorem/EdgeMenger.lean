@@ -4,8 +4,6 @@ import Mathlib.Combinatorics.SimpleGraph.DeleteEdges
 open scoped Finset
 open Classical
 
-set_option linter.unusedSectionVars false
-
 /-!
 # Menger's Theorem — Edge Version
 
@@ -33,6 +31,7 @@ def AreEdgeDisjoint {G : SimpleGraph V} {s t : V} (p1 p2 : STPath G s t) : Prop 
 def IsEdgeDisjointPathSystem {G : SimpleGraph V} {s t : V} (P : Finset (STPath G s t)) : Prop :=
   ∀ p1 ∈ P, ∀ p2 ∈ P, p1 ≠ p2 → AreEdgeDisjoint p1 p2
 
+omit [Fintype V] [DecidableEq V] in
 /-- Two length-2 paths through distinct common neighbors are edge-disjoint. -/
 lemma areEdgeDisjoint_mk2 {G : SimpleGraph V} {s t : V} {u1 u2 : V}
     (hsu1 : G.Adj s u1) (hu1t : G.Adj u1 t) (hsu2 : G.Adj s u2) (hu2t : G.Adj u2 t)
@@ -72,6 +71,7 @@ lemma areEdgeDisjoint_mk2 {G : SimpleGraph V} {s t : V} {u1 u2 : V}
     · dsimp [STPath.mk2] at h1
       exact hu1t.ne h1
 
+omit [Fintype V] [DecidableEq V] in
 /-- A family of length-2 paths through $U \subseteq N(s) \cap N(t)$ is pairwise edge-disjoint. -/
 lemma isEdgeDisjointPathSystem_mk2_image (G : SimpleGraph V) (s t : V) (hne_st : s ≠ t)
     (U : Finset V) (hU : ∀ u ∈ U, G.Adj s u ∧ G.Adj u t) :
@@ -98,6 +98,7 @@ lemma isEdgeDisjointPathSystem_mk2_image (G : SimpleGraph V) (s t : V) (hne_st :
     exact hne rfl
   exact areEdgeDisjoint_mk2 (hU u1 hu1).1 (hU u1 hu1).2 (hU u2 hu2).1 (hU u2 hu2).2 hne_st hu_ne
 
+omit [Fintype V] [DecidableEq V] in
 /-- A path in $G \setminus \{s(s, t)\}$ and the single-edge path $s-t$ are edge-disjoint. -/
 lemma areEdgeDisjoint_mk1_ofLe_deleteEdges {G : SimpleGraph V} {s t : V} (hadj : G.Adj s t)
     (p : STPath (G.deleteEdges {Sym2.mk s t}) s t) :
@@ -114,6 +115,7 @@ lemma areEdgeDisjoint_mk1_ofLe_deleteEdges {G : SimpleGraph V} {s t : V} (hadj :
   simp only [Set.mem_singleton_iff] at h_not_in
   exact h_not_in heq_edge
 
+omit [Fintype V] [DecidableEq V] in
 lemma isEdgeDisjointPathSystem_image_ofLe {G G' : SimpleGraph V} {s t : V} (h : G ≤ G')
     (P : Finset (STPath G s t)) (hP : IsEdgeDisjointPathSystem P) :
     IsEdgeDisjointPathSystem (P.image (STPath.ofLe h)) := by
@@ -128,6 +130,7 @@ lemma isEdgeDisjointPathSystem_image_ofLe {G G' : SimpleGraph V} {s t : V} (h : 
   intro i hi j hj
   exact hdisj i hi j hj
 
+omit [Fintype V] [DecidableEq V] in
 /-- Inserting the single-edge path $s-t$ into an edge-disjoint path system from $G \setminus \{s(s, t)\}$
     yields an edge-disjoint path system of size $+1$. -/
 lemma isEdgeDisjointPathSystem_insert_mk1 {G : SimpleGraph V} {s t : V} (hadj : G.Adj s t)
@@ -186,6 +189,7 @@ noncomputable def maxEdgeDisjointPaths (G : SimpleGraph V) (s t : V) : ℕ :=
 noncomputable def minEdgeSeparator (G : SimpleGraph V) (s t : V) : ℕ :=
   sInf { n : ℕ | ∃ F : Finset (Sym2 V), IsEdgeSeparator G s t F ∧ F.card = n }
 
+omit [Fintype V] in
 /--
 Weak duality for edge-disjoint paths and edge cuts:
 For any edge-disjoint path system $\mathcal{P}$ and any edge cut $F$, $|\mathcal{P}| \le |F|$.
@@ -218,12 +222,14 @@ theorem weak_duality_edge (G : SimpleGraph V) {s t : V}
   have h_card_img : (P.image f).card = P.card := Finset.card_image_of_injOn (fun p1 hp1 p2 hp2 => h_inj p1 hp1 p2 hp2)
   rwa [h_card_img] at h_card_le
 
+omit [Fintype V] [DecidableEq V] in
 lemma isEdgeDisjointPathSystem_empty {G : SimpleGraph V} {s t : V} :
     IsEdgeDisjointPathSystem (∅ : Finset (STPath G s t)) := by
   intro p1 p2 hp1
   have := Finset.notMem_empty p1
   contradiction
 
+omit [Fintype V] [DecidableEq V] in
 lemma isEdgeDisjointPathSystem_singleton {G : SimpleGraph V} {s t : V} (p : STPath G s t) :
     IsEdgeDisjointPathSystem ({p} : Finset (STPath G s t)) := by
   intro p1 hp1 p2 hp2 hne
@@ -231,6 +237,7 @@ lemma isEdgeDisjointPathSystem_singleton {G : SimpleGraph V} {s t : V} (p : STPa
   subst hp1; subst hp2
   exact (hne rfl).elim
 
+omit [Fintype V] [DecidableEq V] in
 lemma exists_STPath_of_minEdgeSeparator_ne_zero {G : SimpleGraph V} {s t : V}
     (hk : minEdgeSeparator G s t ≠ 0) :
     Nonempty (STPath G s t) := by
@@ -246,6 +253,7 @@ lemma exists_STPath_of_minEdgeSeparator_ne_zero {G : SimpleGraph V} {s t : V}
   dsimp [minEdgeSeparator] at hk
   omega
 
+omit [Fintype V] in
 lemma isEdgeSeparator_insert_of_deleteEdges (G : SimpleGraph V) (s t : V) (e : Sym2 V)
     (F : Finset (Sym2 V)) (hF : IsEdgeSeparator (G.deleteEdges {e}) s t F) :
     IsEdgeSeparator G s t (insert e F) := by
@@ -277,6 +285,7 @@ lemma isEdgeSeparator_insert_of_deleteEdges (G : SimpleGraph V) (s t : V) (e : S
     rw [Finset.mem_insert]
     exact Or.inr hmem
 
+omit [DecidableEq V] in
 lemma univ_edges_isEdgeSeparator (G : SimpleGraph V) (s t : V) (hne : s ≠ t) :
     IsEdgeSeparator G s t (Finset.univ : Finset (Sym2 V)) := by
   intro p
@@ -381,12 +390,14 @@ lemma minEdgeSeparator_le_deleteEdges_succ (G : SimpleGraph V) (s t : V) (e : Sy
     _ = minEdgeSeparator (G.deleteEdges {e}) s t + 1 := by rw [hF_sub_card]
   exact h_inf_le.trans h_card_insert
 
+omit [Fintype V] [DecidableEq V] in
 lemma isEdgeSeparator_ofLe {G G' : SimpleGraph V} (h : G ≤ G') {s t : V} {F : Finset (Sym2 V)}
     (hF : IsEdgeSeparator G' s t F) : IsEdgeSeparator G s t F := by
   intro p
   obtain ⟨i, hi, hmem⟩ := hF (STPath.ofLe h p)
   exact ⟨i, hi, hmem⟩
 
+omit [DecidableEq V] in
 lemma minEdgeSeparator_deleteEdges_le (G : SimpleGraph V) (e : Sym2 V) (s t : V) (hne : s ≠ t) :
     minEdgeSeparator (G.deleteEdges {e}) s t ≤ minEdgeSeparator G s t := by
   let SF := { n : ℕ | ∃ F : Finset (Sym2 V), IsEdgeSeparator G s t F ∧ F.card = n }
@@ -403,6 +414,7 @@ lemma minEdgeSeparator_deleteEdges_le (G : SimpleGraph V) (e : Sym2 V) (s t : V)
   rw [← hF_card]
   exact csInf_le h_bddBelow h_in_sub
 
+omit [Fintype V] [DecidableEq V] in
 lemma isEdgeSeparator_of_deleteEdges {G : SimpleGraph V} (e : Sym2 V) {s t : V} {F : Finset (Sym2 V)}
     (hF : IsEdgeSeparator (G.deleteEdges {e}) s t F)
     (h_hit : ∀ p : STPath G s t, (∃ i, ∃ hi : i + 1 < p.verts.length, Sym2.mk (p.verts.get ⟨i, by omega⟩) (p.verts.get ⟨i + 1, hi⟩) = e) →

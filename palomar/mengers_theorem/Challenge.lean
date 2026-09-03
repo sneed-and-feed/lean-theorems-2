@@ -11,8 +11,6 @@ import Mathlib.Tactic.IntervalCases
 open scoped Finset
 open Classical
 
-set_option linter.unusedSectionVars false
-
 /-!
 # Menger's Theorem on Disjoint Paths and Vertex Separators
 

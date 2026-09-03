@@ -7,10 +7,6 @@ import Mathlib.Combinatorics.SimpleGraph.Walk.Maps
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-set_option linter.style.haveILetI false
-
 open Finset SimpleGraph
 
 /-!
@@ -58,7 +54,7 @@ lemma card_subtype_ne_pair {α : Type*} [Fintype α] [DecidableEq α] (u v : α)
 
 lemma exists_adj_mem_not_mem {α : Type*} [DecidableEq α] (H : SimpleGraph α) (s : Finset α) :
     ∀ {z r : α}, z ∉ s → r ∈ s → H.Walk z r → ∃ u v, u ∉ s ∧ v ∈ s ∧ H.Adj u v
-  | z, _, hz, hr, .nil => False.elim (hz hr)
+  | _, _, hz, hr, .nil => False.elim (hz hr)
   | z, _, hz, hr, .cons (v := v) hadj p' =>
     if hy : v ∈ s then
       ⟨z, v, hz, hy, hadj⟩
@@ -67,9 +63,9 @@ lemma exists_adj_mem_not_mem {α : Type*} [DecidableEq α] (H : SimpleGraph α) 
 
 lemma exists_reverse_bfs_list {α : Type*} [Fintype α] [DecidableEq α]
     (H : SimpleGraph α) (r : α) (h_reach : ∀ z : α, H.Reachable z r) :
-    ∀ (m : ℕ) (hm : m ≤ Fintype.card α) (hm_pos : 0 < m),
+    ∀ (m : ℕ) (_hm : m ≤ Fintype.card α) (_hm_pos : 0 < m),
       ∃ (L : List α) (hlen : L.length = m), L.Nodup ∧ (∃ hne : L ≠ [], L.getLast hne = r) ∧
-        ∀ (i : ℕ) (hi : i < m - 1),
+        ∀ (i : ℕ) (_hi : i < m - 1),
           ∃ (j : ℕ) (hj : i < j) (hjm : j < m),
             H.Adj (L.get ⟨i, by omega⟩) (L.get ⟨j, by omega⟩) := by
   intro m
@@ -278,6 +274,7 @@ lemma exists_triple_of_not_complete (G : SimpleGraph V) [DecidableRel G.Adj]
         rw [← hp, h_len_w, h_len_p] at h_le
         omega
 
+omit [DecidableEq V] in
 lemma score_injective (d : V → ℕ) (n : ℕ) (hn : Fintype.card V = n) :
     Function.Injective (fun (x : V) => (n - d x) * (n + 1) + (Fintype.equivFin V x : ℕ)) := by
   intro x y hxy
@@ -305,6 +302,7 @@ lemma score_lt_of_dist_gt (dx dy n a b : ℕ) (hn : dx ≤ n) (hdy : dy < dx) (h
   have h3 : (n - dx + 1) * (n + 1) ≤ (n - dy) * (n + 1) := Nat.mul_le_mul_right (n + 1) h1
   omega
 
+omit [Fintype V] [DecidableEq V] in
 lemma dist_zero_iff (G : SimpleGraph V) {u v : V} (hr : G.Reachable u v) :
     G.dist u v = 0 ↔ u = v := by
   rw [G.dist_eq_zero_iff_eq_or_not_reachable]
@@ -317,6 +315,7 @@ lemma dist_le_card (G : SimpleGraph V) (u v : V) (hr : G.Reachable u v) :
   have h2 := p.toPath.2.length_lt
   omega
 
+omit [Fintype V] [DecidableEq V] in
 lemma not_mem_pair_of_dist_ge_three (G : SimpleGraph V) (u v1 v2 vn w : V)
     (h_adj1 : G.Adj v1 vn) (h_adj2 : G.Adj v2 vn)
     (hadj_uw : G.Adj u w)

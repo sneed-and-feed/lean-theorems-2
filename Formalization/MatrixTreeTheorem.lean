@@ -43,10 +43,6 @@ to the number of spanning trees in a finite graph.
 open Matrix Classical
 open scoped BigOperators
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedSimpArgs false
-set_option linter.deprecated false
-
 variable {V : Type*} [Fintype V] [DecidableEq V]
 variable (G : SimpleGraph V) [DecidableRel G.Adj]
 variable (R : Type*) [CommRing R]
@@ -137,12 +133,13 @@ structure EdgeOrientation (G : SimpleGraph V) where
   tgt_mem : ∀ e : G.edgeSet, target e ∈ (e.val : Set V)
   src_ne_tgt : ∀ e : G.edgeSet, source e ≠ target e
 
-variable [Fintype G.edgeSet] [DecidableEq G.edgeSet]
+variable [Fintype G.edgeSet]
 
 /-- The signed vertex-edge incidence matrix $B \in M_{V \times E}(R)$ associated with an orientation. -/
 noncomputable def incidenceMatrix (ori : EdgeOrientation G) : Matrix V G.edgeSet R :=
   fun v e => if v = ori.source e then 1 else if v = ori.target e then -1 else 0
 
+omit [Fintype V] [DecidableEq V] [DecidableRel G.Adj] [Fintype G.edgeSet] in
 lemma edge_eq_sym2 (ori : EdgeOrientation G) (e : G.edgeSet) :
     e.val = s(ori.source e, ori.target e) := by
   have h_src : ori.source e ∈ (e.val : Set V) := ori.src_mem e
@@ -162,6 +159,7 @@ lemma edge_eq_sym2 (ori : EdgeOrientation G) (e : G.edgeSet) :
     · have : ori.source ⟨s(x, y), hs⟩ = ori.target ⟨s(x, y), hs⟩ := h1.trans h2.symm
       contradiction
 
+omit [Fintype V] [DecidableRel G.Adj] [Fintype G.edgeSet] in
 lemma incidenceMatrix_sq_apply (ori : EdgeOrientation G) (u : V) (e : G.edgeSet) :
     (incidenceMatrix G R ori u e) * (incidenceMatrix G R ori u e) =
       if u ∈ (e.val : Set V) then 1 else 0 := by
@@ -171,7 +169,7 @@ lemma incidenceMatrix_sq_apply (ori : EdgeOrientation G) (u : V) (e : G.edgeSet)
   by_cases h_src : u = ori.source e
   · subst h_src
     have h_mem : ori.source e ∈ (e.val : Set V) := ori.src_mem e
-    simp [h_mem, h_ne]
+    simp [h_mem]
   · by_cases h_tgt : u = ori.target e
     · subst h_tgt
       have h_mem : ori.target e ∈ (e.val : Set V) := ori.tgt_mem e
@@ -188,6 +186,7 @@ lemma incidenceMatrix_sq_apply (ori : EdgeOrientation G) (u : V) (e : G.edgeSet)
         · exact h_tgt rfl
       simp [h_src, h_tgt, h_not_mem]
 
+omit [Fintype V] [DecidableRel G.Adj] [Fintype G.edgeSet] in
 lemma incidenceMatrix_mul_apply_offdiag (ori : EdgeOrientation G) {u v : V} (hne : u ≠ v) (e : G.edgeSet) :
     (incidenceMatrix G R ori u e) * (incidenceMatrix G R ori v e) =
       if e.val = s(u, v) then -1 else 0 := by
@@ -198,12 +197,12 @@ lemma incidenceMatrix_mul_apply_offdiag (ori : EdgeOrientation G) {u v : V} (hne
   · obtain ⟨rfl, rfl⟩ := h1
     have he_val : e.val = s(ori.source e, ori.target e) := h_eq
     have : ori.target e ≠ ori.source e := h_ne.symm
-    simp [he_val, h_ne, this]
+    simp [he_val, this]
   · by_cases h2 : u = ori.target e ∧ v = ori.source e
     · obtain ⟨rfl, rfl⟩ := h2
       have he_val : e.val = s(ori.target e, ori.source e) := by rw [h_eq, Sym2.eq_swap]
       have : ori.target e ≠ ori.source e := h_ne.symm
-      simp [he_val, h_ne, this]
+      simp [he_val, this]
     · have h_not_e : e.val ≠ s(u, v) := by
         intro he_eq
         have h_sym2 : s(ori.source e, ori.target e) = s(u, v) := by rwa [← h_eq]
@@ -211,7 +210,7 @@ lemma incidenceMatrix_mul_apply_offdiag (ori : EdgeOrientation G) {u v : V} (hne
         rcases h_sym2 with (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩)
         · exact h1 ⟨rfl, rfl⟩
         · exact h2 ⟨rfl, rfl⟩
-      have : (if e.val = s(u, v) then (-1 : R) else 0) = 0 := if_neg h_not_e
+      have : (if e.val = s(u, v) then (-1 : R) else 0) = 0 := by simp [h_not_e]
       rw [this]
       by_cases hu_s : u = ori.source e
       · subst hu_s
@@ -263,7 +262,7 @@ theorem incidence_mul_transpose (ori : EdgeOrientation G)
         if e.val = s(u, v) then -1 else 0 := incidenceMatrix_mul_apply_offdiag G R ori heq
     simp_rw [h_terms]
     by_cases hadj : G.Adj u v
-    · rw [if_pos hadj]
+    · simp only [hadj, ↓reduceIte]
       have h_exists : ∃! e : G.edgeSet, e.val = s(u, v) := by
         refine ⟨⟨s(u, v), hadj⟩, rfl, ?_⟩
         intro ⟨s', hs'⟩ he'
@@ -274,7 +273,7 @@ theorem incidence_mul_transpose (ori : EdgeOrientation G)
       · intro e he
         have : e.val ≠ s(u, v) := fun h => he (huniq e h)
         simp [this]
-    · rw [if_neg hadj]
+    · simp only [hadj, ↓reduceIte]
       have h_empty : ∀ e : G.edgeSet, e.val ≠ s(u, v) := by
         intro e he_val
         have : s(u, v) ∈ G.edgeSet := by rw [← he_val]; exact e.property

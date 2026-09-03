@@ -4,8 +4,6 @@ import Mathlib.Combinatorics.SimpleGraph.DeleteEdges
 open scoped Finset
 open Classical
 
-set_option linter.unusedSectionVars false
-
 /-!
 # Menger's Theorem — Vertex Version
 
@@ -102,6 +100,7 @@ lemma maxDisjointPaths_mem (G : SimpleGraph V) (s t : V) (hne : s ≠ t) (h_not_
   obtain ⟨P, hP, hP_card⟩ := h_mem
   exact ⟨P, hP, hP_card⟩
 
+omit [Fintype V] in
 lemma isVertexSeparator_ofLe {G G' : SimpleGraph V} (h : G ≤ G') {s t : V} {S : Finset V}
     (hS : IsVertexSeparator G' s t S) : IsVertexSeparator G s t S := by
   refine ⟨hS.1, hS.2.1, ?_⟩
@@ -126,6 +125,7 @@ lemma minVertexSeparator_deleteEdges_le (G : SimpleGraph V) (e : Sym2 V) (s t : 
   rw [← hS_card]
   exact csInf_le h_bddBelow h_in_sub
 
+omit [Fintype V] in
 lemma isVertexSeparator_of_deleteEdges {G : SimpleGraph V} (e : Sym2 V) {s t : V} {S : Finset V}
     (hS : IsVertexSeparator (G.deleteEdges {e}) s t S)
     (h_hit : ∀ p : STPath G s t, (∃ i, ∃ hi : i + 1 < p.verts.length, Sym2.mk (p.verts.get ⟨i, by omega⟩) (p.verts.get ⟨i + 1, hi⟩) = e) → ∃ v ∈ S, v ∈ innerVertices p) :
@@ -183,6 +183,7 @@ lemma isVertexSeparator_neighborFinset (G : SimpleGraph V) (s t : V) (hne : s �
       subst hb_t
       exact h_not_adj hadj0_sb
 
+omit [Fintype V] in
 lemma isVertexSeparator_insert_u {G : SimpleGraph V} {s t u : V} {S : Finset V}
     (hne : s ≠ t) (h_not_adj : ¬ G.Adj s t) (hu : G.Adj s u)
     (hS : IsVertexSeparator (G.deleteEdges {Sym2.mk s u}) s t S) :
@@ -356,6 +357,7 @@ lemma isVertexSeparator_U_of_all_len2 (G : SimpleGraph V) (s t : V) (hne : s ≠
           exact h_not_adj h_su
         | cons d tl4 => simp at hlen
 
+omit [DecidableEq V] in
 lemma all_len2_of_incident (G : SimpleGraph V) (s t : V) (hne : s ≠ t) (h_not_adj : ¬ G.Adj s t)
     (h_incident : ∀ e ∈ G.edgeFinset, s ∈ e ∨ t ∈ e) :
     ∀ p : STPath G s t, p.verts.length = 3 := by

@@ -6,8 +6,6 @@ import Mathlib.RingTheory.Polynomial.Basic
 open Matrix Polynomial Finset
 open scoped Polynomial
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
 
 /-!
 # Characteristic Polynomial of Cyclic Shift and Weighted Cyclic Matrices

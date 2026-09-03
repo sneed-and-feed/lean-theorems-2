@@ -8,9 +8,6 @@ import Mathlib.Data.Finset.Card
 
 open Classical
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-
 /-!
 # Prüfer Invariants: Vertex Degrees, Neighborhoods, and Leaf Sets
 
@@ -26,14 +23,6 @@ theorem exists_adj_of_reachable_ne {V : Type*} {G : SimpleGraph V} {u w : V}
   induction p with
   | nil => contradiction
   | cons hadj p' _ => exact ⟨_, hadj⟩
-
-/-- The neighbors of vertex `v` among remaining vertices `S`. -/
-noncomputable def vertNeighbors (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v : Fin n) : Finset (Fin n) :=
-  S.filter (fun u => G.Adj v u)
-
-@[simp] lemma mem_vertNeighbors (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v u : Fin n) :
-    u ∈ vertNeighbors G S v ↔ u ∈ S ∧ G.Adj v u :=
-  Finset.mem_filter
 
 /-- The edges of graph G with both endpoints in S. -/
 noncomputable def edgesIn (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) : Finset (Sym2 (Fin n)) :=
@@ -58,16 +47,15 @@ lemma smallestLeaf_eq_some (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v : F
       ⟨v, by rw [Finset.mem_filter]; exact ⟨hv_mem, hv_card⟩⟩
     contradiction
 
-lemma leafNeighbor_eq_some (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v a : Fin n)
+lemma minNeighbor_eq_some (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v a : Fin n)
     (h_adj : vertNeighbors G S v = {a}) :
-    leafNeighbor G S v = some a := by
-  dsimp only [leafNeighbor]
+    minNeighbor G S v = some a := by
+  dsimp only [minNeighbor]
   split_ifs with h
-  · have : (S.filter (fun u => G.Adj v u)).min' h = a := by
+  · have : (vertNeighbors G S v).min' h = a := by
       have ha_mem : a ∈ vertNeighbors G S v := by rw [h_adj]; exact Finset.mem_singleton_self a
       refine le_antisymm (Finset.min'_le _ a ha_mem) ?_
       refine Finset.le_min' _ h a (fun u hu => ?_)
-      change u ∈ vertNeighbors G S v at hu
       rw [h_adj, Finset.mem_singleton] at hu
       subst hu
       rfl
@@ -76,6 +64,11 @@ lemma leafNeighbor_eq_some (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v a :
       rw [h_adj]
       exact Finset.singleton_nonempty a
     contradiction
+
+lemma leafNeighbor_eq_some (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v a : Fin n)
+    (h_adj : vertNeighbors G S v = {a}) :
+    leafNeighbor G S v = some a :=
+  minNeighbor_eq_some G S v a h_adj
 
 lemma edgesIn_erase_leaf (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v a : Fin n)
     (hv : v ∈ S) (ha : a ∈ S) (h_adj : S.filter (fun w => G.Adj v w) = {a}) :
@@ -201,10 +194,10 @@ lemma isTree_erase_leaf (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) (w : Fin 
     rw [degree_induce_eq_card_vertNeighbors G S w hwS, hw_deg]
   exact SimpleGraph.Connected.induce_compl_singleton_of_degree_eq_one h_tree.connected hdeg
 
-lemma smallestLeaf_leafNeighbor_of_isTree (T : LabeledTree n) (S : Finset (Fin n)) (hS : 2 ≤ S.card)
+lemma smallestLeaf_minNeighbor_of_isTree (T : LabeledTree n) (S : Finset (Fin n)) (hS : 2 ≤ S.card)
     (h_tree : (T.graph.induce (S : Set (Fin n))).IsTree) :
     ∃ (w a : Fin n), w ∈ S ∧ vertNeighbors T.graph S w = {a} ∧
-      smallestLeaf T.graph S = some w ∧ leafNeighbor T.graph S w = some a := by
+      smallestLeaf T.graph S = some w ∧ minNeighbor T.graph S w = some a := by
   have ⟨w0, hw0S, hw0_deg⟩ := isTree_has_leaf T S hS h_tree
   have h_leaves_ne : (S.filter (fun v => (vertNeighbors T.graph S v).card = 1)).Nonempty := by
     refine ⟨w0, ?_⟩
@@ -218,14 +211,18 @@ lemma smallestLeaf_leafNeighbor_of_isTree (T : LabeledTree n) (S : Finset (Fin n
   have hw_card : (vertNeighbors T.graph S w).card = 1 := hw_mem.2
   have h_sl : smallestLeaf T.graph S = some w := by
     dsimp [smallestLeaf]
-    change (if h : (S.filter (fun v => (vertNeighbors T.graph S v).card = 1)).Nonempty then
-      some ((S.filter (fun v => (vertNeighbors T.graph S v).card = 1)).min' h) else none) = some w
     split_ifs
     · rfl
   obtain ⟨a, ha⟩ := Finset.card_eq_one.mp hw_card
-  have h_ln : leafNeighbor T.graph S w = some a := by
-    exact leafNeighbor_eq_some T.graph S w a ha
+  have h_ln : minNeighbor T.graph S w = some a := by
+    exact minNeighbor_eq_some T.graph S w a ha
   exact ⟨w, a, hwS, ha, h_sl, h_ln⟩
+
+lemma smallestLeaf_leafNeighbor_of_isTree (T : LabeledTree n) (S : Finset (Fin n)) (hS : 2 ≤ S.card)
+    (h_tree : (T.graph.induce (S : Set (Fin n))).IsTree) :
+    ∃ (w a : Fin n), w ∈ S ∧ vertNeighbors T.graph S w = {a} ∧
+      smallestLeaf T.graph S = some w ∧ leafNeighbor T.graph S w = some a :=
+  smallestLeaf_minNeighbor_of_isTree T S hS h_tree
 
 lemma vertNeighbors_erase (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) (w a : Fin n) :
     vertNeighbors G (S.erase w) a = (vertNeighbors G S a).erase w := by
@@ -331,9 +328,8 @@ lemma smallestLeaf_eq_pruferLeaves_min (G : SimpleGraph (Fin n)) (S : Finset (Fi
     smallestLeaf G S = some ((pruferLeaves n S L).min' h_ne) := by
   intro h_ne
   dsimp [smallestLeaf]
-  have h_leaves : S.filter (fun v => (S.filter (fun u => G.Adj v u)).card = 1) = pruferLeaves n S L := by
-    change S.filter (fun v => (vertNeighbors G S v).card = 1) = pruferLeaves n S L
-    exact leaves_eq_pruferLeaves G S L h_deg
+  have h_leaves : S.filter (fun v => (vertNeighbors G S v).card = 1) = pruferLeaves n S L :=
+    leaves_eq_pruferLeaves G S L h_deg
   split_ifs with h_nonempty
   · congr 1
     exact min'_congr h_leaves h_nonempty h_ne

@@ -11,9 +11,6 @@ import Mathlib.Tactic.Linarith
 open scoped BigOperators
 open Classical
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-
 /-!
 # Cayley's Tree Formula
 
@@ -33,6 +30,14 @@ $$T_n = n^{n - 2}$$
 Prüfer (1918) established an explicit bijection between:
 1. Labeled trees on $n$ vertices $\{1, \dots, n\}$.
 2. Sequences $(a_1, a_2, \dots, a_{n-2}) \in \{1, \dots, n\}^{n-2}$ of length $n - 2$.
+
+## Computational Transparency
+
+The Prüfer equivalence `pruferEquiv` and its constituent encoding (`pruferCode`) and decoding (`pruferDecode`)
+algorithms are mathematically constructive (deterministic leaf-peeling and iterative edge reconstruction via `Finset.min'`),
+implemented with classical logic (`open Classical`, marked `noncomputable`), rather than runtime-computable functions.
+The cardinality results (`cayleys_tree_formula`, `cayley_n2`, `cayley_n3`, `cayley_n4`, `rooted_trees_count`)
+count finite types abstractly via `Fintype.card_congr`.
 
 ## Modular Architecture
 

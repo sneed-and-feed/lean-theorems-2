@@ -10,8 +10,6 @@ import Mathlib.Tactic.NormNum
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.Linarith
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
 
 open Nat Classical
 

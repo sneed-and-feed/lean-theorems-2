@@ -10,7 +10,6 @@ import Mathlib.Tactic.IntervalCases
 
 open Real
 
-set_option linter.unusedSectionVars false
 
 /-!
 # The Hoffman–Singleton Theorem (1960)

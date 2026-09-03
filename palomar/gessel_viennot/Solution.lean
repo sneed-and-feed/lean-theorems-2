@@ -10,7 +10,6 @@ import Mathlib.Tactic.Linarith
 
 open Equiv Equiv.Perm Matrix BigOperators Classical
 
-set_option linter.unusedSectionVars false
 
 /-!
 # Lindström–Gessel–Viennot Lemma (LGV Lemma)
@@ -21,7 +20,7 @@ structure DirectedPath (V : Type*) where
   verts : List V
   nonempty : verts ≠ []
 
-variable {n : ℕ} {R : Type*} [CommRing R] {V : Type*} [DecidableEq V] [Fintype (DirectedPath V)]
+variable {V : Type*}
 
 namespace DirectedPath
 
@@ -39,6 +38,8 @@ lemma disjoint_comm (P Q : DirectedPath V) : Disjoint P Q ↔ Disjoint Q P := by
   simp only [Disjoint, Intersects, and_comm]
 
 end DirectedPath
+
+variable {n : ℕ} {R : Type*} [CommRing R]
 
 abbrev PathSystem (A B : Fin n → V) (σ : Perm (Fin n)) :=
   ∀ i : Fin n, { P : DirectedPath V // P.start = A i ∧ P.target = B (σ i) }
@@ -71,6 +72,8 @@ def lgv_sign_reversing_involution_prop
     (∀ x, Φ x ≠ x) ∧
     (∀ x, (Equiv.Perm.sign (Φ x).1 : R) * (∏ i, w ((Φ x).2.val i).val) =
           - ((Equiv.Perm.sign x.1 : R) * (∏ i, w (x.2.val i).val)))
+
+variable [DecidableEq V] [Fintype (DirectedPath V)]
 
 theorem intersecting_path_systems_sum_zero
     (A B : Fin n → V)

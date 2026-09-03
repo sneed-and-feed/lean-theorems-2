@@ -10,9 +10,6 @@ import Mathlib.Data.Finset.Card
 
 open Classical
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-
 /-!
 # Prüfer Bijections: Encoding and Decoding Inverses
 
@@ -27,7 +24,8 @@ variable {n : ℕ}
 
 lemma vertNeighbors_congr (G1 G2 : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v : Fin n)
     (h_adj : ∀ x ∈ S, G1.Adj v x ↔ G2.Adj v x) :
-    S.filter (fun u => G1.Adj v u) = S.filter (fun u => G2.Adj v u) := by
+    vertNeighbors G1 S v = vertNeighbors G2 S v := by
+  dsimp [vertNeighbors]
   ext u; simp only [Finset.mem_filter]
   constructor
   · rintro ⟨hu, hadj⟩; exact ⟨hu, (h_adj u hu).mp hadj⟩
@@ -37,18 +35,24 @@ lemma smallestLeaf_congr (G1 G2 : SimpleGraph (Fin n)) (S : Finset (Fin n))
     (h_adj : ∀ x ∈ S, ∀ y ∈ S, G1.Adj x y ↔ G2.Adj x y) :
     smallestLeaf G1 S = smallestLeaf G2 S := by
   dsimp [smallestLeaf]
-  have h_leaves : S.filter (fun v => (S.filter (fun u => G1.Adj v u)).card = 1) =
-      S.filter (fun v => (S.filter (fun u => G2.Adj v u)).card = 1) := by
+  have h_leaves : S.filter (fun v => (vertNeighbors G1 S v).card = 1) =
+      S.filter (fun v => (vertNeighbors G2 S v).card = 1) := by
     apply Finset.filter_congr
     intro v hv
     rw [vertNeighbors_congr G1 G2 S v (h_adj v hv)]
   rw [h_leaves]
 
+lemma minNeighbor_congr (G1 G2 : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v : Fin n)
+    (h_adj : ∀ x ∈ S, G1.Adj v x ↔ G2.Adj v x) :
+    minNeighbor G1 S v = minNeighbor G2 S v := by
+  have h := vertNeighbors_congr G1 G2 S v h_adj
+  dsimp [minNeighbor]
+  rw [h]
+
 lemma leafNeighbor_congr (G1 G2 : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v : Fin n)
     (h_adj : ∀ x ∈ S, G1.Adj v x ↔ G2.Adj v x) :
-    leafNeighbor G1 S v = leafNeighbor G2 S v := by
-  dsimp [leafNeighbor]
-  rw [vertNeighbors_congr G1 G2 S v h_adj]
+    leafNeighbor G1 S v = leafNeighbor G2 S v :=
+  minNeighbor_congr G1 G2 S v h_adj
 
 lemma smallestLeaf_mem_S (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v : Fin n)
     (h : smallestLeaf G S = some v) : v ∈ S := by
@@ -70,7 +74,7 @@ lemma pruferPeelStep_congr (G1 G2 : SimpleGraph (Fin n)) (S : Finset (Fin n))
   | some v =>
     dsimp
     have hv_in := smallestLeaf_mem_S G2 S v h_case
-    have h_ln := leafNeighbor_congr G1 G2 S v (h_adj v hv_in)
+    have h_ln := minNeighbor_congr G1 G2 S v (h_adj v hv_in)
     rw [h_ln]
 
 lemma pruferPeelIter_congr (k : ℕ) :
@@ -238,7 +242,7 @@ lemma decodeEdges_degree_a_ge_two (a : Fin n) (rest : List (Fin n)) (S : Finset 
   exact h_le
 
 lemma decodeEdges_degree_ge_two_of_mem (L : List (Fin n)) :
-    ∀ (S : Finset (Fin n)) (hS : L.length + 2 = S.card) (hL : ∀ x ∈ L, x ∈ S) (u : Fin n) (hu : u ∈ L),
+    ∀ (S : Finset (Fin n)) (_hS : L.length + 2 = S.card) (_hL : ∀ x ∈ L, x ∈ S) (u : Fin n) (_hu : u ∈ L),
     2 ≤ (vertNeighbors (SimpleGraph.fromEdgeSet (decodeEdges n L S : Set (Sym2 (Fin n)))) S u).card := by
   induction L with
   | nil => intro S _ _ u hu; contradiction
@@ -306,13 +310,20 @@ lemma smallestLeaf_decodeEdges (a : Fin n) (rest : List (Fin n)) (S : Finset (Fi
     _ = 1 := hu_card
   omega
 
+lemma minNeighbor_decodeEdges (a : Fin n) (rest : List (Fin n)) (S : Finset (Fin n))
+    (hS : rest.length + 3 = S.card) (hL : ∀ x ∈ a :: rest, x ∈ S) :
+    let v := (pruferLeaves n S (a :: rest)).min' (pruferLeaves_nonempty (by simp; omega))
+    let G := SimpleGraph.fromEdgeSet (decodeEdges n (a :: rest) S : Set (Sym2 (Fin n)))
+    minNeighbor G S v = some a := by
+  intro v G
+  exact minNeighbor_eq_some G S v a (decodeEdges_adj_v a rest S hS hL)
+
 lemma leafNeighbor_decodeEdges (a : Fin n) (rest : List (Fin n)) (S : Finset (Fin n))
     (hS : rest.length + 3 = S.card) (hL : ∀ x ∈ a :: rest, x ∈ S) :
     let v := (pruferLeaves n S (a :: rest)).min' (pruferLeaves_nonempty (by simp; omega))
     let G := SimpleGraph.fromEdgeSet (decodeEdges n (a :: rest) S : Set (Sym2 (Fin n)))
-    leafNeighbor G S v = some a := by
-  intro v G
-  exact leafNeighbor_eq_some G S v a (decodeEdges_adj_v a rest S hS hL)
+    leafNeighbor G S v = some a :=
+  minNeighbor_decodeEdges a rest S hS hL
 
 lemma pruferPeelStep_decodeEdges (a : Fin n) (rest : List (Fin n)) (S : Finset (Fin n))
     (hS : rest.length + 3 = S.card) (hL : ∀ x ∈ a :: rest, x ∈ S) :
@@ -324,11 +335,11 @@ lemma pruferPeelStep_decodeEdges (a : Fin n) (rest : List (Fin n)) (S : Finset (
   have h_leaf : smallestLeaf G S = some v := smallestLeaf_decodeEdges a rest S hS hL
   rw [h_leaf]
   dsimp
-  have h_neighbor : leafNeighbor G S v = some a := leafNeighbor_decodeEdges a rest S hS hL
+  have h_neighbor : minNeighbor G S v = some a := minNeighbor_decodeEdges a rest S hS hL
   rw [h_neighbor]
 
 lemma pruferPeelIter_decodeEdges (L : List (Fin n)) :
-    ∀ (S : Finset (Fin n)) (hS : L.length + 2 = S.card) (hL : ∀ x ∈ L, x ∈ S),
+    ∀ (S : Finset (Fin n)) (_hS : L.length + 2 = S.card) (_hL : ∀ x ∈ L, x ∈ S),
     pruferPeelIter L.length (SimpleGraph.fromEdgeSet (decodeEdges n L S : Set (Sym2 (Fin n)))) S = L := by
   induction L with
   | nil => intro S _ _; rfl
@@ -408,7 +419,7 @@ theorem prufer_right_inv (hn : 2 ≤ n) (seq : PruferSequence n) :
 /-! ## Part 2: Left Inverse and Decoded Tree Reconstruction -/
 
 lemma pruferPeelStep_edge (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v a : Fin n)
-    (h_sl : smallestLeaf G S = some v) (h_ln : leafNeighbor G S v = some a) :
+    (h_sl : smallestLeaf G S = some v) (h_ln : minNeighbor G S v = some a) :
     s(v, a) ∈ edgesIn G S := by
   rw [mem_edgesIn]
   dsimp [smallestLeaf] at h_sl
@@ -416,16 +427,18 @@ lemma pruferPeelStep_edge (G : SimpleGraph (Fin n)) (S : Finset (Fin n)) (v a : 
   injection h_sl with hv_eq
   subst hv_eq
   have hv_mem := (Finset.mem_filter.mp (Finset.min'_mem _ hne)).1
-  dsimp [leafNeighbor] at h_ln
+  dsimp [minNeighbor] at h_ln
   split_ifs at h_ln with hne2
   injection h_ln with ha_eq
-  have ha_mem := (Finset.mem_filter.mp (Finset.min'_mem _ hne2)).1
-  have ha_adj := (Finset.mem_filter.mp (Finset.min'_mem _ hne2)).2
+  have ha_mem_adj := Finset.min'_mem _ hne2
+  rw [mem_vertNeighbors] at ha_mem_adj
   subst ha_eq
-  refine ⟨by rw [SimpleGraph.mem_edgeFinset]; exact ha_adj, ?_⟩
+  refine ⟨by rw [SimpleGraph.mem_edgeFinset]; exact ha_mem_adj.2, ?_⟩
   intro x hx
   simp only [Sym2.mem_iff] at hx
-  rcases hx with rfl | rfl <;> assumption
+  rcases hx with rfl | rfl
+  · exact hv_mem
+  · exact ha_mem_adj.1
 
 lemma decodeEdges_nil_sub_tree (T : LabeledTree n) (S : Finset (Fin n)) (hS : S.card = 2)
     (h_nonempty : (edgesIn T.graph S).Nonempty) :
@@ -438,7 +451,7 @@ lemma decodeEdges_nil_sub_tree (T : LabeledTree n) (S : Finset (Fin n)) (hS : S.
 
 lemma decodeEdges_cons_sub_tree (T : LabeledTree n) (m : ℕ)
     (S : Finset (Fin n)) (hS : m + 1 + 2 = S.card)
-    (w a : Fin n) (hw : smallestLeaf T.graph S = some w) (ha : leafNeighbor T.graph S w = some a)
+    (w a : Fin n) (hw : smallestLeaf T.graph S = some w) (ha : minNeighbor T.graph S w = some a)
     (h_step : pruferPeelStep T.graph S = (some a, S.erase w))
     (h_len : (pruferPeelIter m T.graph (S.erase w)).length = m)
     (ih : decodeEdges n (pruferPeelIter m T.graph (S.erase w)) (S.erase w) ⊆ T.graph.edgeFinset)
@@ -468,7 +481,7 @@ lemma decodeEdges_cons_sub_tree (T : LabeledTree n) (m : ℕ)
 def ValidPeelIter (T : LabeledTree n) : ℕ → Finset (Fin n) → Prop
   | 0, S => S.card = 2 ∧ (edgesIn T.graph S).Nonempty
   | m + 1, S =>
-    ∃ (hS : m + 1 + 2 = S.card) (w a : Fin n) (hw : smallestLeaf T.graph S = some w) (ha : leafNeighbor T.graph S w = some a),
+    ∃ (hS : m + 1 + 2 = S.card) (w a : Fin n) (hw : smallestLeaf T.graph S = some w) (ha : minNeighbor T.graph S w = some a),
       ∃ (h_len : (pruferPeelIter m T.graph (S.erase w)).length = m),
         (pruferLeaves n S (a :: pruferPeelIter m T.graph (S.erase w))).min'
           (pruferLeaves_nonempty (by rw [List.length_cons, h_len]; omega)) = w ∧
@@ -514,7 +527,7 @@ lemma validPeelIter_all (T : LabeledTree n) (k : ℕ) :
   | succ m ih =>
     intro S hS h_tree h_edges
     have hS_ge2 : 2 ≤ S.card := by omega
-    obtain ⟨w, a, hwS, hw_adj, hw, ha⟩ := smallestLeaf_leafNeighbor_of_isTree T S hS_ge2 h_tree
+    obtain ⟨w, a, hwS, hw_adj, hw, ha⟩ := smallestLeaf_minNeighbor_of_isTree T S hS_ge2 h_tree
     have h_step : pruferPeelStep T.graph S = (some a, S.erase w) := by
       dsimp [pruferPeelStep]
       rw [hw]
@@ -585,23 +598,19 @@ lemma pruferCode_list_eq (T : LabeledTree n)
     dsimp [pruferCode]
     simp only [h2, ↓reduceDIte]
 
-theorem prufer_left_inv_of_sub (hn : 2 ≤ n) (T : LabeledTree n)
-    (h_sub : (pruferDecode hn (pruferCode T)).graph.edgeFinset ⊆ T.graph.edgeFinset) :
-    pruferDecode hn (pruferCode T) = T := by
-  have h_tree1 := (pruferDecode hn (pruferCode T)).isTree
+theorem prufer_left_inv_of_sub (_hn : 2 ≤ n) (T : LabeledTree n)
+    (h_sub : (pruferDecode _hn (pruferCode T)).graph.edgeFinset ⊆ T.graph.edgeFinset) :
+    pruferDecode _hn (pruferCode T) = T := by
+  have h_tree1 := (pruferDecode _hn (pruferCode T)).isTree
   have h_tree2 := T.isTree
   have h_card1 := h_tree1.card_edgeFinset
   have h_card2 := h_tree2.card_edgeFinset
   have h_fin : Fintype.card (Fin n) = n := Fintype.card_fin n
   rw [h_fin] at h_card1 h_card2
-  have h_eq : (pruferDecode hn (pruferCode T)).graph.edgeFinset = T.graph.edgeFinset :=
+  have h_eq : (pruferDecode _hn (pruferCode T)).graph.edgeFinset = T.graph.edgeFinset :=
     Finset.eq_of_subset_of_card_le h_sub (by omega)
   apply LabeledTree.ext
-  have h1 : (pruferDecode hn (pruferCode T)).graph = SimpleGraph.fromEdgeSet ((pruferDecode hn (pruferCode T)).graph.edgeFinset : Set (Sym2 (Fin n))) := by
-    rw [SimpleGraph.coe_edgeFinset, SimpleGraph.fromEdgeSet_edgeSet]
-  have h2 : T.graph = SimpleGraph.fromEdgeSet (T.graph.edgeFinset : Set (Sym2 (Fin n))) := by
-    rw [SimpleGraph.coe_edgeFinset, SimpleGraph.fromEdgeSet_edgeSet]
-  rw [h1, h2, h_eq]
+  exact SimpleGraph.edgeFinset_inj.mp h_eq
 
 /-- Left inverse property: decoding the code of a tree recovers the original tree. -/
 theorem prufer_left_inv (hn : 2 ≤ n) (T : LabeledTree n) :

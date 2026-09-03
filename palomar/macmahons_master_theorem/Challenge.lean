@@ -16,7 +16,6 @@ import Mathlib.Tactic.Ring
 open scoped BigOperators Matrix
 open Classical
 
-set_option linter.unusedSectionVars false
 
 /-!
 # MacMahon's Master Theorem

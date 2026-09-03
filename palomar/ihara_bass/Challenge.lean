@@ -5,7 +5,6 @@ import Mathlib.Combinatorics.SimpleGraph.Dart
 import Mathlib.Combinatorics.SimpleGraph.AdjMatrix
 import Mathlib.Combinatorics.SimpleGraph.Finite
 
-set_option linter.unusedSectionVars false
 
 open Matrix
 open scoped Matrix

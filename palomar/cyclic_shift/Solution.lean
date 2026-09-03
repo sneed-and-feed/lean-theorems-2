@@ -6,8 +6,6 @@ import Mathlib.RingTheory.Polynomial.Basic
 open Matrix Polynomial Finset
 open scoped Polynomial
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
 
 variable {R : Type*} [CommRing R]
 
@@ -163,7 +161,7 @@ theorem charpoly_cyclicWeightMatrix :
         have h_equiv : (∏ k : ZMod 1, W k) = ∏ k : Fin 1, (W k : R) := rfl
         rw [h_equiv]
         exact Fin.prod_univ_one (fun k : Fin 1 => W k)
-      rw [if_pos h2, pow_one, h_prod]
+      rw [ite_eq_left h2, pow_one, h_prod]
       rfl
     | succ n =>
       have h_charpoly : (cyclicWeightMatrix W).charpoly = (Matrix.of fun (i j : Fin (n + 1 + 1)) => cyclicWeightMatrix W i j).charpoly := rfl

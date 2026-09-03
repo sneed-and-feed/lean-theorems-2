@@ -25,8 +25,6 @@ open scoped BigOperators ENNReal Pointwise
 open Classical
 open MeasureTheory
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
 
 /-!
 # Blichfeldt's Theorem in the Geometry of Numbers
@@ -155,6 +153,7 @@ theorem blichfeldts_theorem (d : ℕ) (k : ℕ) (hk : 1 ≤ k) (S : Set (Space d
       Function.Injective pts ∧
       (∀ i : Fin (k + 1), pts i ∈ S) ∧
       (∀ i j : Fin (k + 1), IsIntegerVector (pts i - pts j)) := by
+  have _ := hk
   let ob := EuclideanSpace.basisFun (Fin d) ℝ
   let b := ob.toBasis
   let L := (Submodule.span ℤ (Set.range ⇑b)).toAddSubgroup
@@ -273,6 +272,7 @@ theorem minkowski_convex_body_theorem (d : ℕ) (K : Set (Space d))
     (hK_meas : MeasurableSet K)
     (hK_vol : (2 : ℝ≥0∞) ^ d < MeasureTheory.volume K) :
     ∃ z : Space d, z ∈ K ∧ z ≠ 0 ∧ IsIntegerVector z := by
+  have _ := hK_meas
   let ob := EuclideanSpace.basisFun (Fin d) ℝ
   let b := ob.toBasis
   let L := (Submodule.span ℤ (Set.range ⇑b)).toAddSubgroup

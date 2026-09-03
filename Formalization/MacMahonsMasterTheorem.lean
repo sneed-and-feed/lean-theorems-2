@@ -16,7 +16,6 @@ import Mathlib.Tactic.Ring
 open scoped BigOperators Matrix
 open Classical
 
-set_option linter.unusedSectionVars false
 
 /-!
 # MacMahon's Master Theorem
@@ -381,7 +380,7 @@ theorem subset_support_of_indicator_le {K : Finset (Fin n)} {m : Fin n →₀ �
   rw [Finsupp.mem_support_iff]
   intro h0
   have h_le := hle i
-  rw [indicatorFinsupp_apply, if_pos hi, h0] at h_le
+  rw [indicatorFinsupp_apply, ite_eq_left hi, h0] at h_le
   exact Nat.not_succ_le_zero 0 h_le
 
 /--

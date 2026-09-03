@@ -13,9 +13,6 @@ import Mathlib.Topology.Order.Compact
 open scoped BigOperators RealInnerProductSpace
 open Classical
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-set_option linter.style.haveILetI false
 
 /-!
 # Jung's Theorem on Circumscribed Euclidean Spheres
@@ -112,6 +109,7 @@ variable {ι : Type*} [Fintype ι]
 def G (p : ι → E) (w : ι → ℝ) : ℝ :=
   ∑ i, ∑ j, w i * w j * ‖p i - p j‖ ^ 2
 
+omit [InnerProductSpace ℝ E] in
 lemma continuous_G (p : ι → E) : Continuous (G p) := by
   unfold G; continuity
 
@@ -147,6 +145,7 @@ lemma lagrange_dist_sq (p : ι → E) (w : ι → ℝ) (hw : ∑ i, w i = 1) :
   simp_rw [sum_dist_sq_eq p w hw, mul_add, Finset.sum_add_distrib, ← Finset.sum_mul, hw, one_mul]
   ring
 
+omit [InnerProductSpace ℝ E] in
 lemma G_perturb (p : ι → E) (w : ι → ℝ) (k : ι) (t : ℝ) :
     G p (fun i => (1 - t) * w i + t * (if i = k then 1 else 0)) =
       (1 - t) ^ 2 * G p w + 2 * t * (1 - t) * (∑ i, w i * ‖p i - p k‖ ^ 2) := by
@@ -240,12 +239,14 @@ lemma one_sub_one_div_card_le (m d : ℕ) (hm_pos : 0 < m) (hm_le : m ≤ d + 1)
     rw [sub_eq_iff_eq_add', ← add_div, add_comm 1 (d : ℝ), div_self (ne_of_gt (by positivity))]
   linarith
 
+omit [InnerProductSpace ℝ E] in
 lemma G_eq_sum_ne (p : ι → E) (w : ι → ℝ) :
     G p w = ∑ i, ∑ j, if i ≠ j then w i * w j * ‖p i - p j‖ ^ 2 else 0 := by
   rw [G]
   exact Finset.sum_congr rfl fun i _ => Finset.sum_congr rfl fun j _ => by
     by_cases h : i = j <;> simp [h]
 
+omit [InnerProductSpace ℝ E] in
 lemma G_le_diam_sq (p : ι → E) (w : ι → ℝ) (hw0 : ∀ i, 0 ≤ w i)
     {D : ℝ} (hD : ∀ i j, ‖p i - p j‖ ≤ D) :
     G p w ≤ D ^ 2 * ∑ i, ∑ j, if i ≠ j then w i * w j else 0 := by
@@ -318,7 +319,8 @@ theorem jungs_theorem_via_helly (d : ℕ) (S : Set (EuclideanSpace ℝ (Fin d)))
     (h_helly : ∀ (I : Finset S), I.card ≤ d + 1 →
       (⋂ (i : S) (_ : i ∈ I), Metric.closedBall i.val R).Nonempty) :
     ∃ c : EuclideanSpace ℝ (Fin d), IsEnclosingBall S c R := by
-  haveI : Nonempty S := hS_nonempty.to_subtype
+  have : Nonempty S := hS_nonempty.to_subtype
+  have _ := hR_nonneg
   obtain ⟨c, hc⟩ := Convex.helly_theorem_compact'
     (fun (i : S) => convex_closedBall i.val R)
     (fun (i : S) => ProperSpace.isCompact_closedBall i.val R)

@@ -10,9 +10,6 @@ import Mathlib.Algebra.Order.Ring.Defs
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-
 open PowerSeries
 
 /-!
@@ -74,8 +71,6 @@ noncomputable def Delta_Q : PowerSeries ℚ :=
 section ModForms
 
 variable (M_12 : Set (PowerSeries ℚ))
-variable (Delta_in_M_12 : Delta_Q ∈ M_12)
-variable (E_12_in_M_12 : E_12 ∈ M_12)
 
 theorem ramanujan_tau_congruence
     (F_exists : ∃ (F_int : PowerSeries ℤ),

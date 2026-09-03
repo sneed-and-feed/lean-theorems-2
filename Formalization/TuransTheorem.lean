@@ -9,9 +9,6 @@ import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Real.Basic
 import Mathlib.Tactic
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-set_option linter.style.haveILetI false
 
 open Finset SimpleGraph
 
@@ -64,6 +61,7 @@ def IsCliqueFree (G : SimpleGraph V) (k : ℕ) : Prop :=
 def IsTriangleFree (G : SimpleGraph V) : Prop :=
   IsCliqueFree G 3
 
+omit [Fintype V] [DecidableEq V] in
 /-- Bridge connecting `IsCliqueFree G k` to Mathlib's native `G.CliqueFree k`. -/
 lemma isCliqueFree_iff_cliqueFree (G : SimpleGraph V) (k : ℕ) :
     IsCliqueFree G k ↔ G.CliqueFree k := by
@@ -78,6 +76,7 @@ lemma isCliqueFree_iff_cliqueFree (G : SimpleGraph V) (k : ℕ) :
     have htc : G.IsClique (t : Set V) := hs.subset (Finset.coe_subset.mpr hts)
     exact h t ⟨htc, ht⟩
 
+omit [Fintype V] [DecidableEq V] in
 /-- Bridge connecting `IsTriangleFree G` to Mathlib's `G.CliqueFree 3`. -/
 lemma isTriangleFree_iff_cliqueFree (G : SimpleGraph V) :
     IsTriangleFree G ↔ G.CliqueFree 3 :=
@@ -211,6 +210,7 @@ lemma degree_add_degree_le_card_of_triangleFree (G : SimpleGraph V) [DecidableRe
     ← Finset.card_union_of_disjoint h_disj]
   exact Finset.card_le_univ _
 
+omit [DecidableEq V] in
 /-- **Mantel's Theorem (1907):**
     Every triangle-free simple graph on `n` vertices has at most `n^2 / 4` edges. -/
 theorem mantels_theorem (G : SimpleGraph V) [DecidableRel G.Adj]
@@ -230,6 +230,7 @@ theorem mantels_theorem (G : SimpleGraph V) [DecidableRel G.Adj]
 -- Section 4: Main Turán Theorem (1941)
 -- ============================================================================
 
+omit [DecidableEq V] in
 /-- **Turán's Theorem (Exact Discrete Edge Count):**
     `G.edgeFinset.card ≤ turanEdgeCount n r`. -/
 theorem turans_theorem_exact (G : SimpleGraph V) [DecidableRel G.Adj]
@@ -241,6 +242,7 @@ theorem turans_theorem_exact (G : SimpleGraph V) [DecidableRel G.Adj]
   rw [← turanEdgeCount_eq_turanNumber (Fintype.card V) r hr] at h_le
   exact h_le
 
+omit [DecidableEq V] in
 /-- **Turán's Theorem (1941):**
     Let `G` be a simple graph on `n` vertices with no complete subgraph of size `r + 1`.
     Then the number of edges in `G` is at most the continuous Turán bound `(1 - 1/r) n^2 / 2`. -/

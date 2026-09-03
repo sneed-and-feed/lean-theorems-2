@@ -4,10 +4,6 @@ import Mathlib.Data.Finset.Sort
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-set_option linter.style.haveILetI false
-
 open Finset SimpleGraph
 
 /-!
@@ -29,12 +25,14 @@ variable {V : Type*} [Fintype V] [DecidableEq V]
 def IsCompleteGraph (G : SimpleGraph V) : Prop :=
   ∀ u v : V, u ≠ v → G.Adj u v
 
+omit [Fintype V] [DecidableEq V] in
 lemma exists_not_adj_of_not_complete (G : SimpleGraph V) (h : ¬ IsCompleteGraph G) :
     ∃ u v : V, u ≠ v ∧ ¬ G.Adj u v := by
   dsimp [IsCompleteGraph] at h
   push Not at h
   exact h
 
+omit [DecidableEq V] in
 /-- Any graph on at most `k` vertices is `k`-colorable. -/
 lemma isKColorable_of_card_le (G : SimpleGraph V) (k : ℕ) (h : Fintype.card V ≤ k) :
     IsKColorable G k := by
@@ -75,7 +73,6 @@ lemma isKColorable_of_card_eq_succ_not_complete (G : SimpleGraph V) [DecidableRe
       Finset.card_erase_of_mem hv_mem
     omega
   let S_type := { x : V // x ∈ S }
-  haveI : Fintype S_type := Subtype.fintype (fun x => x ∈ S)
   have h_card_Stype : Fintype.card S_type = k - 1 := by
     rw [Fintype.card_coe, h_card_S]
   let e : S_type ≃ Fin (k - 1) := Fintype.equivFin S_type |>.trans (Fin.castOrderIso h_card_Stype).toEquiv
@@ -126,6 +123,7 @@ lemma isKColorable_of_card_eq_succ_not_complete (G : SimpleGraph V) [DecidableRe
     have : x = y := Subtype.ext_iff.mp h_sub_eq
     exact hxy_ne this
 
+omit [Fintype V] in
 /-- If two non-adjacent vertices $u, v$ are identified via the quotient map
     $\pi(x) = \text{if } x = v \text{ then } u \text{ else } x$, any proper coloring
     of the merged graph pulls back to a proper coloring of the original graph $G$. -/
@@ -156,6 +154,7 @@ lemma properColoring_of_pullback (G : SimpleGraph V) [DecidableRel G.Adj] {k : �
       exact False.elim (hadj.ne h_eq)
   exact hc (pi a) (pi b) h_pi_ne ⟨a, b, rfl, rfl, hadj⟩
 
+omit [Fintype V] in
 /-- A proper coloring of a complete graph must assign distinct colors to every vertex. -/
 lemma completeGraph_coloring_injective (G : SimpleGraph V) {k : ℕ} (h_comp : IsCompleteGraph G)
     (c : V → Fin k) (hc : IsProperColoring G c) : Function.Injective c := by

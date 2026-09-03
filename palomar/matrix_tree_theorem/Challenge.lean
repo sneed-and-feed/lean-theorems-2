@@ -12,11 +12,6 @@ import Mathlib.Tactic.Linarith
 open Matrix Classical
 open scoped BigOperators
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-set_option linter.unusedSimpArgs false
-set_option linter.deprecated false
-
 variable {V : Type*} [Fintype V] [DecidableEq V]
 variable (G : SimpleGraph V) [DecidableRel G.Adj]
 variable (R : Type*) [CommRing R]
@@ -35,7 +30,7 @@ structure EdgeOrientation (G : SimpleGraph V) where
   tgt_mem : ∀ e : G.edgeSet, target e ∈ (e.val : Set V)
   src_ne_tgt : ∀ e : G.edgeSet, source e ≠ target e
 
-variable [Fintype G.edgeSet] [DecidableEq G.edgeSet]
+variable [Fintype G.edgeSet]
 
 /-- The signed vertex-edge incidence matrix $B \in M_{V \times E}(R)$ associated with an orientation. -/
 noncomputable def incidenceMatrix (ori : EdgeOrientation G) : Matrix V G.edgeSet R :=

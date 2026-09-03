@@ -4,8 +4,6 @@ import Formalization.MengersTheorem.VertexMenger
 open scoped Finset
 open Classical
 
-set_option linter.unusedSectionVars false
-
 /-!
 # Whitney's Connectivity Theorem
 

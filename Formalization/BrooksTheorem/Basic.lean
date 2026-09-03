@@ -5,10 +5,6 @@ import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Finset.Card
 import Mathlib.Data.Fintype.Basic
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-set_option linter.style.haveILetI false
-
 open Finset SimpleGraph
 
 /-!
@@ -23,7 +19,10 @@ This module provides foundational definitions for the formalization of Brooks' T
 
 namespace BrooksTheorem
 
-variable {V : Type*} [Fintype V] [DecidableEq V]
+variable {V : Type*}
+
+section MaxDeg
+variable [Fintype V]
 
 /-- Maximum degree $\Delta(G)$ of a finite graph $G$. -/
 def maxDegree (G : SimpleGraph V) [DecidableRel G.Adj] : ℕ :=
@@ -32,6 +31,8 @@ def maxDegree (G : SimpleGraph V) [DecidableRel G.Adj] : ℕ :=
 lemma degree_le_maxDegree (G : SimpleGraph V) [DecidableRel G.Adj] (v : V) :
     G.degree v ≤ maxDegree G :=
   Finset.le_sup (f := fun u => G.degree u) (Finset.mem_univ v)
+
+end MaxDeg
 
 /-- Predicate asserting that coloring `c` is a proper vertex coloring of `G`. -/
 def IsProperColoring (G : SimpleGraph V) {k : ℕ} (c : V → Fin k) : Prop :=

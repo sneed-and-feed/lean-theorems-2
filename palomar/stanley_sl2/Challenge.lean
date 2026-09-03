@@ -11,8 +11,6 @@ import Mathlib.Tactic.Positivity
 
 open scoped BigOperators Finset
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
 
 /-!
 # Stanley's $\mathfrak{sl}_2$ Sperner Proof for Partition Poset $L(m, n)$

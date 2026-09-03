@@ -2,9 +2,6 @@ import Formalization.CayleysFormula.PruferEncode
 
 open Classical
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-
 /-!
 # Prüfer Decoding for Labeled Trees
 
@@ -19,6 +16,12 @@ Given a sequence $(a_1, \dots, a_{n-2}) \in \{1, \dots, n\}^{n-2}$:
 2. At the final step, connect the two remaining vertices.
 3. The resulting graph is shown to be connected and acyclic (a valid labeled tree).
 
+## Computational Transparency
+
+The decoding constructions (`decodeEdges`, `pruferDecodeEdgeFinset`, `pruferDecodeGraph`, `pruferDecode`)
+are mathematically constructive using classical finite-set choice (`noncomputable`), relying on
+`Finset.min'` for deterministic vertex selection, rather than executable/computable in Lean's runtime sense.
+
 ## Main Definitions & Theorems
 - `decodeEdges`: Inductive edge reconstruction algorithm.
 - `decodeEdges_nil`: Structural equation for base case (2 vertices remaining).
@@ -29,10 +32,13 @@ Given a sequence $(a_1, \dots, a_{n-2}) \in \{1, \dots, n\}^{n-2}$:
 - `decodeEdges_reachable`: All vertices in the available set are mutually reachable.
 - `natCard_finset_coe`: Natural cardinality of a finset coercion.
 - `natCard_edgeSet_fromEdgeSet`: Edge set cardinality of a graph constructed from edges.
+- `edgeFinset_fromEdgeSet`: Edge finset of a graph constructed from edges.
 - `pruferDecodeEdgeFinset`: Finset of edges decoded from a Prüfer sequence.
 - `pruferDecodeGraph`: Simple graph decoded from a Prüfer sequence.
+- `pruferDecodeGraph_edgeFinset`: Edge finset characterization of the decoded graph.
 - `pruferDecode_isTree`: Proof that `pruferDecodeGraph` is a valid tree.
 - `pruferDecode`: Function returning the decoded `LabeledTree`.
+- `pruferDecode_edgeFinset`: Edge finset equation for the decoded `LabeledTree`.
 -/
 
 variable {n : ℕ}
@@ -335,6 +341,15 @@ lemma natCard_edgeSet_fromEdgeSet {V : Type*} (s : Finset (Sym2 V)) (h : ∀ e �
     refine ⟨fun h1 => h1.1, fun h1 => ⟨h1, h e h1⟩⟩
   rw [Nat.card_congr (Equiv.setCongr h_set), natCard_finset_coe]
 
+/-- Finite edge set of a simple graph formed from a finset of edges without self-loops. -/
+lemma edgeFinset_fromEdgeSet {V : Type*} [Fintype V] [DecidableEq V]
+    (s : Finset (Sym2 V)) (h : ∀ e ∈ s, ¬Sym2.IsDiag e) :
+    (SimpleGraph.fromEdgeSet (s : Set (Sym2 V))).edgeFinset = s := by
+  ext e
+  rw [SimpleGraph.mem_edgeFinset, SimpleGraph.edgeSet_fromEdgeSet]
+  simp only [Set.mem_sdiff, Finset.mem_coe, Sym2.mem_diagSet]
+  exact ⟨fun h1 => h1.1, fun h1 => ⟨h1, h e h1⟩⟩
+
 /-- The edge set reconstructed from a Prüfer sequence. -/
 noncomputable def pruferDecodeEdgeFinset (n : ℕ) (_hn : 2 ≤ n) (seq : PruferSequence n) : Finset (Sym2 (Fin n)) :=
   let seq_list := (List.finRange (n - 2)).map (fun i => seq ⟨i.val, i.isLt⟩)
@@ -343,6 +358,23 @@ noncomputable def pruferDecodeEdgeFinset (n : ℕ) (_hn : 2 ≤ n) (seq : Prufer
 /-- Constructive simple graph reconstructed from a Prüfer sequence. -/
 noncomputable def pruferDecodeGraph (n : ℕ) (hn : 2 ≤ n) (seq : PruferSequence n) : SimpleGraph (Fin n) :=
   SimpleGraph.fromEdgeSet (pruferDecodeEdgeFinset n hn seq : Set (Sym2 (Fin n)))
+
+/-- The edge finset of `pruferDecodeGraph` coincides with `pruferDecodeEdgeFinset`. -/
+lemma pruferDecodeGraph_edgeFinset (n : ℕ) (hn : 2 ≤ n) (seq : PruferSequence n) :
+    (pruferDecodeGraph n hn seq).edgeFinset = pruferDecodeEdgeFinset n hn seq := by
+  have hS : ((List.finRange (n - 2)).map (fun i => seq ⟨i.val, i.isLt⟩)).length + 2 = (Finset.univ : Finset (Fin n)).card := by
+    simp; omega
+  have hL : ∀ x ∈ ((List.finRange (n - 2)).map (fun i => seq ⟨i.val, i.isLt⟩)), x ∈ (Finset.univ : Finset (Fin n)) := by simp
+  have h_nodiag := decodeEdges_nodiag hS hL
+  ext e
+  rw [SimpleGraph.mem_edgeFinset]
+  have h_eq : (pruferDecodeGraph n hn seq).edgeSet = (pruferDecodeEdgeFinset n hn seq : Set (Sym2 (Fin n))) := by
+    dsimp [pruferDecodeGraph]
+    rw [SimpleGraph.edgeSet_fromEdgeSet]
+    ext x
+    simp only [Set.mem_sdiff, Finset.mem_coe, Sym2.mem_diagSet]
+    exact ⟨fun h1 => h1.1, fun h1 => ⟨h1, h_nodiag x h1⟩⟩
+  rw [h_eq, Finset.mem_coe]
 
 /-- The reconstructed graph from a Prüfer sequence is a valid tree. -/
 theorem pruferDecode_isTree (n : ℕ) (hn : 2 ≤ n) (seq : PruferSequence n) : (pruferDecodeGraph n hn seq).IsTree := by
@@ -372,3 +404,8 @@ theorem pruferDecode_isTree (n : ℕ) (hn : 2 ≤ n) (seq : PruferSequence n) : 
 /-- Prüfer decoding algorithm: reconstructs a labeled tree from a Prüfer sequence. -/
 noncomputable def pruferDecode (hn : 2 ≤ n) (seq : PruferSequence n) : LabeledTree n :=
   ⟨pruferDecodeGraph n hn seq, (pruferDecode_isTree n hn seq).1, (pruferDecode_isTree n hn seq).2⟩
+
+/-- The edge finset of the decoded labeled tree equals `pruferDecodeEdgeFinset`. -/
+lemma pruferDecode_edgeFinset (hn : 2 ≤ n) (seq : PruferSequence n) :
+    (pruferDecode hn seq).graph.edgeFinset = pruferDecodeEdgeFinset n hn seq :=
+  pruferDecodeGraph_edgeFinset n hn seq

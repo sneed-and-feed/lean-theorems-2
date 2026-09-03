@@ -7,9 +7,6 @@ import Mathlib.Tactic.IntervalCases
 import Mathlib.Combinatorics.HalesJewett
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-set_option linter.style.haveILetI false
 
 open Finset
 

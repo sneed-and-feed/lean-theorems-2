@@ -7,9 +7,6 @@ import Mathlib.Tactic.IntervalCases
 import Mathlib.Combinatorics.HalesJewett
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-set_option linter.style.haveILetI false
 
 open Finset
 
@@ -77,8 +74,9 @@ def HasVDWProperty (W r k : ℕ) : Prop :=
 
 /-- Trivial base case: any coloring contains an AP of length 1 (a single point). -/
 theorem vdw_one (r : ℕ) (hr : 1 ≤ r) :
-    HasVDWProperty 1 r 1 :=
-  fun _ => ⟨0, 1, by omega, ⟨by omega, fun ⟨0, _⟩ => rfl⟩⟩
+    HasVDWProperty 1 r 1 := by
+  have _ := hr
+  exact fun _ => ⟨0, 1, by omega, ⟨by omega, fun ⟨0, _⟩ => rfl⟩⟩
 
 /-- Two-point base case (Pigeonhole Principle): W(r, 2) = r + 1. -/
 theorem vdw_two (r : ℕ) (hr : 1 ≤ r) :
@@ -103,6 +101,7 @@ theorem vdw_two (r : ℕ) (hr : 1 ≤ r) :
     `r`-coloring of `Fin W` contains a monochromatic arithmetic progression of length `k`. -/
 theorem van_der_waerden_finite (r k : ℕ) (hr : 1 ≤ r) (hk : 1 ≤ k) :
     ∃ W : ℕ, 0 < W ∧ HasVDWProperty W r k := by
+  have _ := hr
   classical
   obtain ⟨ι, _inst, hι⟩ := Combinatorics.Line.exists_mono_in_high_dimension (Fin k) (Fin r)
   set n := Fintype.card ι
@@ -149,6 +148,7 @@ theorem van_der_waerden_finite (r k : ℕ) (hr : 1 ≤ r) (hk : 1 ≤ k) :
     there exists a monochromatic arithmetic progression of length `k`. -/
 theorem van_der_waerden_infinite (r k : ℕ) (hr : 1 ≤ r) (hk : 1 ≤ k) (c : ℕ → Fin r) :
     ∃ (a d : ℕ), d > 0 ∧ ∀ i : Fin k, c (a + (i : ℕ) * d) = c a := by
+  have _ := hr
   obtain ⟨d, hd_pos, a, col, h⟩ := Combinatorics.exists_mono_homothetic_copy (Finset.range k) c
   have h_col : col = c a := by simpa using (h 0 (Finset.mem_range.mpr hk)).symm
   exact ⟨a, d, hd_pos, fun i => by simpa [h_col, nsmul_eq_mul, mul_comm, add_comm] using h i (Finset.mem_range.mpr i.isLt)⟩
@@ -170,6 +170,8 @@ lemma monochromatic_AP_of_color_focused_fan_max {r k : ℕ} (hr : 1 ≤ r) (hk :
     (c : ℕ → Fin r) (a : ℕ) (d : Fin r → ℕ)
     (hfan : IsColorFocusedFan c a d k) :
     ∃ j : Fin r, IsMonochromaticAP c a (d j) k := by
+  have _ := hr
+  have _ := hk
   obtain ⟨hd_pos, hd_inj, hd_focus⟩ := hfan
   obtain ⟨j, hj⟩ := (Finite.injective_iff_surjective.mp fun _ _ h =>
     not_not.mp fun hne => hd_inj _ _ hne h) (c a)

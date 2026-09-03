@@ -8,9 +8,6 @@ import Mathlib.Combinatorics.SetFamily.LYM
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-set_option linter.style.haveILetI false
 
 open Finset
 open scoped FinsetFamily
@@ -60,6 +57,7 @@ variable {α : Type*} [DecidableEq α] [Fintype α]
 def IsAntichain (A : Finset (Finset α)) : Prop :=
   ∀ s ∈ A, ∀ t ∈ A, s ⊆ t → s = t
 
+omit [DecidableEq α] in
 /-- A slice (uniform level) of subsets of fixed size `k` is always an antichain. -/
 lemma powersetCard_isAntichain (k : ℕ) :
     IsAntichain ((Finset.univ : Finset α).powersetCard k) :=
@@ -78,6 +76,7 @@ noncomputable def lymWeight (n : ℕ) (s : Finset α) : ℚ :=
 noncomputable def lymSum (n : ℕ) (A : Finset (Finset α)) : ℚ :=
   ∑ s ∈ A, lymWeight n s
 
+omit [DecidableEq α] in
 /-- **The LYM Inequality (Lubell 1966, Yamamoto 1954, Meshalkin 1963):**
     For any antichain `A` of subsets of an `n`-element set `α`, the sum of reciprocal
     binomial coefficients satisfies `∑_{s ∈ A} 1 / choose n |s| ≤ 1`. -/
@@ -98,7 +97,7 @@ def middleChoose (n : ℕ) : ℕ :=
   Nat.choose n (n / 2)
 
 /-- The middle binomial coefficient is maximal among all binomial coefficients `Nat.choose n k`. -/
-lemma choose_le_middleChoose (n k : ℕ) (hk : k ≤ n) :
+lemma choose_le_middleChoose (n k : ℕ) (_hk : k ≤ n) :
     Nat.choose n k ≤ middleChoose n :=
   Nat.choose_le_middle k n
 
@@ -129,8 +128,9 @@ lemma choose_lt_middleChoose_of_ne {n k : ℕ} (hk : k ≤ n)
   · rw [← Nat.choose_symm hk]
     exact choose_lt_middle_of_lt_half_left (by omega)
 
+omit [Fintype α] in
 lemma sdiff_erase_insert_eq {s t : Finset α} {x y : α}
-    (hx : x ∈ t) (hy : y ∉ t) :
+    (_hx : x ∈ t) (hy : y ∉ t) :
     t \ (insert x (s.erase y)) = (t \ s).erase x := by
   ext a
   simp only [mem_sdiff, mem_insert, mem_erase]
@@ -206,6 +206,7 @@ lemma card_eq_or_eq_of_card_eq_middleChoose {n : ℕ} (hn : Fintype.card α = n)
   have h_lym := lym_inequality hn A h_anti
   linarith
 
+omit [DecidableEq α] in
 /-- **Sperner's Theorem on Antichains (Sperner, 1928):**
     The maximum cardinality of an antichain of subsets of an `n`-element set is `Nat.choose n (n / 2)`. -/
 theorem sperners_antichain_theorem {n : ℕ} (hn : Fintype.card α = n)
@@ -248,6 +249,7 @@ lemma sperners_antichain_equality_even {n : ℕ} (hn : Fintype.card α = n)
   have h_or := card_eq_or_eq_of_card_eq_middleChoose hn A h_anti h_eq s hs
   omega
 
+omit [Fintype α] in
 /-- For an antichain `A`, the `m`-sized layer `Am` and the shadow `∂ B` of any `(m+1)`-sized
 subfamily `B ⊆ A` are disjoint. -/
 lemma shadow_disjoint_of_antichain (A : Finset (Finset α)) (h_anti : IsAntichain A)
@@ -411,7 +413,7 @@ lemma swap_closed_of_extremal_shadow {m : ℕ} (hn : Fintype.card α = 2 * m + 1
   exact insert_mem_of_degree_eq hn hB_sized (s.erase y) hu_card h_deg x (fun h => hx (mem_of_mem_erase h))
 
 /-- An extremal antichain cannot simultaneously contain elements of size `m` and size `m + 1`. -/
-lemma no_mixed_middle_layers {m : ℕ} (hn : Fintype.card α = 2 * m + 1) (hm : m ≠ 0)
+lemma no_mixed_middle_layers {m : ℕ} (hn : Fintype.card α = 2 * m + 1) (_hm : m ≠ 0)
     (A : Finset (Finset α)) (h_anti : IsAntichain A)
     (h_eq : A.card = middleChoose (2 * m + 1))
     {s t : Finset α} (hs : s ∈ A) (hs_card : s.card = m)

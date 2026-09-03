@@ -9,9 +9,6 @@ import Mathlib.Tactic.Linarith
 open scoped BigOperators
 open Classical
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
-
 /-!
 # Cayley's Tree Formula
 

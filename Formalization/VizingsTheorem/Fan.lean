@@ -3,10 +3,6 @@ import Formalization.VizingsTheorem.Bipartite
 open scoped BigOperators
 open Classical
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedSimpArgs false
-set_option linter.unusedVariables false
-
 /-!
 # Vizing's Fan Lemma and Coloring Extensions
 
@@ -27,14 +23,14 @@ lemma exists_extended_of_fan (u : V) :
     ∀ (n : ℕ) (vs : List V) (cols : List (Fin k)) (c : PartialEdgeColoring G k)
       (hlen_vs : vs.length = n + 1)
       (hlen : cols.length = vs.length)
-      (hnodup : vs.Nodup)
+      (_hnodup : vs.Nodup)
       (hadj : ∀ v ∈ vs, G.Adj u v)
-      (hnone : ∀ (hne : vs ≠ []), c.colorOf u (vs.head hne) (hadj _ (List.head_mem hne)) = none)
-      (hstep : ∀ (i : ℕ) (hi : i + 1 < vs.length),
+      (_hnone : ∀ (hne : vs ≠ []), c.colorOf u (vs.head hne) (hadj _ (List.head_mem hne)) = none)
+      (_hstep : ∀ (i : ℕ) (hi : i + 1 < vs.length),
         c.colorOf u vs[i + 1] (hadj _ (List.getElem_mem _)) = some cols[i])
-      (hmiss : ∀ (i : ℕ) (hi : i < vs.length),
+      (_hmiss : ∀ (i : ℕ) (hi : i < vs.length),
         cols[i] ∈ c.missingColors vs[i])
-      (hend : ∀ (hne : cols ≠ []), cols.getLast hne ∈ c.missingColors u),
+      (_hend : ∀ (hne : cols ≠ []), cols.getLast hne ∈ c.missingColors u),
       ∃ c' : PartialEdgeColoring G k, c'.uncoloredEdges.card < c.uncoloredEdges.card := by
   intro n
   induction n with
@@ -160,12 +156,12 @@ lemma exists_extended_of_fan_cycle (u : V) (n : ℕ) (vs : List V) (cols : List 
       have h_col_orig := hstep i hi
       by_cases heq_ij : i = j
       · subst heq_ij
-        have : cols'[i] = α := by simp [cols', List.getElem_set]
+        have : cols'[i] = α := by simp [cols']
         rw [this]
         exact kempeSwap_colorOf_alpha c α β u vs[i + 1] (hadj _ (List.getElem_mem _)) h_col_orig
       · have : cols'[i] = cols[i] := by
           have : j ≠ i := fun h => heq_ij h.symm
-          simp [cols', List.getElem_set, this]
+          simp [cols', this]
         rw [this]
         exact kempeSwap_colorOf_of_ne c α β (cols[i]) u u vs[i + 1] (hadj _ (List.getElem_mem _))
           (h_col_ne_α i hi_lt_n) (h_diff i hi_lt_n heq_ij) h_col_orig
@@ -173,7 +169,7 @@ lemma exists_extended_of_fan_cycle (u : V) (n : ℕ) (vs : List V) (cols : List 
       intro i hi
       by_cases heq_ij : i = j
       · subst heq_ij
-        have : cols'[i] = α := by simp [cols', List.getElem_set]
+        have : cols'[i] = α := by simp [cols']
         rw [this]; exact hmiss_j_swap
       · by_cases heq_in : i = n
         · have : cols'[i] = β := by
@@ -187,7 +183,7 @@ lemma exists_extended_of_fan_cycle (u : V) (n : ℕ) (vs : List V) (cols : List 
         · have hi_lt_n : i < n := by rw [hlen_vs] at hi; omega
           have : cols'[i] = cols[i] := by
             have : j ≠ i := fun h => heq_ij h.symm
-            simp [cols', List.getElem_set, this]
+            simp [cols', this]
           rw [this]
           exact kempeSwap_missing_of_ne c α β (cols[i]) u vs[i] (h_col_ne_α i hi_lt_n) (h_diff i hi_lt_n heq_ij) (hmiss i (by rw [hlen_vs]; omega))
     have hend_swap : ∀ (hne : cols' ≠ []), cols'.getLast hne ∈ c_swap.missingColors u := by

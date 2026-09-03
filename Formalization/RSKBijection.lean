@@ -12,8 +12,6 @@ import Mathlib.Tactic.Ring
 open scoped BigOperators
 open Classical
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
 
 /-!
 # Robinson–Schensted–Knuth (RSK) Bijection

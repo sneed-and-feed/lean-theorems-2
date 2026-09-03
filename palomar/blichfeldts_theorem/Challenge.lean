@@ -16,7 +16,6 @@ import Mathlib.Tactic.Linarith
 open scoped BigOperators ENNReal
 open Classical
 
-set_option linter.unusedSectionVars false
 
 /-!
 # Blichfeldt's Theorem in the Geometry of Numbers

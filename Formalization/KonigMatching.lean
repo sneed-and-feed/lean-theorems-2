@@ -13,7 +13,6 @@ import Mathlib.Tactic.Ring
 open scoped BigOperators
 open Classical
 
-set_option linter.unusedSectionVars false
 
 /-!
 # Kőnig–Egerváry Duality Theorem
@@ -103,10 +102,12 @@ one endpoint in $C$. -/
 def IsVertexCover (G : SimpleGraph V) (C : Finset V) : Prop :=
   ∀ u v : V, G.Adj u v → u ∈ C ∨ v ∈ C
 
+omit [Fintype V] [DecidableEq V] in
 /-- The empty edge set is always a valid matching. -/
 theorem isMatching_empty (G : SimpleGraph V) : IsMatching G ∅ :=
   ⟨by simp, by simp⟩
 
+omit [DecidableEq V] in
 /-- The full vertex set is always a valid vertex cover. -/
 theorem isVertexCover_univ (G : SimpleGraph V) : IsVertexCover G Finset.univ :=
   fun _ _ _ => Or.inl (Finset.mem_univ _)
@@ -123,6 +124,7 @@ noncomputable def vertexCoverNumber (G : SimpleGraph V) : ℕ :=
 def IsIndependentSet (G : SimpleGraph V) (S : Finset V) : Prop :=
   ∀ u ∈ S, ∀ v ∈ S, ¬ G.Adj u v
 
+omit [Fintype V] [DecidableEq V] in
 /-- The empty vertex set is always an independent set. -/
 theorem isIndependentSet_empty (G : SimpleGraph V) : IsIndependentSet G ∅ := by
   simp [IsIndependentSet]
@@ -142,6 +144,7 @@ theorem isIndependentSet_iff_isVertexCover_compl (G : SimpleGraph V) (S : Finset
   · intro h u hu v hv hadj
     rcases h u v hadj with hu' | hv' <;> contradiction
 
+omit [Fintype V] in
 /--
 **Weak Duality for Matchings and Vertex Covers**:
 Any matching $M$ and any vertex cover $C$ satisfy $|M| \le |C|$, since each vertex in $C$

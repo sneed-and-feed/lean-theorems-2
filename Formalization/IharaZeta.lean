@@ -26,7 +26,6 @@ for finite regular graphs.
 
 open Polynomial Matrix
 
-set_option linter.unusedSectionVars false
 
 variable {V : Type*} [Fintype V] [DecidableEq V]
 variable (G : SimpleGraph V) [DecidableRel G.Adj]
@@ -56,7 +55,7 @@ lemma sourceMatrix_mul_targetMatrix_transpose :
     by_cases h1 : u = x.fst <;> by_cases h2 : v = x.snd <;> simp [h1, h2]
   rw [h_sum]
   by_cases h : G.Adj u v
-  · rw [if_pos h]
+  · rw [ite_eq_left h]
     have h_eq : (∑ x : G.Dart, if u = x.fst ∧ v = x.snd then (1 : R) else 0) =
                 ∑ x : G.Dart, if x = SimpleGraph.Dart.mk (u, v) h then (1 : R) else 0 := by
       apply Finset.sum_congr rfl
@@ -75,10 +74,10 @@ lemma sourceMatrix_mul_targetMatrix_transpose :
     rw [Finset.sum_eq_single (SimpleGraph.Dart.mk (u, v) h)]
     · simp
     · intro b _ hb
-      rw [if_neg hb]
+      rw [ite_eq_right hb]
     · intro h'
       simp at h'
-  · rw [if_neg h]
+  · rw [ite_eq_right h]
     apply Finset.sum_eq_zero
     intro x _
     have h_false : ¬(u = x.fst ∧ v = x.snd) := by
@@ -86,7 +85,7 @@ lemma sourceMatrix_mul_targetMatrix_transpose :
       have hadj := x.adj
       rw [←h1, ←h2] at hadj
       exact h hadj
-    rw [if_neg h_false]
+    rw [ite_eq_right h_false]
 
 lemma sourceMatrix_mul_sourceMatrix_transpose :
     Dart.sourceMatrix G R * (Dart.sourceMatrix G R).transpose = Matrix.diagonal (fun v => (G.degree v : R)) := by
@@ -99,7 +98,7 @@ lemma sourceMatrix_mul_sourceMatrix_transpose :
     by_cases h1 : u = x.fst <;> by_cases h2 : v = x.fst <;> simp [h1, h2]
   rw [h_sum]
   by_cases h : u = v
-  · rw [if_pos h]
+  · rw [ite_eq_left h]
     have h_eq : (∑ x : G.Dart, if u = x.fst ∧ v = x.fst then (1 : R) else 0) =
                 ∑ x : G.Dart, if u = x.fst then (1 : R) else 0 := by
       apply Finset.sum_congr rfl
@@ -133,14 +132,14 @@ lemma sourceMatrix_mul_sourceMatrix_transpose :
     have h4 : Fintype.card (G.neighborSet u) = G.degree u :=
       SimpleGraph.card_neighborSet_eq_degree G u
     rw [h4]
-  · rw [if_neg h]
+  · rw [ite_eq_right h]
     apply Finset.sum_eq_zero
     intro x _
     have h_false : ¬(u = x.fst ∧ v = x.fst) := by
       intro ⟨h1, h2⟩
       rw [h1, ←h2] at h
       exact h rfl
-    rw [if_neg h_false]
+    rw [ite_eq_right h_false]
 
 lemma targetMatrix_mul_targetMatrix_transpose :
     Dart.targetMatrix G R * (Dart.targetMatrix G R).transpose = Matrix.diagonal (fun v => (G.degree v : R)) := by
@@ -153,7 +152,7 @@ lemma targetMatrix_mul_targetMatrix_transpose :
     by_cases h1 : u = x.snd <;> by_cases h2 : v = x.snd <;> simp [h1, h2]
   rw [h_sum]
   by_cases h : u = v
-  · rw [if_pos h]
+  · rw [ite_eq_left h]
     have h_eq : (∑ x : G.Dart, if u = x.snd ∧ v = x.snd then (1 : R) else 0) =
                 ∑ x : G.Dart, if u = x.snd then (1 : R) else 0 := by
       apply Finset.sum_congr rfl
@@ -187,15 +186,16 @@ lemma targetMatrix_mul_targetMatrix_transpose :
     have h4 : Fintype.card (G.neighborSet u) = G.degree u :=
       SimpleGraph.card_neighborSet_eq_degree G u
     rw [h4]
-  · rw [if_neg h]
+  · rw [ite_eq_right h]
     apply Finset.sum_eq_zero
     intro x _
     have h_false : ¬(u = x.snd ∧ v = x.snd) := by
       intro ⟨h1, h2⟩
       rw [h1, ←h2] at h
       exact h rfl
-    rw [if_neg h_false]
+    rw [ite_eq_right h_false]
 
+omit [DecidableRel G.Adj] in
 lemma targetMatrix_transpose_mul_sourceMatrix :
     (Dart.targetMatrix G R).transpose * Dart.sourceMatrix G R = HashimotoMatrix G R + Dart.involutionMatrix G R := by
   ext u v
@@ -203,56 +203,56 @@ lemma targetMatrix_transpose_mul_sourceMatrix :
   have h_sum : (∑ x : V, (if x = u.snd then (1 : R) else 0) * (if x = v.fst then (1 : R) else 0)) =
                if u.snd = v.fst then (1 : R) else 0 := by
     by_cases hh : u.snd = v.fst
-    · rw [if_pos hh]
+    · rw [ite_eq_left hh]
       have h_eq2 : (∑ x : V, (if x = u.snd then (1 : R) else 0) * if x = v.fst then 1 else 0) = ∑ x : V, if x = u.snd then (1 : R) else 0 := by
         apply Finset.sum_congr rfl
         intro x _
         by_cases hx : x = u.snd
-        · rw [if_pos hx]
+        · rw [ite_eq_left hx]
           have h_x_v : x = v.fst := by rw [hx, hh]
-          rw [if_pos h_x_v, mul_one]
-        · rw [if_neg hx, zero_mul]
+          rw [ite_eq_left h_x_v, mul_one]
+        · rw [ite_eq_right hx, zero_mul]
       rw [h_eq2]
       rw [Finset.sum_eq_single u.snd]
       · simp
       · intro b _ hb
-        rw [if_neg hb]
+        rw [ite_eq_right hb]
       · intro h_not_in
         exfalso
         exact h_not_in (Finset.mem_univ _)
-    · rw [if_neg hh]
+    · rw [ite_eq_right hh]
       apply Finset.sum_eq_zero
       intro x _
       by_cases hx : x = u.snd
-      · rw [if_pos hx]
+      · rw [ite_eq_left hx]
         have h_x_v : x ≠ v.fst := by
           intro h_v
           rw [hx] at h_v
           exact hh h_v
-        rw [if_neg h_x_v, mul_zero]
-      · rw [if_neg hx, zero_mul]
+        rw [ite_eq_right h_x_v, mul_zero]
+      · rw [ite_eq_right hx, zero_mul]
   rw [h_sum]
   by_cases h1 : u.snd = v.fst
-  · rw [if_pos h1]
+  · rw [ite_eq_left h1]
     by_cases h2 : v = u.symm
     · have h_not : ¬(u.snd = v.fst ∧ v ≠ u.symm) := by
         intro ⟨_, h_neq⟩
         exact h_neq h2
-      rw [if_neg h_not, if_pos h2, zero_add]
+      rw [ite_eq_right h_not, ite_eq_left h2, zero_add]
     · have h_and : u.snd = v.fst ∧ v ≠ u.symm := ⟨h1, h2⟩
-      rw [if_pos h_and, if_neg h2, add_zero]
-  · rw [if_neg h1]
+      rw [ite_eq_left h_and, ite_eq_right h2, add_zero]
+  · rw [ite_eq_right h1]
     have h_not : ¬(u.snd = v.fst ∧ v ≠ u.symm) := by
       intro ⟨h_a, _⟩
       exact h1 h_a
-    rw [if_neg h_not]
+    rw [ite_eq_right h_not]
     have h_not2 : ¬(v = u.symm) := by
       intro h_v
       rw [h_v] at h1
       have h3 : u.symm.fst = u.snd := rfl
       rw [h3] at h1
       exact h1 rfl
-    rw [if_neg h_not2, zero_add]
+    rw [ite_eq_right h_not2, zero_add]
 
 lemma involutionMatrix_mul_targetMatrix_transpose :
     Dart.involutionMatrix G R * (Dart.targetMatrix G R).transpose = (Dart.sourceMatrix G R).transpose := by
@@ -262,10 +262,10 @@ lemma involutionMatrix_mul_targetMatrix_transpose :
                if v = u.symm.snd then (1 : R) else 0 := by
     rw [Finset.sum_eq_single u.symm]
     · by_cases h : v = u.symm.snd
-      · rw [if_pos rfl, if_pos h, mul_one]
-      · rw [if_pos rfl, if_neg h, mul_zero]
+      · rw [ite_eq_left rfl, ite_eq_left h, mul_one]
+      · rw [ite_eq_left rfl, ite_eq_right h, mul_zero]
     · intro b _ hb
-      rw [if_neg hb, zero_mul]
+      rw [ite_eq_right hb, zero_mul]
     · intro h_not_in
       exfalso
       exact h_not_in (Finset.mem_univ _)
@@ -284,7 +284,7 @@ lemma sourceMatrix_mul_involutionMatrix :
     by_cases h1 : u = x.fst <;> by_cases h2 : v = x.symm <;> simp [h1, h2]
   rw [h_sum]
   by_cases h : u = v.snd
-  · rw [if_pos h]
+  · rw [ite_eq_left h]
     have h_eq : (∑ x : G.Dart, if u = x.fst ∧ v = x.symm then (1 : R) else 0) =
                 ∑ x : G.Dart, if x = v.symm then (1 : R) else 0 := by
       apply Finset.sum_congr rfl
@@ -303,10 +303,10 @@ lemma sourceMatrix_mul_involutionMatrix :
     rw [Finset.sum_eq_single v.symm]
     · simp
     · intro b _ hb
-      rw [if_neg hb]
+      rw [ite_eq_right hb]
     · intro h'
       simp at h'
-  · rw [if_neg h]
+  · rw [ite_eq_right h]
     apply Finset.sum_eq_zero
     intro x _
     have h_false : ¬(u = x.fst ∧ v = x.symm) := by
@@ -316,7 +316,7 @@ lemma sourceMatrix_mul_involutionMatrix :
       rw [←h2] at h4
       rw [←h4] at h
       exact h h1
-    rw [if_neg h_false]
+    rw [ite_eq_right h_false]
 
 lemma involutionMatrix_sq :
     Dart.involutionMatrix G R * Dart.involutionMatrix G R = 1 := by
@@ -329,7 +329,7 @@ lemma involutionMatrix_sq :
     by_cases h1 : x = d1.symm <;> by_cases h2 : d2 = x.symm <;> simp [h1, h2]
   rw [h_sum]
   by_cases h : d1 = d2
-  · rw [if_pos h]
+  · rw [ite_eq_left h]
     have h_eq : (∑ x : G.Dart, if x = d1.symm ∧ d2 = x.symm then (1 : R) else 0) =
                 ∑ x : G.Dart, if x = d1.symm then (1 : R) else 0 := by
       apply Finset.sum_congr rfl
@@ -346,10 +346,10 @@ lemma involutionMatrix_sq :
     rw [Finset.sum_eq_single d1.symm]
     · simp
     · intro b _ hb
-      rw [if_neg hb]
+      rw [ite_eq_right hb]
     · intro h'
       simp at h'
-  · rw [if_neg h]
+  · rw [ite_eq_right h]
     apply Finset.sum_eq_zero
     intro x _
     have h_false : ¬(x = d1.symm ∧ d2 = x.symm) := by
@@ -357,7 +357,7 @@ lemma involutionMatrix_sq :
       rw [h1] at h2
       rw [SimpleGraph.Dart.symm_symm] at h2
       exact h h2.symm
-    rw [if_neg h_false]
+    rw [ite_eq_right h_false]
 
 noncomputable def IharaZetaInvLHS : R[X] :=
   let u := (X : R[X])

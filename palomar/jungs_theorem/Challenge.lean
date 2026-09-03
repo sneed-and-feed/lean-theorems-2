@@ -11,8 +11,6 @@ import Mathlib.Tactic.Ring
 open scoped BigOperators
 open Classical
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedVariables false
 
 /-!
 # Jung's Theorem on Circumscribed Euclidean Spheres
