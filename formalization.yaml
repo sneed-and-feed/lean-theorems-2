@@ -26,6 +26,9 @@ sources:
     authors:
       - "Alan J. Hoffman"
       - "Robert R. Singleton"
+    year: 1960
+    venue: "IBM Journal of Research and Development, 4(5), 497–504"
+    doi: "https://doi.org/10.1147/rd.45.0497"
     relationship: formalizes
 
 related_formalizations: []
