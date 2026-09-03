@@ -23,10 +23,10 @@ This repository provides machine-checked formalizations, certified proofs, and f
 | 13 | **Lindström–Gessel–Viennot (LGV) Lemma** | [`lindstrom_gessel_viennot`](Formalization/GesselViennot.lean), [`gessel_viennot_planar_dag`](Formalization/GesselViennot.lean), [`det_pathMatrix_eq_permutation_sum`](Formalization/GesselViennot.lean), [`intersecting_path_systems_sum_zero`](Formalization/GesselViennot.lean) | Algebraic Combinatorics & Lattice Paths | Lindström (1973), Gessel & Viennot (1985) | **100% Verified (0 axioms)** |
 | 14 | **Cayley's Tree Formula & Prüfer Sequences** | [`cayleys_tree_formula`](Formalization/CayleysFormula.lean), [`prufer_sequence_card`](Formalization/CayleysFormula.lean), [`pruferEquiv`](Formalization/CayleysFormula.lean), [`pruferCode`](Formalization/CayleysFormula.lean), [`pruferDecode`](Formalization/CayleysFormula.lean) | Enumerative Combinatorics & Graph Enumeration | Cayley (1889), Prüfer (1918) | **100% Verified (0 axioms) — Modular Package (`Formalization/CayleysFormula/`)** |
 | 15 | **Kőnig–Egerváry Duality Theorem** | [`konig_duality`](Formalization/KonigMatching.lean), [`weak_duality`](Formalization/KonigMatching.lean), [`matching_card_le_vertexCover_card`](Formalization/KonigMatching.lean), [`gallai_independence_vertex_cover`](Formalization/KonigMatching.lean), [`konig_independence_matching`](Formalization/KonigMatching.lean) | Combinatorial Optimization & Polyhedral Graphs | Kőnig (1931), Egerváry (1931), Gallai (1959) | **100% Verified (0 axioms)** |
-| 16 | **Jung's Theorem on Circumscribed Spheres** | [`jungs_theorem`](Formalization/JungsTheorem.lean), [`jungs_theorem_via_helly`](Formalization/JungsTheorem.lean), [`circumradius_le_jungs_bound`](Formalization/JungsTheorem.lean), [`jungsConstant_pos`](Formalization/JungsTheorem.lean) | Discrete Geometry & Convexity | Jung (1901), Danzer, Grünbaum, & Klee (1963) | Scaffolded (Helly reduction `jungs_theorem_via_helly` verified; reduces to simplex case) |
+| 16 | **Jung's Theorem on Circumscribed Spheres** | [`jungs_theorem`](Formalization/JungsTheorem.lean), [`jungs_theorem_via_helly`](Formalization/JungsTheorem.lean), [`circumradius_le_jungs_bound`](Formalization/JungsTheorem.lean), [`jungsConstant_pos`](Formalization/JungsTheorem.lean) | Discrete Geometry & Convexity | Jung (1901), Danzer, Grünbaum, & Klee (1963) | **100% Verified (0 axioms)** |
 | 18 | **Menger's Theorem on Disjoint Paths & Cuts** | [`menger_vertex`](Formalization/MengersTheorem.lean), [`menger_edge`](Formalization/MengersTheorem.lean), [`menger_whitney`](Formalization/MengersTheorem.lean), [`weak_duality`](Formalization/MengersTheorem/Basic.lean) | Graph Connectivity & Network Optimization | Menger (1927), Whitney (1932), Dirac (1966) | **100% Verified (0 axioms) — Modular Package (`Formalization/MengersTheorem/`)** |
 | 19 | **MacMahon's Master Theorem** | [`macmahon_master_theorem`](Formalization/MacMahonsMasterTheorem.lean), [`detMacMahon`](Formalization/MacMahonsMasterTheorem.lean), [`invDetMacMahon`](Formalization/MacMahonsMasterTheorem.lean) | Enumerative Combinatorics & Formal Series | MacMahon (1915), Cartier & Foata (1969) | **100% Verified (0 axioms)** |
-| 20 | **Blichfeldt's Theorem in Geometry of Numbers** | [`blichfeldts_theorem`](Formalization/BlichfeldtsTheorem.lean), [`minkowski_convex_body_theorem`](Formalization/BlichfeldtsTheorem.lean), [`blichfeldt_dim1`](Formalization/BlichfeldtsTheorem.lean) | Geometry of Numbers & Lattice Tiling | Blichfeldt (1914), Minkowski (1896) | Scaffolded (1D interval verified; lacks torus pigeonhole integration) |
+| 20 | **Blichfeldt's Theorem in Geometry of Numbers** | [`blichfeldts_theorem`](Formalization/BlichfeldtsTheorem.lean), [`minkowski_convex_body_theorem`](Formalization/BlichfeldtsTheorem.lean), [`blichfeldt_dim1`](Formalization/BlichfeldtsTheorem.lean) | Geometry of Numbers & Lattice Tiling | Blichfeldt (1914), Minkowski (1896) | **100% Verified (0 axioms)** |
 | 21 | **The Hoffman–Singleton Moore Graph Theorem** | [`hoffman_singleton_theorem`](Formalization/HoffmanSingleton.lean), [`classification_general`](Formalization/HoffmanSingleton.lean), [`certHoffmanSingletonIntegral`](Formalization/HoffmanSingleton.lean), [`s_divides_15`](Formalization/HoffmanSingleton.lean) | Spectral Graph Theory & Matrix Algebras | Hoffman & Singleton (1960) | **100% Verified (0 axioms)** |
 | 22 | **Robinson–Schensted–Knuth (RSK) Correspondence** | [`schensted_lis_theorem`](Formalization/RSKBijection.lean), [`greene_lds_theorem`](Formalization/RSKBijection.lean), [`rsk_sum_squares_eq_factorial`](Formalization/RSKBijection.lean), [`rsk_involution_fixed_points`](Formalization/RSKBijection.lean) | Algebraic Combinatorics & Young Tableaux | Schensted (1961), Knuth (1970), Greene (1974) | **100% Verified (0 axioms)** |
 | 23 | **The Birkhoff–von Neumann Theorem** | [`birkhoff_von_neumann_convex_hull`](Formalization/BirkhoffVonNeumann.lean), [`birkhoff_von_neumann_iff`](Formalization/BirkhoffVonNeumann.lean), [`birkhoff_von_neumann_convex_combination`](Formalization/BirkhoffVonNeumann.lean), [`extremePoints_doublyStochasticSet`](Formalization/BirkhoffVonNeumann.lean) | Convex Geometry & Polyhedral Combinatorics | Birkhoff (1946), von Neumann (1953) | **100% Verified (0 axioms)** |
@@ -157,10 +157,12 @@ This repository provides machine-checked formalizations, certified proofs, and f
 * **Modular Package:** [`Formalization/CayleysFormula/`](Formalization/CayleysFormula)
   - `PruferEncode.lean`: `LabeledTree` structure and lemmas, `PruferSequence`, leaf filtering, and leaf-peeling encoding algorithm (`pruferCode`).
   - `PruferDecode.lean`: Inductive edge decoding algorithm (`decodeEdges`), connectivity, and tree reconstruction (`pruferDecode`, `pruferDecode_isTree`).
+  - `PruferInvariants.lean`: Induced neighbor and leaf properties, induced subtree reduction, and the Prüfer degree-count invariant ($\deg_{T[S]}(u) = 1 + \operatorname{count}(u, L)$).
+  - `PruferBijections.lean`: Constructive proofs of the Prüfer inverse bijections (`prufer_right_inv` and `prufer_left_inv`) via master induction `validPeelIter_all`.
 * **Theorems:** `cayleys_tree_formula`, `prufer_sequence_card`, `pruferEquiv`, `pruferCode`, `pruferDecode`, `rooted_trees_count`, `cayley_n2`, `cayley_n3`, `cayley_n4`
 * **Mathematical Statement:** The number of labeled trees on $n \ge 2$ vertices is:
   $$T_n = n^{n - 2}$$
-  established bijectively via constructive leaf-peeling Prüfer encoding `pruferCode`, degree-based decoding `pruferDecode`, and the Prüfer equivalence `pruferEquiv : LabeledTree n ≃ PruferSequence n`. Fully verified in Lean 4 with **0 custom axioms and 0 sorries**.
+  established bijectively via constructive leaf-peeling Prüfer encoding `pruferCode`, degree-based decoding `pruferDecode`, the Prüfer degree invariant, and the Prüfer equivalence `pruferEquiv : LabeledTree n ≃ PruferSequence n`. Fully verified in Lean 4 with **0 custom axioms and 0 sorries**.
 
 ---
 
@@ -178,7 +180,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 * **Theorems:** `jungs_theorem`, `jungs_theorem_via_helly`, `circumradius_le_jungs_bound`, `jungsConstant_pos`, `jungsConstant_one`, `jungsConstant_two`, `jungsConstant_three`, `jungs_bound_dim1`, `jungs_bound_dim2`, `jungs_bound_dim3`
 * **Mathematical Statement:** For any non-empty bounded subset $S \subset \mathbb{R}^d$, the Chebyshev circumradius $\mathcal{R}(S)$ is bounded by the diameter $\mathrm{diam}(S)$:
   $$\mathcal{R}(S) \le \sqrt{\frac{d}{2(d + 1)}} \mathrm{diam}(S)$$
-  with the global enclosing theorem `jungs_theorem` proved from the finite simplex case via Helly's compact intersection theorem on closed Euclidean balls (`Convex.helly_theorem_compact'`).
+  with the finite simplex base case proved constructively via symmetric quadratic energy maximization on the standard simplex $\Delta(T)$, Cauchy–Schwarz variance inequalities, and Lagrange Euclidean distance identities, and the global enclosing theorem `jungs_theorem` deduced via Helly's compact intersection theorem on closed Euclidean balls (`Convex.helly_theorem_compact'`). Fully verified in Lean 4 with **0 custom axioms and 0 sorries**.
 
 ---
 
@@ -210,7 +212,7 @@ This repository provides machine-checked formalizations, certified proofs, and f
 * **Theorems:** `blichfeldts_theorem`, `minkowski_convex_body_theorem`, `blichfeldt_dim1`
 * **Mathematical Statement:** For any Lebesgue measurable set $S \subset \mathbb{R}^d$ with volume $\mathrm{vol}(S) > k$ (for integer $k \ge 1$), there exist $k+1$ distinct points $x_0, x_1, \dots, x_k \in S$ such that all pairwise differences belong to the integer lattice $\mathbb{Z}^d$:
   $$x_i - x_j \in \mathbb{Z}^d \quad \text{for all } 0 \le i, j \le k$$
-  proved via torus translation decomposition $\mathbb{R}^d = \bigcup_{z \in \mathbb{Z}^d} (z + [0, 1)^d)$ and yielding Minkowski's First Convex Body Theorem as a direct corollary.
+  proved via measure-theoretic indicator summation over fundamental domain translates $\mathbb{R}^d = \bigsqcup_{z \in \mathbb{Z}^d} (z + \mathcal{F})$, integral pigeonholing, and injective coordinate embedding, yielding Minkowski's First Convex Body Theorem as a direct corollary. Fully verified in Lean 4 with **0 custom axioms and 0 sorries**.
 
 ---
 
@@ -264,9 +266,9 @@ This repository provides machine-checked formalizations, certified proofs, and f
 
 ## Palomar Registry Integration
 
-All 24 theorems in this repository are formatted and packaged as independent, self-contained submission targets for the **[Palomar Registry](https://submit.palomar-registry.org)**. Every formalization has a dedicated, immutable 40-character Git commit SHA with its corresponding `formalization.yaml` and `comparator.json` metadata active at repository root.
+All 23 theorems in this repository are formatted and packaged as independent, self-contained submission targets for the **[Palomar Registry](https://submit.palomar-registry.org)**. Every formalization has a dedicated, immutable 40-character Git commit SHA with its corresponding `formalization.yaml` and `comparator.json` metadata active at repository root.
 
-The complete master inventory of 24 theorems, dedicated commit SHAs, comparator configurations, and submission readiness states is tracked in **[`PALOMAR_CHECKLIST.md`](PALOMAR_CHECKLIST.md)**.
+The complete master inventory of 23 theorems, dedicated commit SHAs, comparator configurations, and submission readiness states is tracked in **[`PALOMAR_CHECKLIST.md`](PALOMAR_CHECKLIST.md)**.
 
 ### Submission Settings for submit.palomar-registry.org
 - **Comparator Path**: `comparator.json`
@@ -308,7 +310,9 @@ The complete master inventory of 24 theorems, dedicated commit SHAs, comparator 
 │   ├── CayleysFormula.lean               # 14. Cayley's Tree Formula & Prüfer Sequences (Master Interface)
 │   ├── CayleysFormula/                   # 14. Modular Cayley Package
 │   │   ├── PruferEncode.lean             #     - Labeled trees, Prüfer sequences, & encoding
-│   │   └── PruferDecode.lean             #     - Edge decoder & tree reconstruction
+│   │   ├── PruferDecode.lean             #     - Edge decoder & tree reconstruction
+│   │   ├── PruferInvariants.lean         #     - Prüfer degree-count invariant & leaf set equivalence
+│   │   └── PruferBijections.lean         #     - Constructive left and right inverse bijections
 │   ├── KonigMatching.lean                # 15. Kőnig–Egerváry Duality Theorem (1931)
 │   ├── JungsTheorem.lean                 # 16. Jung's Theorem on Circumscribed Spheres (1901)
 │   ├── MengersTheorem.lean               # 18. Menger's Theorem on Disjoint Paths (Master Interface)
