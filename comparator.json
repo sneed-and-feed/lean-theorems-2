@@ -2,10 +2,17 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "TuransTheorem.mantels_theorem",
-    "TuransTheorem.turans_theorem_exact",
-    "TuransTheorem.turans_theorem",
-    "TuransTheorem.turans_uniqueness"
+    "jungsConstant_pos",
+    "jungsConstant_nonneg",
+    "jungs_theorem_via_helly",
+    "jungs_theorem",
+    "circumradius_le_jungs_bound",
+    "jungsConstant_one",
+    "jungsConstant_two",
+    "jungsConstant_three",
+    "jungs_bound_dim1",
+    "jungs_bound_dim2",
+    "jungs_bound_dim3"
   ],
   "permitted_axioms": [
     "propext",

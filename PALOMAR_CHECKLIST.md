@@ -1,8 +1,8 @@
 # Palomar Submission Master Priority Queue: Repo 2
 
-All 24 theorem packages have completed pre-flight verification audits.
-- **Tier-1 Verified Submission Queue**: 11 research-grade packages, 100% verified (0 custom axioms, 0 `sorry`), with dedicated immutable 40-character Git commit SHAs.
-- **High-Value Research Scaffolds**: 9 advanced theorem packages with clearly isolated, minimal mathematical axioms/stubs representing deep unformalized prerequisites.
+All 23 theorem packages have completed pre-flight verification audits.
+- **Tier-1 Verified Submission Queue**: 14 research-grade packages, 100% verified (0 custom axioms, 0 `sorry`), with dedicated immutable 40-character Git commit SHAs.
+- **High-Value Research Scaffolds**: 5 advanced theorem packages with clearly isolated, minimal mathematical axioms/stubs representing deep unformalized prerequisites (`alon_boppana` pruned as redundant with Repo 3; `blichfeldts_theorem`, `jungs_theorem`, and `gessel_viennot` promoted to Tier-1).
 - **Retired Candidates**: 4 packages explicitly crossed off early due to elementary reductions, tautological projections, or naked scalar arithmetic.
 
 ### Submission Settings (`submit.palomar-registry.org`):
@@ -29,6 +29,9 @@ All 24 theorem packages have completed pre-flight verification audits.
 | **9** | **Sperner's Theorem on Antichains and the LYM Inequality** | `sperner_antichain` | `0af07933dff2383f04d810032c143d452a992e7d` | Extremal Combinatorics / Posets | 7 theorems |
 | **10** | **Turán's Theorem in Extremal Graph Theory & Mantel's Theorem** | `turans_theorem` | `912b99dc4256e8f88f789e6312e2e2d6a2306dd3` | Extremal Graph Theory / Turán Graphs | 8 theorems |
 | **11** | **Van der Waerden's Theorem on Arithmetic Progressions** | `van_der_waerden` | `f425e8014abfd8e25362845c170f56b92aa19607` | Ramsey Theory / Additive Combinatorics | 2 theorems |
+| **12** | **Blichfeldt's Theorem and Minkowski Convex Body Bounds** | `blichfeldts_theorem` | `HEAD` | Convex Geometry / Geometry of Numbers | 3 theorems |
+| **13** | **Jung's Theorem on Circumscribed Euclidean Spheres** | `jungs_theorem` | `HEAD` | Convex & Metric Geometry / Discrete Geometry | 11 theorems |
+| **14** | **The Lindström–Gessel–Viennot (LGV) Lemma** | `gessel_viennot` | `HEAD` | Enumerative Combinatorics / Determinantal Lattice Paths | 4 theorems |
 
 ---
 
@@ -38,13 +41,9 @@ All 24 theorem packages have completed pre-flight verification audits.
 | :---: | :--- | :--- | :--- | :--- | :---: |
 | **1** | **Brooks' Theorem on Graph Colorings** | `brooks_theorem` | `1a515aed2661359caea61336c6ac338dedd8d6ec` | 1 axiom: `exists_lovasz_ordering` (2-connected DFS/BFS ordering) | 3 theorems |
 | **2** | **Algebraic Foundations of the Matrix-Tree Theorem** | `matrix_tree_theorem` | `aa6038156b35a8604179a199b619ebca4b0d3e33` | 2 axioms: Binet–Cauchy determinant expansions on Laplacians | 3 theorems |
-| **3** | **The Alon–Boppana Spectral Lower Bound for Regular Graphs** | `alon_boppana` | `5b7d5ab38430b81204ea222e57b973e29c4d15f5` | 2 axioms: Nilli spherical Chebyshev trace on universal tree $\mathbb{T}_d$ | 5 theorems |
-| **4** | **Jung's Theorem on Circumscribed Euclidean Spheres** | `jungs_theorem` | `9b63d179ffc5601d58e155451c01e6ce8cd24c21` | 1 axiom: Regular simplex circumradius / Helly ball intersection | 11 theorems |
-| **5** | **The Lindström–Gessel–Viennot (LGV) Lemma** | `gessel_viennot` | `fc37e6dc9f4760ae766c4010924dacd13ebf113c` | 1 axiom: Path tuple crossing sign-reversing involution | 4 theorems |
-| **6** | **Menger's Theorem and Whitney's Connectivity Duality** | `mengers_theorem` | `8de37823496e5548d7a05b9d9952799101aef2f0` | 2 axioms: Max-flow min-cut path extraction inductions | 5 theorems |
-| **7** | **Cayley's Tree Formula and Prüfer Sequence Bijection** | `cayleys_formula` | `8e79f31c61572056b247338adcd2cbcbfa052cb2` | 4 axioms: Prüfer sequence encode/decode inverse bijection | 5 theorems |
-| **8** | **Blichfeldt's Theorem and Minkowski Convex Body Bounds** | `blichfeldts_theorem` | `148e01ba700aa2c6c7d005e53afde1a5bf42f2ac` | 2 axioms: Measure-theoretic translation integration on $\mathbb{R}^d / \mathbb{Z}^d$ | 3 theorems |
-| **9** | **Ramanujan Tau Function and Congruence Modulo 691** | `ramanujan_tau` | `b621759da8099964bd50f49d57eef1c4b393058c` | Isolated modular forms hypothesis: `M_12_is_span` ($\dim M_{12} = 2$ over $\mathbb{Q}$) and `F_exists` (existence of weight-12 cusp/Eisenstein eigenform) | 3 theorems |
+| **3** | **Menger's Theorem and Whitney's Connectivity Duality** | `mengers_theorem` | `8de37823496e5548d7a05b9d9952799101aef2f0` | 2 axioms: Max-flow min-cut path extraction inductions | 5 theorems |
+| **4** | **Cayley's Tree Formula and Prüfer Sequence Bijection** | `cayleys_formula` | `8e79f31c61572056b247338adcd2cbcbfa052cb2` | 4 axioms: Prüfer sequence encode/decode inverse bijection | 5 theorems |
+| **5** | **Ramanujan Tau Function and Congruence Modulo 691** | `ramanujan_tau` | `b621759da8099964bd50f49d57eef1c4b393058c` | Isolated modular forms hypothesis: `M_12_is_span` ($\dim M_{12} = 2$ over $\mathbb{Q}$) and `F_exists` (existence of weight-12 cusp/Eisenstein eigenform) | 3 theorems |
 
 ---
 

@@ -12,8 +12,8 @@ project:
     Proves that any measurable set in R^d of volume > k contains k + 1 distinct points whose pairwise
     differences are integer lattice vectors. Deduces Minkowski's Convex Body Theorem as a corollary for
     centrally symmetric convex sets of volume > 2^d, and evaluates the 1D specialization.
-    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring,
-    and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+    The formalization builds on Mathlib's fundamental domain and Haar measure infrastructure,
+    verifying all results with zero sorries and strictly standard kernel axioms.
 
 classification:
   arxiv: [math.NT, math.MG]

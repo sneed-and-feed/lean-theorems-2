@@ -1,54 +1,43 @@
 version: "v0.4"
 
 project:
-  name: "Turán's Theorem in Extremal Graph Theory"
+  name: "Jung's Theorem on Circumscribed Euclidean Spheres and Chebyshev Radii"
   authors:
     - "Noah Cohen"
   responsible_maintainers:
     - "Noah Cohen"
   license: "CC0-1.0"
   description: >-
-    A complete Lean 4 formalization of Turán's Theorem (1941), Mantel's Theorem (1907), the discrete and
-    continuous Turán edge bounds, and the full Turán uniqueness/stability characterization. Proves that any
-    K_{r+1}-free simple graph on n vertices has at most the number of edges in the complete r-partite Turán graph T(n, r),
-    and that equality holds if and only if G is isomorphic to T(n, r). Mathlib contains the Turán number upper bound;
-    this formalization establishes the exact polynomial equivalence between discrete and continuous edge bounds, Mantel's
-    theorem, and complete multipartite uniqueness, verified absent from the core Mathlib library in this comprehensive form
-    (checked against Mathlib v4.34.0-rc1).
+    A machine-checked Lean 4 formalization of Jung's Theorem (1901) on the circumradius / Chebyshev radius
+    of bounded sets in d-dimensional Euclidean space. Formulates the enclosing ball predicate, circumradius infimum,
+    and Helly intersection reduction for closed balls via Mathlib's compact Helly theorem. Proves the finite simplex
+    base case via dual quadratic form maximization on the standard simplex and Lagrange's Euclidean distance identity,
+    establishing the circumradius bound R(S) <= sqrt(d / (2(d+1))) * diam(S) with zero custom axioms, and evaluates
+    concrete specializations in dimensions 1, 2, and 3. To the maintainers' knowledge, the theorem was not found
+    in an exact declaration name, docstring, and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.CO]
-  msc2020: ["05C35", "05C75"]
+  arxiv: [math.MG]
+  msc2020: ["52A40", "52A35", "51M04"]
 
 sources:
-  - title: "Eine Extremalaufgabe aus der Graphentheorie"
+  - title: "Über die kleinste Kugel, die eine räumliche Figur einschliesst"
     type: paper
     authors:
-      - "Pál Turán"
-    year: 1941
-    venue: "Matematikai és Fizikai Lapok, 48, 436–452"
+      - "Heinrich Jung"
     relationship: formalizes
-  - title: "Vraagstuk XXVIII"
+  - title: "Helly's theorem and its relatives"
     type: paper
     authors:
-      - "W. Mantel"
-    year: 1907
-    venue: "Wiskundige Opgaven, 10, 60–61"
-    relationship: formalizes
-  - title: "A method for solving extremal problems in graph theory"
-    type: paper
-    authors:
-      - "Miklós Simonovits"
-    year: 1968
-    venue: "Theory of Graphs, 279–319"
-    relationship: background
+      - "Ludwig Danzer"
+      - "Branko Grünbaum"
+      - "Victor Klee"
+    relationship: adapts
+    note: >-
+      Formalization adapts Danzer, Grünbaum, and Klee's Helly-type intersection techniques to deduce Jung's
+      minimal bounding sphere radius bound.
 
 related_formalizations: []
-
-    relationship: builds-on
-    note: >-
-      Builds on Mathlib's simple graph extremal Turán library and extends it to formalize discrete-continuous
-      polynomial identities, Mantel's theorem, and complete multipartite structural uniqueness.
 
 automation:
   methods:
@@ -64,5 +53,6 @@ review:
   reviewers:
     - "Noah Cohen"
   notes: >-
-    Challenge contains deliberate benchmark holes (`:= sorry`), while all definitions and theorem statements
-    are fully specified. Solution verified with 0 errors, 0 sorries, and strictly standard kernel axioms.
+    Challenge contains deliberate proof holes (`:= sorry` for automated benchmark evaluation),
+    while all definitions and theorem statements are completely specified. Solution verified through
+    human audit by the maintainers with 0 errors, 0 sorries, and strictly standard kernel axioms.

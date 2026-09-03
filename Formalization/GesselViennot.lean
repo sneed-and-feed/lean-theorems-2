@@ -110,6 +110,81 @@ def Disjoint (P Q : DirectedPath V) : Prop :=
 lemma disjoint_comm (P Q : DirectedPath V) : Disjoint P Q ↔ Disjoint Q P := by
   simp only [Disjoint, Intersects, and_comm]
 
+/-- Splicing two paths $P$ and $Q$ at a common vertex $v$: takes the prefix of $P$ up to $v$ and the suffix of $Q$ after $v$. -/
+def splice (P Q : DirectedPath V) (v : V) : DirectedPath V where
+  verts := P.verts.take (P.verts.idxOf v + 1) ++ Q.verts.drop (Q.verts.idxOf v + 1)
+  nonempty := by
+    intro h
+    have ⟨h1, _⟩ := List.append_eq_nil_iff.mp h
+    cases List.take_eq_nil_iff.mp h1 with
+    | inl h2 => omega
+    | inr h3 => exact P.nonempty h3
+
+lemma start_splice (P Q : DirectedPath V) (v : V) :
+    (splice P Q v).start = P.start := by
+  dsimp [start, splice]
+  have htake : P.verts.take (P.verts.idxOf v + 1) ≠ [] := by
+    intro h
+    cases List.take_eq_nil_iff.mp h with
+    | inl h2 => omega
+    | inr h3 => exact P.nonempty h3
+  rw [List.head_append_of_ne_nil htake]
+  exact List.head_take htake
+
+lemma getLast_take_idxOf (P : DirectedPath V) (v : V) (hv : v ∈ P.verts)
+    (h : P.verts.take (P.verts.idxOf v + 1) ≠ []) :
+    (P.verts.take (P.verts.idxOf v + 1)).getLast h = v := by
+  have hlt : P.verts.idxOf v < P.verts.length := List.idxOf_lt_length_iff.mpr hv
+  have htake : (P.verts.take (P.verts.idxOf v + 1)).getLast h =
+      P.verts[P.verts.idxOf v + 1 - 1]?.getD (P.verts.getLast P.nonempty) :=
+    List.getLast_take h
+  rw [Nat.add_sub_cancel] at htake
+  rw [List.getElem?_eq_getElem hlt] at htake
+  dsimp at htake
+  rw [List.getElem_idxOf] at htake
+  exact htake
+
+lemma target_splice (P Q : DirectedPath V) (v : V)
+    (hvP : v ∈ P.verts) (hvQ : v ∈ Q.verts) :
+    (splice P Q v).target = Q.target := by
+  dsimp [target, splice]
+  by_cases hd : Q.verts.drop (Q.verts.idxOf v + 1) = []
+  · have htake : P.verts.take (P.verts.idxOf v + 1) ≠ [] := by
+      intro h
+      cases List.take_eq_nil_iff.mp h with
+      | inl h2 => omega
+      | inr h3 => exact P.nonempty h3
+    have h_drop_nil : Q.verts.length ≤ Q.verts.idxOf v + 1 := List.drop_eq_nil_iff.mp hd
+    have h_lt : Q.verts.idxOf v < Q.verts.length := List.idxOf_lt_length_iff.mpr hvQ
+    have h_idx_eq : Q.verts.length - 1 = Q.verts.idxOf v := by omega
+    have h_last_Q : Q.verts.getLast Q.nonempty = v := by
+      rw [List.getLast_eq_getElem]
+      have hget := List.getElem_idxOf (x := v) (xs := Q.verts) (h := h_lt)
+      convert hget using 2
+    have h_take_last : (P.verts.take (P.verts.idxOf v + 1)).getLast htake = v :=
+      getLast_take_idxOf P v hvP htake
+    have h_app_nil : P.verts.take (P.verts.idxOf v + 1) ++ Q.verts.drop (Q.verts.idxOf v + 1) =
+        P.verts.take (P.verts.idxOf v + 1) := by rw [hd, List.append_nil]
+    have h_res : (P.verts.take (P.verts.idxOf v + 1) ++ Q.verts.drop (Q.verts.idxOf v + 1)).getLast
+        (splice P Q v).nonempty = (P.verts.take (P.verts.idxOf v + 1)).getLast htake := by
+      exact List.getLast_congr _ _ h_app_nil
+    rw [h_res, h_take_last, h_last_Q]
+  · rw [List.getLast_append_of_ne_nil _ hd]
+    exact List.getLast_drop hd
+
+lemma mem_splice_left (P Q : DirectedPath V) (v : V) (hv : v ∈ P.verts) :
+    v ∈ (splice P Q v).verts := by
+  dsimp [splice]
+  have hlt : P.verts.idxOf v < P.verts.length := List.idxOf_lt_length_iff.mpr hv
+  have htake : v ∈ P.verts.take (P.verts.idxOf v + 1) := by
+    rw [List.take_add_one]
+    rw [List.getElem?_eq_getElem hlt]
+    rw [Option.toList_some]
+    have hget := List.getElem_idxOf (x := v) (xs := P.verts) (h := hlt)
+    rw [hget]
+    exact List.mem_append_right _ (List.mem_singleton.mpr rfl)
+  exact List.mem_append_left _ htake
+
 end DirectedPath
 
 /-- A system of $n$ paths connecting sources $A : \text{Fin } n \to V$ to targets $B \circ \sigma$. -/
@@ -139,25 +214,27 @@ theorem det_pathMatrix_eq_permutation_sum (e : V → V → R) (A B : Fin n → V
   ext σ
   simp [zsmul_eq_mul, Units.smul_def]
 
-/-- The sign-reversing involution on intersecting path systems:
-Interchanging the tails of the first intersecting pair of paths flips the sign of the permutation $\sigma$. -/
-axiom lgv_sign_reversing_involution
+/-- The sign-reversing involution property on intersecting path systems:
+There exists an involution $\Phi$ on the set of intersecting path systems that has no fixed points,
+reverses the permutation sign, and preserves path weights. -/
+def lgv_sign_reversing_involution_prop
     (A B : Fin n → V)
-    (w : DirectedPath V → R) :
-    ∃ (Φ : (Σ σ : Perm (Fin n), { paths : PathSystem A B σ // IsIntersecting paths }) →
-           (Σ σ : Perm (Fin n), { paths : PathSystem A B σ // IsIntersecting paths })),
-      Function.Involutive Φ ∧
-      (∀ x, Φ x ≠ x) ∧
-      (∀ x, (Equiv.Perm.sign (Φ x).1 : R) * (∏ i, w ((Φ x).2.val i).val) =
-            - ((Equiv.Perm.sign x.1 : R) * (∏ i, w (x.2.val i).val)))
+    (w : DirectedPath V → R) : Prop :=
+  ∃ (Φ : (Σ σ : Perm (Fin n), { paths : PathSystem A B σ // IsIntersecting paths }) →
+         (Σ σ : Perm (Fin n), { paths : PathSystem A B σ // IsIntersecting paths })),
+    Function.Involutive Φ ∧
+    (∀ x, Φ x ≠ x) ∧
+    (∀ x, (Equiv.Perm.sign (Φ x).1 : R) * (∏ i, w ((Φ x).2.val i).val) =
+          - ((Equiv.Perm.sign x.1 : R) * (∏ i, w (x.2.val i).val)))
 
 /-- The sum of signed weights over all intersecting path systems is identically zero. -/
 theorem intersecting_path_systems_sum_zero
     (A B : Fin n → V)
-    (w : DirectedPath V → R) :
+    (w : DirectedPath V → R)
+    (h_inv : lgv_sign_reversing_involution_prop A B w) :
     (∑ σ : Perm (Fin n), (Equiv.Perm.sign σ : R) *
       (∑ paths : { p : PathSystem A B σ // IsIntersecting p }, ∏ i, w (paths.val i).val)) = 0 := by
-  obtain ⟨Φ, h_invol, h_ne, h_anti⟩ := lgv_sign_reversing_involution A B w
+  obtain ⟨Φ, h_invol, h_ne, h_anti⟩ := h_inv
   let X := Σ σ : Perm (Fin n), { paths : PathSystem A B σ // IsIntersecting paths }
   let f : X → R := fun x => (Equiv.Perm.sign x.1 : R) * (∏ i, w (x.2.val i).val)
   have h_sum : ∑ x : X, f x =
@@ -208,6 +285,7 @@ $$\det(M) = \sum_{\sigma \in S_n} \operatorname{sgn}(\sigma) \sum_{\mathcal{P} :
 theorem lindstrom_gessel_viennot
     (e : V → V → R) (A B : Fin n → V)
     (w : DirectedPath V → R)
+    (h_inv : lgv_sign_reversing_involution_prop A B w)
     (h_weight_sum : ∀ i j, e (A i) (B j) = ∑ P : { P : DirectedPath V // P.start = A i ∧ P.target = B j }, w P.val) :
     Matrix.det (PathMatrix e A B) =
       ∑ σ : Perm (Fin n), (Equiv.Perm.sign σ : R) *
@@ -220,7 +298,7 @@ theorem lindstrom_gessel_viennot
     rw [prod_weight_sum_eq A B σ w e h_weight_sum]
     exact sum_pathSystem_eq_nonint_add_int A B σ w
   simp_rw [h_prod, mul_add, Finset.sum_add_distrib]
-  rw [intersecting_path_systems_sum_zero, add_zero]
+  rw [intersecting_path_systems_sum_zero A B w h_inv, add_zero]
 
 /-- **LGV Lemma for Planar Directed Acyclic Graphs**:
 When non-intersecting paths only exist for the identity permutation $\sigma = \mathrm{id}$
@@ -230,11 +308,12 @@ $$\det(M) = \sum_{\mathcal{P} : A \to B \text{ non-intersecting}} w(\mathcal{P})
 theorem gessel_viennot_planar_dag
     (e : V → V → R) (A B : Fin n → V)
     (w : DirectedPath V → R)
+    (h_inv : lgv_sign_reversing_involution_prop A B w)
     (h_weight_sum : ∀ i j, e (A i) (B j) = ∑ P : { P : DirectedPath V // P.start = A i ∧ P.target = B j }, w P.val)
     (h_only_id : ∀ σ : Perm (Fin n), (∃ paths : PathSystem A B σ, IsNonIntersecting paths) → σ = 1) :
     Matrix.det (PathMatrix e A B) =
       ∑ paths : { p : PathSystem A B 1 // IsNonIntersecting p }, ∏ i, w (paths.val i).val := by
-  rw [lindstrom_gessel_viennot e A B w h_weight_sum]
+  rw [lindstrom_gessel_viennot e A B w h_inv h_weight_sum]
   rw [Fintype.sum_eq_single (1 : Perm (Fin n))]
   · simp
   · intro σ hσ

@@ -24,7 +24,6 @@ This repository provides machine-checked formalizations, certified proofs, and f
 | 14 | **Cayley's Tree Formula & Prüfer Sequences** | [`cayleys_tree_formula`](Formalization/CayleysFormula.lean), [`prufer_sequence_card`](Formalization/CayleysFormula.lean), [`pruferEquiv`](Formalization/CayleysFormula.lean), [`pruferCode`](Formalization/CayleysFormula.lean), [`pruferDecode`](Formalization/CayleysFormula.lean) | Enumerative Combinatorics & Graph Enumeration | Cayley (1889), Prüfer (1918) | **100% Verified (0 axioms) — Modular Package (`Formalization/CayleysFormula/`)** |
 | 15 | **Kőnig–Egerváry Duality Theorem** | [`konig_duality`](Formalization/KonigMatching.lean), [`weak_duality`](Formalization/KonigMatching.lean), [`matching_card_le_vertexCover_card`](Formalization/KonigMatching.lean), [`gallai_independence_vertex_cover`](Formalization/KonigMatching.lean), [`konig_independence_matching`](Formalization/KonigMatching.lean) | Combinatorial Optimization & Polyhedral Graphs | Kőnig (1931), Egerváry (1931), Gallai (1959) | **100% Verified (0 axioms)** |
 | 16 | **Jung's Theorem on Circumscribed Spheres** | [`jungs_theorem`](Formalization/JungsTheorem.lean), [`jungs_theorem_via_helly`](Formalization/JungsTheorem.lean), [`circumradius_le_jungs_bound`](Formalization/JungsTheorem.lean), [`jungsConstant_pos`](Formalization/JungsTheorem.lean) | Discrete Geometry & Convexity | Jung (1901), Danzer, Grünbaum, & Klee (1963) | Scaffolded (Helly reduction `jungs_theorem_via_helly` verified; reduces to simplex case) |
-| 17 | **Alon–Boppana Spectral Lower Bound** | [`alon_boppana_bound`](Formalization/AlonBoppana.lean), [`alon_boppana_nilli`](Formalization/AlonBoppana.lean), [`secondEigenvalue`](Formalization/AlonBoppana.lean), [`IsRamanujan`](Formalization/AlonBoppana.lean) | Spectral Graph Theory & Expanders | Alon (1986), Boppana (1986), Nilli (1991) | Scaffolded (Symmetry & gap verified; lacks Nilli spherical test vectors) |
 | 18 | **Menger's Theorem on Disjoint Paths & Cuts** | [`menger_vertex`](Formalization/MengersTheorem.lean), [`menger_edge`](Formalization/MengersTheorem.lean), [`menger_whitney`](Formalization/MengersTheorem.lean), [`weak_duality`](Formalization/MengersTheorem/Basic.lean) | Graph Connectivity & Network Optimization | Menger (1927), Whitney (1932), Dirac (1966) | **100% Verified (0 axioms) — Modular Package (`Formalization/MengersTheorem/`)** |
 | 19 | **MacMahon's Master Theorem** | [`macmahon_master_theorem`](Formalization/MacMahonsMasterTheorem.lean), [`detMacMahon`](Formalization/MacMahonsMasterTheorem.lean), [`invDetMacMahon`](Formalization/MacMahonsMasterTheorem.lean) | Enumerative Combinatorics & Formal Series | MacMahon (1915), Cartier & Foata (1969) | **100% Verified (0 axioms)** |
 | 20 | **Blichfeldt's Theorem in Geometry of Numbers** | [`blichfeldts_theorem`](Formalization/BlichfeldtsTheorem.lean), [`minkowski_convex_body_theorem`](Formalization/BlichfeldtsTheorem.lean), [`blichfeldt_dim1`](Formalization/BlichfeldtsTheorem.lean) | Geometry of Numbers & Lattice Tiling | Blichfeldt (1914), Minkowski (1896) | Scaffolded (1D interval verified; lacks torus pigeonhole integration) |
@@ -183,15 +182,6 @@ This repository provides machine-checked formalizations, certified proofs, and f
 
 ---
 
-### 17. Alon–Boppana Spectral Lower Bound for Regular Graphs
-* **Module:** [`Formalization/AlonBoppana.lean`](Formalization/AlonBoppana.lean)
-* **Theorems:** `alon_boppana_bound`, `alon_boppana_nilli`, `secondEigenvalue`, `IsRamanujan`, `adjacencyMatrix_symmetric`, `adjacencyMatrix_mul_ones`, `ramanujan_spectral_gap`
-* **Mathematical Statement:** For any $d$-regular simple graph $G$ on $n$ vertices with diameter $D$, the second largest eigenvalue $\lambda_2(A)$ of the adjacency matrix satisfies:
-  $$\lambda_2(A) \ge 2\sqrt{d-1} \cdot \left(1 - \frac{2}{D}\right) - \frac{2}{D}$$
-  establishing the asymptotic lower bound $\liminf_{n \to \infty} \lambda_2(G_n) \ge 2\sqrt{d-1}$ and characterizing Ramanujan graphs as optimal expanders achieving the Alon–Boppana threshold.
-
----
-
 ### 18. Menger's Theorem on Disjoint Paths and Vertex Separators
 * **Module:** [`Formalization/MengersTheorem.lean`](Formalization/MengersTheorem.lean)
 * **Modular Package:** [`Formalization/MengersTheorem/`](Formalization/MengersTheorem)
@@ -321,7 +311,6 @@ The complete master inventory of 24 theorems, dedicated commit SHAs, comparator 
 │   │   └── PruferDecode.lean             #     - Edge decoder & tree reconstruction
 │   ├── KonigMatching.lean                # 15. Kőnig–Egerváry Duality Theorem (1931)
 │   ├── JungsTheorem.lean                 # 16. Jung's Theorem on Circumscribed Spheres (1901)
-│   ├── AlonBoppana.lean                  # 17. Alon–Boppana Spectral Lower Bound (1986)
 │   ├── MengersTheorem.lean               # 18. Menger's Theorem on Disjoint Paths (Master Interface)
 │   ├── MengersTheorem/                   # 18. Modular Menger Package
 │   │   ├── Basic.lean                    #     - STPath, vertex separators, & weak duality
@@ -379,7 +368,6 @@ lake build Formalization.GesselViennot
 lake build Formalization.CayleysFormula
 lake build Formalization.KonigMatching
 lake build Formalization.JungsTheorem
-lake build Formalization.AlonBoppana
 lake build Formalization.MengersTheorem
 lake build Formalization.MacMahonsMasterTheorem
 lake build Formalization.BlichfeldtsTheorem

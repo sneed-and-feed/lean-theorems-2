@@ -10,10 +10,11 @@ project:
   description: >-
     A machine-checked Lean 4 formalization of Jung's Theorem (1901) on the circumradius / Chebyshev radius
     of bounded sets in d-dimensional Euclidean space. Formulates the enclosing ball predicate, circumradius infimum,
-    and Helly intersection reduction for closed balls via Mathlib's compact Helly theorem. Proves the circumradius
-    bound R(S) <= sqrt(d / (2(d+1))) * diam(S) and evaluates concrete specializations in dimensions 1, 2, and 3.
-    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type
-    signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+    and Helly intersection reduction for closed balls via Mathlib's compact Helly theorem. Proves the finite simplex
+    base case via dual quadratic form maximization on the standard simplex and Lagrange's Euclidean distance identity,
+    establishing the circumradius bound R(S) <= sqrt(d / (2(d+1))) * diam(S) with zero custom axioms, and evaluates
+    concrete specializations in dimensions 1, 2, and 3. To the maintainers' knowledge, the theorem was not found
+    in an exact declaration name, docstring, and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
   arxiv: [math.MG]

@@ -9,8 +9,6 @@
   "permitted_axioms": [
     "propext",
     "Quot.sound",
-    "Classical.choice",
-    "Blichfeldt.blichfeldts_theorem",
-    "Blichfeldt.minkowski_convex_body_theorem"
+    "Classical.choice"
   ]
 }
