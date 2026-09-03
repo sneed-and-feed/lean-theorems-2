@@ -29,6 +29,7 @@ namespace PartialEdgeColoring
 
 variable {G} {k : ℕ} (c : PartialEdgeColoring G k)
 
+omit [DecidableEq V] in
 lemma color_isSome (h : c.uncoloredEdges = ∅) (e : G.edgeSet) : ∃ col, c.color e = some col := by
   cases hc : c.color e with
   | none => exact False.elim (Finset.notMem_empty e (h ▸ Finset.mem_filter.mpr ⟨Finset.mem_univ e, hc⟩))
