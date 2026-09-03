@@ -79,7 +79,7 @@ if (Test-Path $solPath) {
     Write-Host "[PASS] Zero sorries and zero custom axioms in Solution.lean" -ForegroundColor Green
 }
 
-# 5. Schema & Mathlib Attribution in formalization.yaml
+# 5. Schema Check in formalization.yaml
 $yamlPath = "$src\formalization.yaml"
 if (Test-Path $yamlPath) {
     $yamlTxt = [System.IO.File]::ReadAllText($yamlPath)
@@ -87,9 +87,6 @@ if (Test-Path $yamlPath) {
         Write-Host "[NON-BLOCKING WARNING] formalization.yaml schema is not v0.4" -ForegroundColor Yellow
     } else {
         Write-Host "[PASS] formalization.yaml v0.4 schema verified" -ForegroundColor Green
-    }
-    if ($solTxt -match "import Mathlib" -and $yamlTxt -notmatch "related_formalizations") {
-        Write-Host "[NON-BLOCKING ADVISORY] Upstream Mathlib imported without related_formalizations entry" -ForegroundColor Yellow
     }
 }
 
@@ -99,11 +96,16 @@ Copy-Item "$src\Solution.lean" "$root\Solution.lean" -Force
 Copy-Item "$src\comparator.json" "$root\comparator.json" -Force
 Copy-Item "$src\formalization.yaml" "$root\formalization.yaml" -Force
 
-Write-Host "==> Running sequential build check (LEAN_NUM_THREADS=2, LEAN_MEMORY=4096)..." -ForegroundColor Cyan
+Write-Host "==> Running sequential build check (LEAN_NUM_THREADS=$($env:LEAN_NUM_THREADS), LEAN_MEMORY=default)..." -ForegroundColor Cyan
 & lake build Challenge
 if ($LASTEXITCODE -ne 0) { Write-Error "Build failed for Challenge!"; exit 1 }
 & lake build Solution
 if ($LASTEXITCODE -ne 0) { Write-Error "Build failed for Solution!"; exit 1 }
+
+# 7. Automated AST Comparator Verification (AP-20 & AP-31)
+Write-Host "==> Running automated AST expression comparator verification..." -ForegroundColor Cyan
+& lake env lean --run "$root\palomar\compare.lean"
+if ($LASTEXITCODE -ne 0) { Write-Error "Comparator AST expression mismatch detected!"; exit 1 }
 
 Write-Host ""
 Write-Host "====================================================" -ForegroundColor Green
