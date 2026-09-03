@@ -1,38 +1,32 @@
 version: "v0.4"
 
 project:
-  name: "Cayley's Tree Formula and Prüfer Sequence Bijection"
+  name: "The Hoffman–Singleton Moore Graph Classification Theorem"
   authors:
     - "Noah Cohen"
   responsible_maintainers:
     - "Noah Cohen"
   license: "CC0-1.0"
   description: >-
-    A machine-checked Lean 4 formalization of Cayley's Tree Formula (1889) establishing that the number of
-    labeled trees on n vertices is n^(n-2). Formalizes the Prüfer sequence correspondence (Heinz Prüfer 1918)
-    encoding trees into sequences of length n-2 and decoding sequences into connected acyclic graphs, deriving
-    the tree count and rooted tree count n^(n-1). To the maintainers' knowledge, the theorem was not found in
-    an exact declaration name, docstring, and type signature search of the pinned Mathlib revision
-    (Mathlib v4.34.0-rc1).
+    A complete machine-checked Lean 4 formalization of the Hoffman–Singleton Theorem (1960) on authentic SimpleGraph carriers.
+    Establishes the metric-to-strongly-regular bridge proving that any d-regular graph G of diameter 2 and girth 5 is strongly
+    regular with parameters (1 + d², d, 0, 1) and satisfies the adjacency matrix equation A² + A - (d - 1)I = J.
+    Deduces the spectral decomposition, trace nullity, and multiplicities on EuclideanSpace ℝ V, and proves the complete
+    degree classification theorem: any regular graph of degree d ≥ 2 with diameter 2 and girth 5 must have d ∈ {2, 3, 7, 57}.
+    To the maintainers' knowledge, the theorem was not found in an exact declaration name, docstring, and type signature search
+    of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.CO]
-  msc2020: ["05C05", "05C30", "05A19"]
+  arxiv: [math.CO, math.SP]
+  msc2020: ["05C50", "05C75", "05E30"]
 
 sources:
-  - title: "A theorem on trees"
+  - title: "On Moore graphs with diameters 2 and 3"
     type: paper
     authors:
-      - "Arthur Cayley"
+      - "Alan J. Hoffman"
+      - "Robert R. Singleton"
     relationship: formalizes
-  - title: "Neuer Beweis eines Satzes über Permutationen"
-    type: paper
-    authors:
-      - "Heinz Prüfer"
-    relationship: adapts
-    note: >-
-      Formalization adapts Prüfer's bijective sequence encoding to establish Cayley's formula n^{n-2} for
-      labeled trees.
 
 related_formalizations: []
 

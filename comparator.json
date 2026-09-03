@@ -2,11 +2,23 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "cayleys_tree_formula",
-    "cayley_n2",
-    "cayley_n3",
-    "cayley_n4",
-    "rooted_trees_count"
+    "HoffmanSingleton.roots_sum",
+    "HoffmanSingleton.roots_diff",
+    "HoffmanSingleton.trace_identity",
+    "HoffmanSingleton.trace_zero_iff",
+    "HoffmanSingleton.s_divides_15",
+    "HoffmanSingleton.nat_divisors_15",
+    "HoffmanSingleton.degree_from_s",
+    "HoffmanSingleton.classification_integral_params",
+    "HoffmanSingleton.classification_general",
+    "HoffmanSingleton.hoffman_singleton_theorem",
+    "HoffmanSingleton.c5_spectral_trace",
+    "HoffmanSingleton.petersen_spectral_trace",
+    "HoffmanSingleton.hoffman_singleton_spectral_trace",
+    "HoffmanSingleton.degree_57_spectral_trace",
+    "HoffmanSingleton.moore_is_srg",
+    "HoffmanSingleton.moore_adjMatrix_eq",
+    "HoffmanSingleton.moore_graph_degree_classification"
   ],
   "permitted_axioms": [
     "propext",
