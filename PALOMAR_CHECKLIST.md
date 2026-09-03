@@ -32,7 +32,7 @@ All 23 theorem packages have completed pre-flight verification audits.
 | **12** | **Blichfeldt's Theorem and Minkowski Convex Body Bounds** | `blichfeldts_theorem` | `e8dfe475169caae29da9285e99d2f0587a3d953a` | Convex Geometry / Geometry of Numbers | 3 theorems |
 | **13** | **Jung's Theorem on Circumscribed Euclidean Spheres** | `jungs_theorem` | `e8dfe475169caae29da9285e99d2f0587a3d953a` | Convex & Metric Geometry / Discrete Geometry | 11 theorems |
 | **14** | **The Lindström–Gessel–Viennot (LGV) Lemma** | `gessel_viennot` | `e8dfe475169caae29da9285e99d2f0587a3d953a` | Enumerative Combinatorics / Determinantal Lattice Paths | 4 theorems |
-| **15** | **Cayley's Tree Formula and Prüfer Sequence Bijection** | `cayleys_formula` | `56846057ab81c04d9237dca53ca81a71994c1880` | Enumerative Combinatorics / Graph Theory / Trees | 5 theorems |
+| **15** | **Cayley's Tree Formula and Prüfer Sequence Bijection** | `cayleys_formula` | `f7fd6e340dbf20387ca793a38ea8f37bc44367ef` | Enumerative Combinatorics / Graph Theory / Trees | 5 theorems |
 
 ---
 
