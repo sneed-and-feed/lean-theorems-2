@@ -1,41 +1,38 @@
 version: "v0.4"
 
 project:
-  name: "Jung's Theorem on Circumscribed Euclidean Spheres and Chebyshev Radii"
+  name: "Cayley's Tree Formula and Prüfer Sequence Bijection"
   authors:
     - "Noah Cohen"
   responsible_maintainers:
     - "Noah Cohen"
   license: "CC0-1.0"
   description: >-
-    A machine-checked Lean 4 formalization of Jung's Theorem (1901) on the circumradius / Chebyshev radius
-    of bounded sets in d-dimensional Euclidean space. Formulates the enclosing ball predicate, circumradius infimum,
-    and Helly intersection reduction for closed balls via Mathlib's compact Helly theorem. Proves the finite simplex
-    base case via dual quadratic form maximization on the standard simplex and Lagrange's Euclidean distance identity,
-    establishing the circumradius bound R(S) <= sqrt(d / (2(d+1))) * diam(S) with zero custom axioms, and evaluates
-    concrete specializations in dimensions 1, 2, and 3. To the maintainers' knowledge, the theorem was not found
-    in an exact declaration name, docstring, and type signature search of the pinned Mathlib revision (Mathlib v4.34.0-rc1).
+    A machine-checked Lean 4 formalization of Cayley's Tree Formula (1889) establishing that the number of
+    labeled trees on n vertices is n^(n-2). Formalizes the Prüfer sequence correspondence (Heinz Prüfer 1918)
+    encoding trees into sequences of length n-2 and decoding sequences into connected acyclic graphs, deriving
+    the tree count and rooted tree count n^(n-1). To the maintainers' knowledge, the theorem was not found in
+    an exact declaration name, docstring, and type signature search of the pinned Mathlib revision
+    (Mathlib v4.34.0-rc1).
 
 classification:
-  arxiv: [math.MG]
-  msc2020: ["52A40", "52A35", "51M04"]
+  arxiv: [math.CO]
+  msc2020: ["05C05", "05C30", "05A19"]
 
 sources:
-  - title: "Über die kleinste Kugel, die eine räumliche Figur einschliesst"
+  - title: "A theorem on trees"
     type: paper
     authors:
-      - "Heinrich Jung"
+      - "Arthur Cayley"
     relationship: formalizes
-  - title: "Helly's theorem and its relatives"
+  - title: "Neuer Beweis eines Satzes über Permutationen"
     type: paper
     authors:
-      - "Ludwig Danzer"
-      - "Branko Grünbaum"
-      - "Victor Klee"
+      - "Heinz Prüfer"
     relationship: adapts
     note: >-
-      Formalization adapts Danzer, Grünbaum, and Klee's Helly-type intersection techniques to deduce Jung's
-      minimal bounding sphere radius bound.
+      Formalization adapts Prüfer's bijective sequence encoding to establish Cayley's formula n^{n-2} for
+      labeled trees.
 
 related_formalizations: []
 

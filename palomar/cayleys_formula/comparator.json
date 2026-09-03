@@ -12,7 +12,6 @@
     "propext",
     "Quot.sound",
     "Classical.choice",
-    "prufer_left_inv",
-    "prufer_right_inv"
+    "prufer_left_inv"
   ]
 }

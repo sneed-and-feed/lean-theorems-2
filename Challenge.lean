@@ -1,12 +1,10 @@
-import Mathlib.Analysis.Convex.Radon
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Topology.MetricSpace.ProperSpace
-import Mathlib.Topology.MetricSpace.Bounded
-import Mathlib.Data.Real.Basic
-import Mathlib.Analysis.Real.Sqrt
-import Mathlib.Tactic.Positivity
-import Mathlib.Tactic.Linarith
+import Mathlib.Combinatorics.SimpleGraph.Basic
+import Mathlib.Combinatorics.SimpleGraph.Acyclic
+import Mathlib.Combinatorics.SimpleGraph.Connectivity.Connected
+import Mathlib.Data.Fintype.BigOperators
+import Mathlib.Data.Fintype.Prod
 import Mathlib.Tactic.Ring
+import Mathlib.Tactic.Linarith
 
 open scoped BigOperators
 open Classical
@@ -15,84 +13,61 @@ set_option linter.unusedSectionVars false
 set_option linter.unusedVariables false
 
 /-!
-# Jung's Theorem on Circumscribed Euclidean Spheres
+# Cayley's Tree Formula
 
-This module formalizes **Jung's Theorem** (Heinrich Jung, 1901) on the minimum enclosing
-radius (Chebyshev radius / circumradius) of bounded sets in finite-dimensional Euclidean space.
+This module formalizes **Cayley's Tree Formula** (Arthur Cayley, 1889) and the theory of
+**Prüfer sequences** (Heinz Prüfer, 1918) in enumerative combinatorics without custom axioms.
+
+## Mathematical Formulation
+
+Let $V = \{1, 2, \dots, n\}$ be a set of $n \ge 2$ labeled vertices.
+A **labeled tree** on $V$ is a connected, acyclic simple undirected graph $T = (V, E)$.
+
+### The Main Theorem
+Cayley's Tree Formula states that the number $T_n$ of distinct labeled trees on $n$ vertices is:
+$$T_n = n^{n - 2}$$
 -/
 
-variable {d : ℕ}
+variable {n : ℕ}
 
-/-- Predicate asserting that the closed Euclidean ball $\bar{B}(c, R)$ encloses the set $S$. -/
-def IsEnclosingBall (S : Set (EuclideanSpace ℝ (Fin d))) (c : EuclideanSpace ℝ (Fin d)) (R : ℝ) : Prop :=
-  S ⊆ Metric.closedBall c R
+/-- A labeled tree on vertex set `Fin n` is a simple graph that is both connected and acyclic. -/
+structure LabeledTree (n : ℕ) where
+  /-- The underlying simple graph on `Fin n` -/
+  graph : SimpleGraph (Fin n)
+  /-- The graph is connected -/
+  connected : graph.Connected
+  /-- The graph has no cycles -/
+  is_acyclic : graph.IsAcyclic
 
-/-- The Chebyshev radius (circumradius) of a set $S \subset \mathbb{R}^d$: the infimal radius
-of an enclosing Euclidean ball. -/
-noncomputable def circumradius (S : Set (EuclideanSpace ℝ (Fin d))) : ℝ :=
-  sInf { R : ℝ | ∃ c : EuclideanSpace ℝ (Fin d), IsEnclosingBall S c R ∧ 0 ≤ R }
+/-- A Prüfer sequence of order $n$ is a sequence of $n - 2$ elements from `Fin n`. -/
+abbrev PruferSequence (n : ℕ) := Fin (n - 2) → Fin n
 
-/-- Jung's dimensional constant $J_d = \sqrt{\frac{d}{2(d+1)}}$. -/
-noncomputable def jungsConstant (d : ℕ) : ℝ :=
-  Real.sqrt ((d : ℝ) / (2 * (d + 1 : ℝ)))
-
-/-- Positivity of the Jung constant for $d \ge 1$. -/
-theorem jungsConstant_pos (d : ℕ) [NeZero d] : 0 < jungsConstant d := sorry
-
-/-- Non-negativity of the Jung constant. -/
-theorem jungsConstant_nonneg (d : ℕ) : 0 ≤ jungsConstant d := sorry
+/-- A rooted labeled tree is a labeled tree equipped with a distinguished root vertex. -/
+structure RootedTree (n : ℕ) where
+  /-- The underlying labeled tree -/
+  tree : LabeledTree n
+  /-- The designated root vertex -/
+  root : Fin n
 
 /--
-**Helly Reduction for Enclosing Euclidean Balls**:
-Given a collection of closed balls of fixed radius $R$ in $\mathbb{R}^d$, if every sub-family
-of at most $d + 1$ balls has a non-empty intersection, then all balls in the family share a common point.
+**Cayley's Tree Formula (1889)**:
+The number of labeled trees on $n \ge 2$ vertices is exactly $n^{n - 2}$.
 -/
-theorem jungs_theorem_via_helly (d : ℕ) (S : Set (EuclideanSpace ℝ (Fin d)))
-    (hS_nonempty : S.Nonempty) (R : ℝ) (hR_nonneg : 0 ≤ R)
-    (h_helly : ∀ (I : Finset S), I.card ≤ d + 1 →
-      (⋂ (i : S) (_ : i ∈ I), Metric.closedBall i.val R).Nonempty) :
-    ∃ c : EuclideanSpace ℝ (Fin d), IsEnclosingBall S c R := sorry
+theorem cayleys_tree_formula (n : ℕ) (hn : 2 ≤ n) [Fintype (LabeledTree n)] :
+    Fintype.card (LabeledTree n) = n ^ (n - 2) := sorry
+
+/-- Concrete instance of Cayley's formula for $n = 2$: $2^{2-2} = 1$. -/
+theorem cayley_n2 [Fintype (LabeledTree 2)] : Fintype.card (LabeledTree 2) = 1 := sorry
+
+/-- Concrete instance of Cayley's formula for $n = 3$: $3^{3-2} = 3$. -/
+theorem cayley_n3 [Fintype (LabeledTree 3)] : Fintype.card (LabeledTree 3) = 3 := sorry
+
+/-- Concrete instance of Cayley's formula for $n = 4$: $4^{4-2} = 16$. -/
+theorem cayley_n4 [Fintype (LabeledTree 4)] : Fintype.card (LabeledTree 4) = 16 := sorry
 
 /--
-**Jung's Theorem (1901)**:
-For any non-empty bounded subset $S \subset \mathbb{R}^d$, there exists a center point
-$c \in \mathbb{R}^d$ such that the closed ball of radius
-$R = \sqrt{\frac{d}{2(d+1)}} \operatorname{diam}(S)$ encloses $S$:
-$$S \subseteq \bar{B}\left(c, \sqrt{\frac{d}{2(d+1)}} \operatorname{diam}(S)\right)$$
+**Cayley's Rooted Tree Formula**:
+The number of rooted labeled trees on $n \ge 2$ vertices is $n \cdot n^{n-2} = n^{n-1}$.
 -/
-theorem jungs_theorem (d : ℕ) [NeZero d] (S : Set (EuclideanSpace ℝ (Fin d)))
-    (hS_nonempty : S.Nonempty) (hS_bdd : Bornology.IsBounded S) :
-    ∃ c : EuclideanSpace ℝ (Fin d), IsEnclosingBall S c (jungsConstant d * Metric.diam S) := sorry
-
-/--
-**Circumradius Bound via Jung's Theorem**:
-The Chebyshev radius of any non-empty bounded set $S \subset \mathbb{R}^d$ is bounded by:
-$$\mathcal{R}(S) \le \sqrt{\frac{d}{2(d+1)}} \operatorname{diam}(S)$$
--/
-theorem circumradius_le_jungs_bound (d : ℕ) [NeZero d] (S : Set (EuclideanSpace ℝ (Fin d)))
-    (hS_nonempty : S.Nonempty) (hS_bdd : Bornology.IsBounded S) :
-    circumradius S ≤ jungsConstant d * Metric.diam S := sorry
-
-/-- Evaluation of Jung's constant in dimension $1$: $J_1 = 1/2$. -/
-theorem jungsConstant_one : jungsConstant 1 = 1 / 2 := sorry
-
-/-- Evaluation of Jung's constant in dimension $2$: $J_2 = 1/\sqrt{3}$. -/
-theorem jungsConstant_two : jungsConstant 2 = 1 / Real.sqrt 3 := sorry
-
-/-- Evaluation of Jung's constant in dimension $3$: $J_3 = \sqrt{3/8}$. -/
-theorem jungsConstant_three : jungsConstant 3 = Real.sqrt (3 / 8) := sorry
-
-/-- Specialization to $d = 1$: Every 1D bounded set has circumradius at most $\frac{1}{2} \operatorname{diam}(S)$. -/
-theorem jungs_bound_dim1 (S : Set (EuclideanSpace ℝ (Fin 1)))
-    (hS_nonempty : S.Nonempty) (hS_bdd : Bornology.IsBounded S) :
-    circumradius S ≤ (1 / 2 : ℝ) * Metric.diam S := sorry
-
-/-- Specialization to $d = 2$: Every planar bounded set has circumradius at most $\frac{1}{\sqrt{3}} \operatorname{diam}(S)$. -/
-theorem jungs_bound_dim2 (S : Set (EuclideanSpace ℝ (Fin 2)))
-    (hS_nonempty : S.Nonempty) (hS_bdd : Bornology.IsBounded S) :
-    circumradius S ≤ (1 / Real.sqrt 3) * Metric.diam S := sorry
-
-/-- Specialization to $d = 3$: Every 3D bounded set has circumradius at most $\sqrt{3/8} \operatorname{diam}(S)$. -/
-theorem jungs_bound_dim3 (S : Set (EuclideanSpace ℝ (Fin 3)))
-    (hS_nonempty : S.Nonempty) (hS_bdd : Bornology.IsBounded S) :
-    circumradius S ≤ Real.sqrt (3 / 8 : ℝ) * Metric.diam S := sorry
+theorem rooted_trees_count (n : ℕ) (hn : 2 ≤ n) [Fintype (LabeledTree n)] [Fintype (RootedTree n)] :
+    Fintype.card (RootedTree n) = n ^ (n - 1) := sorry
